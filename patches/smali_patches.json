@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "targetPackage": "com.motorola.camera3.mod",
+  "targetVersion": "9.1.22.52",
+  "patches": [
+    {
+      "id": "bypass_art_hidden_api",
+      "category": "system-guard",
+      "file": "smali/com/motorola/camera/CameraApp.smali",
+      "description": "Exempt ART hidden APIs on process startup (both UI and :postProcService) via LSPosed HiddenApiBypass so libmcf-jni.so can resolve CaptureRequest.mLogicalCameraSettings/mSettings, CaptureResult.mResults, CameraCharacteristics.mProperties, and CameraMetadataNative.",
+      "find": ".method public final onCreate()V\n    .locals 6\n\n    invoke-super {p0}, Landroid/app/Application;->onCreate()V",
+      "replace": ".method public final onCreate()V\n    .locals 6\n\n    :try_start_hb\n    const-string v0, \"L\"\n\n    filled-new-array {v0}, [Ljava/lang/String;\n\n    move-result-object v0\n\n    invoke-static {v0}, Lorg/lsposed/hiddenapibypass/HiddenApiBypass;->addHiddenApiExemptions([Ljava/lang/String;)Z\n\n    move-result v0\n\n    const-string v1, \"CameraApp\"\n\n    new-instance v2, Ljava/lang/StringBuilder;\n\n    const-string v3, \"HiddenApiBypass exempt L: \"\n\n    invoke-direct {v2, v3}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V\n\n    invoke-virtual {v2, v0}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;\n\n    invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;\n\n    move-result-object v0\n\n    invoke-static {v1, v0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I\n    :try_end_hb\n    .catchall {:try_start_hb .. :try_end_hb} :catch_hb\n\n    goto :goto_hb\n\n    :catch_hb\n    move-exception v0\n\n    const-string v1, \"CameraApp\"\n\n    const-string v2, \"HiddenApiBypass failed\"\n\n    invoke-static {v1, v2, v0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I\n\n    :goto_hb\n    invoke-super {p0}, Landroid/app/Application;->onCreate()V"
+    },
+    {
+      "id": "unlock_developer_menu",
+      "category": "debug-unlock",
+      "file": "smali/com/motorola/camera/instrumentreport/DeveloperMenu.smali",
+      "description": "Force DeveloperMenu.isMenuEnabled() to evaluate mDebug = Boolean.TRUE on production user builds while keeping isUserAMonkey() intact.",
+      "find": "    if-eqz v0, :cond_0\n\n    sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;\n\n    goto :goto_3",
+      "replace": "    if-eqz v0, :cond_0\n\n    sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;\n\n    goto :goto_3"
+    },
+    {
+      "id": "unlock_mcf_override_prop",
+      "category": "debug-unlock",
+      "file": "smali/com/motorola/camera/fsm/camera/states/runnables/McfJsonConfig.smali",
+      "description": "Allow log.tag.mcf.override.config / MCF_OVERRIDE prop check in McfJsonConfig.getConfiguration() without enabling Util.TEST_BUILD filename suffixes.",
+      "find": "    sget-boolean v2, Lcom/motorola/camera/Util;->TEST_BUILD:Z\n\n    const/4 v3, 0x0\n\n    if-nez v2, :cond_1\n\n    goto :goto_0\n\n    :cond_1",
+      "replace": "    sget-boolean v2, Lcom/motorola/camera/Util;->TEST_BUILD:Z\n\n    const/4 v3, 0x0\n\n    goto :cond_1\n\n    :cond_1"
+    },
+    {
+      "id": "clone_util_fileprovider",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/Util.smali",
+      "description": "Point FileProvider authority in Util.getUriForFile() to cloned authority com.motorola.camera3.mod.FileProvider.",
+      "find": "    sget-object p0, Lcom/motorola/camera/CameraApp;->sInstance:Lcom/motorola/camera/CameraApp;\n\n    const-string v0, \"com.motorola.camera3.FileProvider\"",
+      "replace": "    sget-object p0, Lcom/motorola/camera/CameraApp;->sInstance:Lcom/motorola/camera/CameraApp;\n\n    const-string v0, \"com.motorola.camera3.mod.FileProvider\""
+    },
+    {
+      "id": "clone_filedatacontract_static",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/background/provider/FileDataContract.smali",
+      "description": "Isolate FileDataContract static CONTENT_URI and IN_MEMORY_CONTENT_URI authorities to com.motorola.camera3.mod.background.provider.*",
+      "find": "    const-string v0, \"content://com.motorola.camera3.background.provider.filedatacontract.FileDataContentProvider/fileData_table\"\n\n    invoke-static {v0}, Landroid/net/Uri;->parse(Ljava/lang/String;)Landroid/net/Uri;\n\n    move-result-object v0\n\n    const-string v1, \"parse(CONTENT_STRING)\"\n\n    invoke-static {v0, v1}, Lkotlin/io/ByteStreamsKt;->checkNotNullExpressionValue(Ljava/lang/Object;Ljava/lang/String;)V\n\n    sput-object v0, Lcom/motorola/camera/background/provider/FileDataContract;->CONTENT_URI:Landroid/net/Uri;\n\n    const-string v0, \"content://com.motorola.camera3.background.provider.MemoryDataContentProvider/fileData_table\"",
+      "replace": "    const-string v0, \"content://com.motorola.camera3.mod.background.provider.filedatacontract.FileDataContentProvider/fileData_table\"\n\n    invoke-static {v0}, Landroid/net/Uri;->parse(Ljava/lang/String;)Landroid/net/Uri;\n\n    move-result-object v0\n\n    const-string v1, \"parse(CONTENT_STRING)\"\n\n    invoke-static {v0, v1}, Lkotlin/io/ByteStreamsKt;->checkNotNullExpressionValue(Ljava/lang/Object;Ljava/lang/String;)V\n\n    sput-object v0, Lcom/motorola/camera/background/provider/FileDataContract;->CONTENT_URI:Landroid/net/Uri;\n\n    const-string v0, \"content://com.motorola.camera3.mod.background.provider.MemoryDataContentProvider/fileData_table\""
+    },
+    {
+      "id": "clone_filedatacontract_get_content_uri",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/background/provider/FileDataContract.smali",
+      "description": "Isolate FileDataContract.getContentUri(J) provider authority strings to com.motorola.camera3.mod.background.provider.*",
+      "find": "    if-eqz v0, :cond_0\n\n    const-string v0, \"content://com.motorola.camera3.background.provider.MemoryDataContentProvider/fileData_table\"\n\n    goto :goto_0\n\n    :cond_0\n    const-string v0, \"content://com.motorola.camera3.background.provider.filedatacontract.FileDataContentProvider/fileData_table\"",
+      "replace": "    if-eqz v0, :cond_0\n\n    const-string v0, \"content://com.motorola.camera3.mod.background.provider.MemoryDataContentProvider/fileData_table\"\n\n    goto :goto_0\n\n    :cond_0\n    const-string v0, \"content://com.motorola.camera3.mod.background.provider.filedatacontract.FileDataContentProvider/fileData_table\""
+    },
+    {
+      "id": "clone_filedatacontentprovider_auth",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/background/provider/filedatacontract/FileDataContentProvider.smali",
+      "description": "Isolate FileDataContentProvider AUTHORITY and CONTENT_STRING to com.motorola.camera3.mod.*",
+      "find": "    const-string v0, \"com.motorola.camera3.background.provider.filedatacontract.FileDataContentProvider\"\n\n    iput-object v0, p0, Lcom/motorola/camera/background/provider/filedatacontract/FileDataContentProvider;->AUTHORITY:Ljava/lang/String;\n\n    const-string v1, \"content://com.motorola.camera3.background.provider.filedatacontract.FileDataContentProvider/fileData_table\"",
+      "replace": "    const-string v0, \"com.motorola.camera3.mod.background.provider.filedatacontract.FileDataContentProvider\"\n\n    iput-object v0, p0, Lcom/motorola/camera/background/provider/filedatacontract/FileDataContentProvider;->AUTHORITY:Ljava/lang/String;\n\n    const-string v1, \"content://com.motorola.camera3.mod.background.provider.filedatacontract.FileDataContentProvider/fileData_table\""
+    },
+    {
+      "id": "clone_memorydatacontentprovider_auth",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/background/provider/memory/MemoryDataContentProvider.smali",
+      "description": "Isolate MemoryDataContentProvider.getAuthority() to com.motorola.camera3.mod.*",
+      "find": ".method public final getAuthority()Ljava/lang/String;\n    .locals 0\n\n    const-string p0, \"com.motorola.camera3.background.provider.MemoryDataContentProvider\"",
+      "replace": ".method public final getAuthority()Ljava/lang/String;\n    .locals 0\n\n    const-string p0, \"com.motorola.camera3.mod.background.provider.MemoryDataContentProvider\""
+    },
+    {
+      "id": "clone_sharedmemorycontentprovider_auth",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/background/provider/memory/SharedMemoryContentProvider.smali",
+      "description": "Isolate SharedMemoryContentProvider.getAuthority() to com.motorola.camera3.mod.*",
+      "find": ".method public final getAuthority()Ljava/lang/String;\n    .locals 0\n\n    const-string p0, \"com.motorola.camera3.background.provider.SharedMemoryContentProvider\"",
+      "replace": ".method public final getAuthority()Ljava/lang/String;\n    .locals 0\n\n    const-string p0, \"com.motorola.camera3.mod.background.provider.SharedMemoryContentProvider\""
+    },
+    {
+      "id": "clone_fileprovidercustom_fileplaceholder",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/mcf/FilePlaceholder.smali",
+      "description": "Isolate FileProviderCustom authority in FilePlaceholder to com.motorola.camera3.mod.*",
+      "find": "    if-eqz v1, :cond_8\n\n    const-string v1, \"com.motorola.camera3.background.provider.filedatacontract.FileProviderCustom\"\n\n    invoke-static {v0, v1, v11}, Landroidx/core/content/FileProvider;->getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
+      "replace": "    if-eqz v1, :cond_8\n\n    const-string v1, \"com.motorola.camera3.mod.background.provider.filedatacontract.FileProviderCustom\"\n\n    invoke-static {v0, v1, v11}, Landroidx/core/content/FileProvider;->getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;"
+    },
+    {
+      "id": "clone_fileprovidercustom_postcapture",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/ui/widgets/gl/PostCapture$$ExternalSyntheticLambda2.smali",
+      "description": "Isolate FileProviderCustom authority in PostCapture lambda to com.motorola.camera3.mod.*",
+      "find": "    const-string v2, \"com.motorola.camera3.background.provider.filedatacontract.FileProviderCustom\"\n\n    invoke-static {v1, v2, v3}, Landroidx/core/content/FileProvider;->getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
+      "replace": "    const-string v2, \"com.motorola.camera3.mod.background.provider.filedatacontract.FileProviderCustom\"\n\n    invoke-static {v1, v2, v3}, Landroidx/core/content/FileProvider;->getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;"
+    },
+    {
+      "id": "clone_fileprovidercustom_unsignedkt",
+      "category": "clone-isolation",
+      "file": "smali/kotlin/UnsignedKt.smali",
+      "description": "Isolate FileProviderCustom authority in UnsignedKt helper to com.motorola.camera3.mod.*",
+      "find": "    cmp-long v2, v13, v22\n\n    const-string v7, \"com.motorola.camera3.background.provider.filedatacontract.FileProviderCustom\"",
+      "replace": "    cmp-long v2, v13, v22\n\n    const-string v7, \"com.motorola.camera3.mod.background.provider.filedatacontract.FileProviderCustom\""
+    },
+    {
+      "id": "clone_fileprovidercustom_ew",
+      "category": "clone-isolation",
+      "file": "smali_classes2/e/W.smali",
+      "description": "Isolate FileProviderCustom authority in e/W lambda to com.motorola.camera3.mod.*",
+      "find": "    check-cast p0, Landroid/content/Context;\n\n    const-string v0, \"com.motorola.camera3.background.provider.filedatacontract.FileProviderCustom\"\n\n    invoke-static {p0, v0, p1}, Landroidx/core/content/FileProvider;->getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
+      "replace": "    check-cast p0, Landroid/content/Context;\n\n    const-string v0, \"com.motorola.camera3.mod.background.provider.filedatacontract.FileProviderCustom\"\n\n    invoke-static {p0, v0, p1}, Landroidx/core/content/FileProvider;->getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;"
+    },
+    {
+      "id": "clone_postproc_process_name",
+      "category": "clone-isolation",
+      "file": "smali/com/google/android/gms/dynamite/zzg.smali",
+      "description": "Match cloned :postProcService process name when killing stalled background service process.",
+      "find": "    const-string v3, \"com.motorola.camera3:postProcService\"\n\n    invoke-static {v2, v3}, Lkotlin/text/StringsKt__StringsKt;->equals(Ljava/lang/String;Ljava/lang/String;)Z\n\n    move-result v2\n\n    if-eqz v2, :cond_0\n\n    invoke-interface {p0, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;\n\n    move-result-object v0\n\n    check-cast v0, Landroid/app/ActivityManager$RunningAppProcessInfo;\n\n    iget v0, v0, Landroid/app/ActivityManager$RunningAppProcessInfo;->pid:I\n\n    new-instance v2, Ljava/lang/StringBuilder;\n\n    const-string v3, \"killing process com.motorola.camera3:postProcService, pid = \"",
+      "replace": "    const-string v3, \"com.motorola.camera3.mod:postProcService\"\n\n    invoke-static {v2, v3}, Lkotlin/text/StringsKt__StringsKt;->equals(Ljava/lang/String;Ljava/lang/String;)Z\n\n    move-result v2\n\n    if-eqz v2, :cond_0\n\n    invoke-interface {p0, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;\n\n    move-result-object v0\n\n    check-cast v0, Landroid/app/ActivityManager$RunningAppProcessInfo;\n\n    iget v0, v0, Landroid/app/ActivityManager$RunningAppProcessInfo;->pid:I\n\n    new-instance v2, Ljava/lang/StringBuilder;\n\n    const-string v3, \"killing process com.motorola.camera3.mod:postProcService, pid = \""
+    },
+    {
+      "id": "clone_makernotes_pkg_version",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/photometadata/MotMakerNotesParser.smali",
+      "description": "Read cached version string from PackageUtility using com.motorola.camera3.mod.",
+      "find": "    if-eqz v4, :cond_5\n\n    const-string v4, \"com.motorola.camera3\"\n\n    iget-object v5, v0, Lcom/motorola/camera/shared/PackageUtility;->mPackagesVersionMap:Ljava/util/HashMap;",
+      "replace": "    if-eqz v4, :cond_5\n\n    const-string v4, \"com.motorola.camera3.mod\"\n\n    iget-object v5, v0, Lcom/motorola/camera/shared/PackageUtility;->mPackagesVersionMap:Ljava/util/HashMap;"
+    },
+    {
+      "id": "clone_mcf_cache_version",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/mcf/Mcf$$ExternalSyntheticLambda2.smali",
+      "description": "Cache package version for com.motorola.camera3.mod during MCF init.",
+      "find": "    const-string v2, \"com.motorola.motcameradesktop\"\n\n    const-string v3, \"com.motorola.camera3\"\n\n    filled-new-array {v3, v0, v1, v2}, [Ljava/lang/String;",
+      "replace": "    const-string v2, \"com.motorola.motcameradesktop\"\n\n    const-string v3, \"com.motorola.camera3.mod\"\n\n    filled-new-array {v3, v0, v1, v2}, [Ljava/lang/String;"
+    },
+    {
+      "id": "clone_debug_broadcast_helper_action",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/ui/controls_2020/settings/helper/DebugBroadcastHelper.smali",
+      "description": "Namespace DebugBroadcastHelper action string to com.motorola.camera3.mod.DEBUG.",
+      "find": "    const-string v1, \"com.motorola.camera3.DEBUG\"\n\n    invoke-virtual {v0, v1}, Landroid/content/IntentFilter;->addAction(Ljava/lang/String;)V",
+      "replace": "    const-string v1, \"com.motorola.camera3.mod.DEBUG\"\n\n    invoke-virtual {v0, v1}, Landroid/content/IntentFilter;->addAction(Ljava/lang/String;)V"
+    },
+    {
+      "id": "clone_debug_ui_pref_attached",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/ui/controls_2020/settings/preferences/DebugUiPreference.smali",
+      "description": "Namespace global broadcast in DebugUiPreference.onAttached() to avoid waking stock camera.",
+      "find": "    const-string v0, \"com.motorola.camera3.DEBUG\"\n\n    invoke-direct {p0, v0}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V\n\n    const-string v0, \"com.motorola.camera3.EXTRA_ACTION\"\n\n    const/4 v1, 0x0",
+      "replace": "    const-string v0, \"com.motorola.camera3.mod.DEBUG\"\n\n    invoke-direct {p0, v0}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V\n\n    const-string v0, \"com.motorola.camera3.EXTRA_ACTION\"\n\n    const/4 v1, 0x0"
+    },
+    {
+      "id": "clone_debug_ui_pref_detached",
+      "category": "clone-isolation",
+      "file": "smali/com/motorola/camera/ui/controls_2020/settings/preferences/DebugUiPreference.smali",
+      "description": "Namespace global broadcast in DebugUiPreference.onDetached() to avoid waking stock camera.",
+      "find": "    const-string v0, \"com.motorola.camera3.DEBUG\"\n\n    invoke-direct {p0, v0}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V\n\n    const-string v0, \"com.motorola.camera3.EXTRA_ACTION\"\n\n    const/4 v1, 0x1",
+      "replace": "    const-string v0, \"com.motorola.camera3.mod.DEBUG\"\n\n    invoke-direct {p0, v0}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V\n\n    const-string v0, \"com.motorola.camera3.EXTRA_ACTION\"\n\n    const/4 v1, 0x1"
+    },
+    {
+      "id": "local_ai_models_fallback",
+      "category": "feature-unlock",
+      "file": "smali/com/motorola/camera/shared/ai/model/ContentAiProviderHelper.smali",
+      "description": "Load bundled MotCamera3AI .bin models from assets/ai_models/ when com.motorola.camera3.content.ai provider returns null due to signature permission denial.",
+      "find": "    :cond_4\n    :goto_5\n    move-object v4, v1\n\n    new-instance p0, Lcom/motorola/camera/shared/ai/model/ContentAiProviderHelper$Data;",
+      "replace": "    :cond_4\n    :goto_5\n    move-object v4, v1\n\n    if-nez v4, :cond_local_ai\n\n    sget-object v2, Lcom/motorola/camera/shared/ai/model/ContentAiProviderHelper;->appContext:Landroid/content/Context;\n\n    invoke-static {v2, v9}, Lcom/motorola/camera/shared/ai/model/LocalAiModelFallback;->openAssetFd(Landroid/content/Context;Ljava/lang/String;)Landroid/content/res/AssetFileDescriptor;\n\n    move-result-object v4\n\n    if-eqz v4, :cond_local_ai\n\n    invoke-static {v9}, Lcom/motorola/camera/shared/ai/model/LocalAiModelFallback;->getHash(Ljava/lang/String;)Ljava/lang/String;\n\n    move-result-object v5\n\n    invoke-static {v9, v6}, Lcom/motorola/camera/shared/ai/model/LocalAiModelFallback;->getVersion(Ljava/lang/String;I)I\n\n    move-result v6\n\n    const/4 v3, 0x1\n\n    :cond_local_ai\n    new-instance p0, Lcom/motorola/camera/shared/ai/model/ContentAiProviderHelper$Data;"
+    }
+  ]
+}

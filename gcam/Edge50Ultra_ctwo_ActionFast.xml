@@ -1,0 +1,365 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <!-- BSG MGC 9.7.047_V37_snap - Motorola Edge 50 Ultra (ctwo) - ACTION FAST -->
+    <!-- Priority: Anti motion-blur (pets/kids), ZSL minimal lag, fast shutter, crisp fur/hair edges -->
+    <string name="gcam_vesion">9.7.047</string>
+    <string name="pref_last_installed_version_code">68097556</string>
+    <string name="pref_upgrade_version">27</string>
+    <string name="pref_check_hal_update_after_gca_version">68097556</string>
+    <string name="perf_has_run_education">1</string>
+    <string name="perf_has_run_second_education">1</string>
+    <string name="perf_has_run_first_education">1</string>
+
+    <!-- Non-Pixel Device Profile & HAL Level 3+ Surfaces -->
+    <string name="device_key">ctwo</string>
+    <string name="device_hdrplus_key_1">ctwo</string>
+    <string name="device_hdrplus_key_2">ctwo</string>
+    <string name="device_hdrplus_key_3">ctwo</string>
+    <string name="device_hdrplus_key_5">ctwo</string>
+    <string name="hwlevel_key">6</string>
+    <string name="surfase_list_key_1">3</string>
+    <string name="surfase_list_key_2">3</string>
+    <string name="surfase_list_key_3">3</string>
+    <string name="surfase_list_key_5">3</string>
+    <string name="preview_key_1">0</string>
+    <string name="preview_key_2">0</string>
+    <string name="preview_key_3">0</string>
+    <string name="preview_key_5">0</string>
+    <boolean name="custom.color_correction_gains_enable" value="true" />
+    <boolean name="custom.shading_map_enable" value="true" />
+    <boolean name="disable_cam_char_fix_keys" value="false" />
+    <boolean name="mn_enabled" value="true" />
+
+    <!-- Disable Pixel-only EdgeTPU & crashy libsmartcapture_native frame-quality-s zoom/AddMe paths on Snapdragon 8s Gen 3 -->
+    <boolean name="camera.cottage_use_tpu" value="false" />
+    <boolean name="camera.hawk_tpu_enabled" value="false" />
+    <boolean name="camera.falcon_tpu_enabled" value="false" />
+    <boolean name="camera.cyclops_use_tpu" value="false" />
+    <boolean name="camera.gouda.portrait_matting_use_tpu" value="false" />
+    <boolean name="camera.mts_sc_accel_tpu" value="false" />
+    <boolean name="camera.mts_smartcapturenet_enable" value="false" />
+    <boolean name="camera.mts_smartcapturenet_2" value="false" />
+    <boolean name="camera.mts_smart_zoom" value="false" />
+
+    <!-- Lens toggles & Physical Camera Isolation (blacklist logical multicams 0 and 4) -->
+    <boolean name="camera.lenstoggles_enable" value="true" />
+    <string name="active_cam_id_back_key">2</string>
+    <string name="active_cam_id_front_key">1</string>
+    <string name="lens_wl_key">1,2,3,5</string>
+    <string name="lens_bl_key">0,4</string>
+    <string name="max_digital_zoom_key_1">8.0</string>
+    <string name="max_digital_zoom_key_2">8.0</string>
+    <string name="max_digital_zoom_key_3">8.0</string>
+    <string name="max_digital_zoom_key_5">8.0</string>
+
+    <!-- HAL Black Level (bl_entryvalues: 3 = 64) -->
+    <string name="bl_key_1">3</string>
+    <string name="bl_key_2">3</string>
+    <string name="bl_key_3">3</string>
+    <string name="bl_key_5">3</string>
+
+    <!-- HAL CFA Bayer Pattern (c_f_a_entryvalues: 1=RGGB, 2=GRBG, 3=GBRG, 4=BGGR) -->
+    <string name="c_f_a_key_1">3</string>
+    <string name="c_f_a_key_2">1</string>
+    <string name="c_f_a_key_3">2</string>
+    <string name="c_f_a_key_5">3</string>
+
+    <!-- HAL White Level & RAW10 -->
+    <string name="wl_key_1">1023</string>
+    <string name="wl_key_2">1023</string>
+    <string name="wl_key_3">1023</string>
+    <string name="wl_key_5">1023</string>
+    <string name="raw_key_1">37</string>
+    <string name="raw_key_2">37</string>
+    <string name="raw_key_3">37</string>
+    <string name="raw_key_5">37</string>
+
+    <!-- Resolutions & Fast JPEG -->
+    <string name="pref_camera_resolution">max</string>
+    <string name="pref_camera_picturesize_back_key">4096x3072</string>
+    <string name="pref_camera_picturesize_front_key">4080x3060</string>
+    <string name="key_aspect_ratio">0</string>
+    <string name="jpg_opt_q_key_1">95</string>
+    <string name="jpg_opt_q_key_2">95</string>
+    <string name="jpg_opt_q_key_3">95</string>
+    <string name="jpg_opt_q_key_5">95</string>
+    <string name="antibanding_key_1">4</string>
+    <string name="antibanding_key_2">4</string>
+    <string name="antibanding_key_3">4</string>
+    <string name="antibanding_key_5">4</string>
+
+    <!-- Low-latency HDR-Net ZSL Pipeline (Auto NS OFF) -->
+    <string name="hdr_net_key">1</string>
+    <string name="pref_camera_hdr_plus_key">auto</string>
+    <string name="pref_camera_hdrplus_option_available_key">1</string>
+    <string name="pref_camera_raw_output_option_available_key">1</string>
+    <string name="pref_camera_raw_output_key">0</string>
+    <string name="auto_ns_key">0</string>
+    <string name="execute_finish_on_key">0</string>
+
+    <!-- Tight Burst Frame Counts (minimal ZSL capture window & ghosting) -->
+    <string name="frame_count_f_photo_1">5</string>
+    <string name="frame_count_b_photo_2">5</string>
+    <string name="frame_count_b_photo_3">5</string>
+    <string name="frame_count_b_photo_5">6</string>
+    <string name="frame_count_f_ns_1">9</string>
+    <string name="frame_count_b_ns_2">9</string>
+    <string name="frame_count_b_ns_3">10</string>
+    <string name="frame_count_b_ns_5">12</string>
+    <string name="frame_count_f_portrait_1">5</string>
+    <string name="frame_count_b_portrait_2">5</string>
+    <string name="frame_count_b_portrait_3">5</string>
+    <string name="frame_count_b_portrait_5">6</string>
+
+    <!-- Fast Merge & Shasta OFF (prevents multi-EV bracketing shutter delay) -->
+    <string name="merge_key_1">0</string>
+    <string name="merge_key_2">0</string>
+    <string name="merge_key_3">0</string>
+    <string name="merge_key_5">0</string>
+    <string name="merge_processor_key_1">0</string>
+    <string name="merge_processor_key_2">0</string>
+    <string name="merge_processor_key_3">0</string>
+    <string name="merge_processor_key_5">0</string>
+    <string name="shasta_key_1">-1</string>
+    <string name="shasta_key_2">-1</string>
+    <string name="shasta_key_3">-1</string>
+    <string name="shasta_key_5">-1</string>
+    <string name="processing_conveyor_key_1">0</string>
+    <string name="processing_conveyor_key_2">0</string>
+    <string name="processing_conveyor_key_3">0</string>
+    <string name="processing_conveyor_key_5">0</string>
+
+    <!-- Focus Peaking UI OFF -->
+    <string name="peaking_key_1">0</string>
+    <string name="peaking_key_2">0</string>
+    <string name="peaking_key_3">0</string>
+    <string name="peaking_key_5">0</string>
+
+    <!-- Fast-Shutter AE Corrector (ISO boost over shutter drag; respects cam_5 ISO 1594 cap) -->
+    <string name="expcomp_key_1">-1</string>
+    <string name="expcomp_key_2">-1</string>
+    <string name="expcomp_key_3">-1</string>
+    <string name="expcomp_key_5">0</string>
+
+    <string name="quality_auto_corrector_key_1">6</string>
+    <string name="quality_auto_corrector_key_2">7</string>
+    <string name="quality_auto_corrector_key_3">6</string>
+    <string name="quality_auto_corrector_key_5">6</string>
+
+    <string name="exp_auto_limit_key_1">16</string>
+    <string name="exp_auto_limit_key_2">16</string>
+    <string name="exp_auto_limit_key_3">12</string>
+    <string name="exp_auto_limit_key_5">33</string>
+
+    <string name="iso_auto_limit_key_1"></string>
+    <string name="iso_auto_limit_key_2"></string>
+    <string name="iso_auto_limit_key_3"></string>
+    <string name="iso_auto_limit_key_5"></string>
+
+    <string name="quality_enh_corrector_key_1">6</string>
+    <string name="quality_enh_corrector_key_2">7</string>
+    <string name="quality_enh_corrector_key_3">6</string>
+    <string name="quality_enh_corrector_key_5">6</string>
+
+    <string name="exp_enh_limit_key_1">25</string>
+    <string name="exp_enh_limit_key_2">25</string>
+    <string name="exp_enh_limit_key_3">20</string>
+    <string name="exp_enh_limit_key_5">50</string>
+
+    <string name="iso_enh_limit_key_1"></string>
+    <string name="iso_enh_limit_key_2"></string>
+    <string name="iso_enh_limit_key_3"></string>
+    <string name="iso_enh_limit_key_5"></string>
+
+    <!-- Color & Saturation (Punchy daylight/indoor clarity without skin cast) -->
+    <string name="fix_saturation_key_1">1</string>
+    <string name="fix_saturation_key_2">1</string>
+    <string name="fix_saturation_key_3">1</string>
+    <string name="fix_saturation_key_5">1</string>
+
+    <string name="pref_satCCT_1">0.98</string>
+    <string name="pref_satCCT_R_1">0.98</string>
+    <string name="pref_satCCT_G_1">1.0</string>
+    <string name="pref_satCCT_B_1">1.0</string>
+
+    <string name="pref_satCCT_2">1.05</string>
+    <string name="pref_satCCT_R_2">1.0</string>
+    <string name="pref_satCCT_G_2">1.0</string>
+    <string name="pref_satCCT_B_2">1.02</string>
+
+    <string name="pref_satCCT_3">1.08</string>
+    <string name="pref_satCCT_R_3">1.0</string>
+    <string name="pref_satCCT_G_3">1.02</string>
+    <string name="pref_satCCT_B_3">1.05</string>
+
+    <string name="pref_satCCT_5">1.06</string>
+    <string name="pref_satCCT_R_5">1.0</string>
+    <string name="pref_satCCT_G_5">1.0</string>
+    <string name="pref_satCCT_B_5">1.02</string>
+
+    <string name="pref_global_hue_1">0.0</string>
+    <string name="pref_global_hue_2">0.0</string>
+    <string name="pref_global_hue_3">0.0</string>
+    <string name="pref_global_hue_5">0.0</string>
+    <string name="pref_R_hue_1">0.0</string>
+    <string name="pref_R_hue_2">0.0</string>
+    <string name="pref_R_hue_3">0.0</string>
+    <string name="pref_R_hue_5">0.0</string>
+    <string name="pref_G_hue_1">0.0</string>
+    <string name="pref_G_hue_2">0.0</string>
+    <string name="pref_G_hue_3">0.0</string>
+    <string name="pref_G_hue_5">0.0</string>
+    <string name="pref_B_hue_1">0.0</string>
+    <string name="pref_B_hue_2">0.0</string>
+    <string name="pref_B_hue_3">0.0</string>
+    <string name="pref_B_hue_5">0.0</string>
+
+    <!-- Camera2 Capture Request Modes: ZSL + Fast for minimum shot-to-shot lag -->
+    <string name="c_c_i_quality_key_1">6</string>
+    <string name="c_c_i_quality_key_2">6</string>
+    <string name="c_c_i_quality_key_3">6</string>
+    <string name="c_c_i_quality_key_5">6</string>
+    <string name="n_r_m_quality_key_1">5</string>
+    <string name="n_r_m_quality_key_2">5</string>
+    <string name="n_r_m_quality_key_3">5</string>
+    <string name="n_r_m_quality_key_5">5</string>
+    <string name="e_m_quality_key_1">4</string>
+    <string name="e_m_quality_key_2">4</string>
+    <string name="e_m_quality_key_3">4</string>
+    <string name="e_m_quality_key_5">4</string>
+    <string name="t_m_quality_key_1">2</string>
+    <string name="t_m_quality_key_2">2</string>
+    <string name="t_m_quality_key_3">2</string>
+    <string name="t_m_quality_key_5">2</string>
+    <string name="s_m_quality_key_1">2</string>
+    <string name="s_m_quality_key_2">2</string>
+    <string name="s_m_quality_key_3">2</string>
+    <string name="s_m_quality_key_5">2</string>
+    <string name="h_p_m_quality_key_1">2</string>
+    <string name="h_p_m_quality_key_2">2</string>
+    <string name="h_p_m_quality_key_3">2</string>
+    <string name="h_p_m_quality_key_5">2</string>
+    <string name="d_c_m_quality_key_1">2</string>
+    <string name="d_c_m_quality_key_2">2</string>
+    <string name="d_c_m_quality_key_3">2</string>
+    <string name="d_c_m_quality_key_5">2</string>
+    <string name="c_c_m_quality_key_1">2</string>
+    <string name="c_c_m_quality_key_2">2</string>
+    <string name="c_c_m_quality_key_3">2</string>
+    <string name="c_c_m_quality_key_5">2</string>
+    <string name="c_c_a_m_quality_key_1">2</string>
+    <string name="c_c_a_m_quality_key_2">2</string>
+    <string name="c_c_a_m_quality_key_3">2</string>
+    <string name="c_c_a_m_quality_key_5">2</string>
+
+    <!-- BSG 9.7 LibPatcher (Fur/hair edge retention at higher ISO, clean chroma) -->
+    <string name="on_pthcr_key">1</string>
+    <string name="user_nm_pthcr_key_1">0</string>
+    <string name="user_nm_pthcr_key_2">0</string>
+    <string name="user_nm_pthcr_key_3">0</string>
+    <string name="user_nm_pthcr_key_5">0</string>
+    <string name="LumaOffset_fmov_3f80_0000_pthcr_key_1">1.0</string>
+    <string name="LumaOffset_fmov_3f80_0000_pthcr_key_2">1.0</string>
+    <string name="LumaOffset_fmov_3f80_0000_pthcr_key_3">1.0</string>
+    <string name="LumaOffset_fmov_3f80_0000_pthcr_key_5">1.0</string>
+    <string name="LumaScale_fmov_3f80_0000_pthcr_key_1">1.0</string>
+    <string name="LumaScale_fmov_3f80_0000_pthcr_key_2">1.0</string>
+    <string name="LumaScale_fmov_3f80_0000_pthcr_key_3">1.0</string>
+    <string name="LumaScale_fmov_3f80_0000_pthcr_key_5">1.0</string>
+    <string name="ChromaOffset_fmov_3f80_0000_pthcr_key_1">1.0</string>
+    <string name="ChromaOffset_fmov_3f80_0000_pthcr_key_2">1.0</string>
+    <string name="ChromaOffset_fmov_3f80_0000_pthcr_key_3">1.0</string>
+    <string name="ChromaOffset_fmov_3f80_0000_pthcr_key_5">1.0</string>
+    <string name="ChromaScale_fmov_3f80_0000_pthcr_key_1">1.0</string>
+    <string name="ChromaScale_fmov_3f80_0000_pthcr_key_2">1.0</string>
+    <string name="ChromaScale_fmov_3f80_0000_pthcr_key_3">1.0</string>
+    <string name="ChromaScale_fmov_3f80_0000_pthcr_key_5">1.0</string>
+
+    <!-- Lens 1 (Front mot_s5kjns) -->
+    <string name="RawSharpen_a_3f80_0000_pthcr_key_1">0.78</string>
+    <string name="SharpenStrengthFactorMinA_a_3f80_0000_pthcr_key_1">0.78</string>
+    <string name="SharpenStrengthFactorMaxA_a_3f80_0000_pthcr_key_1">0.88</string>
+    <string name="OverrideSharpenMaxDetailA_a_3F4C_CCCD_pthcr_key_1">0.68</string>
+    <string name="DetailSabre_fmov_3f80_0000_pthcr_key_1">0.90625</string>
+    <string name="LumaStrengthFactorMinA_a_3f80_0000_pthcr_key_1">0.85</string>
+    <string name="LumaStrengthFactorMaxA_a_3f80_0000_pthcr_key_1">1.02</string>
+    <string name="ChromaStrengthFactorMinA_a_3f80_0000_pthcr_key_1">1.12</string>
+    <string name="ChromaStrengthFactorMaxA_a_3f80_0000_pthcr_key_1">1.25</string>
+    <string name="LumaRevertFactorMinA_a_3f80_0000_pthcr_key_1">1.10</string>
+    <string name="LumaRevertFactorMaxA_a_3f80_0000_pthcr_key_1">1.05</string>
+    <string name="LumaDenoiseAA_fmov_3f80_0000_pthcr_key_1">0.875</string>
+    <string name="LumaDenoiseBA_fmov_bf80_0000_pthcr_key_1">-1.0</string>
+    <string name="LutNoiseAA_fmov_3f00_0000_pthcr_key_1">0.5</string>
+    <string name="LutNoiseBA_fmov_c000_0000_pthcr_key_1">-2.0</string>
+
+    <!-- Lens 2 (Main mot_ov50h: crisp moving textures even at ISO 800-3200) -->
+    <string name="RawSharpen_a_3f80_0000_pthcr_key_2">0.92</string>
+    <string name="SharpenStrengthFactorMinA_a_3f80_0000_pthcr_key_2">0.92</string>
+    <string name="SharpenStrengthFactorMaxA_a_3f80_0000_pthcr_key_2">1.05</string>
+    <string name="OverrideSharpenMaxDetailA_a_3F4C_CCCD_pthcr_key_2">0.80</string>
+    <string name="DetailSabre_fmov_3f80_0000_pthcr_key_2">1.0</string>
+    <string name="LumaStrengthFactorMinA_a_3f80_0000_pthcr_key_2">0.72</string>
+    <string name="LumaStrengthFactorMaxA_a_3f80_0000_pthcr_key_2">0.92</string>
+    <string name="ChromaStrengthFactorMinA_a_3f80_0000_pthcr_key_2">1.05</string>
+    <string name="ChromaStrengthFactorMaxA_a_3f80_0000_pthcr_key_2">1.18</string>
+    <string name="LumaRevertFactorMinA_a_3f80_0000_pthcr_key_2">1.15</string>
+    <string name="LumaRevertFactorMaxA_a_3f80_0000_pthcr_key_2">1.10</string>
+    <string name="LumaDenoiseAA_fmov_3f80_0000_pthcr_key_2">0.8125</string>
+    <string name="LumaDenoiseBA_fmov_bf80_0000_pthcr_key_2">-1.0</string>
+    <string name="LutNoiseAA_fmov_3f00_0000_pthcr_key_2">0.46875</string>
+    <string name="LutNoiseBA_fmov_c000_0000_pthcr_key_2">-2.0</string>
+
+    <!-- Lens 3 (UW mot_s5kjn1) -->
+    <string name="RawSharpen_a_3f80_0000_pthcr_key_3">0.92</string>
+    <string name="SharpenStrengthFactorMinA_a_3f80_0000_pthcr_key_3">0.95</string>
+    <string name="SharpenStrengthFactorMaxA_a_3f80_0000_pthcr_key_3">1.05</string>
+    <string name="OverrideSharpenMaxDetailA_a_3F4C_CCCD_pthcr_key_3">0.80</string>
+    <string name="DetailSabre_fmov_3f80_0000_pthcr_key_3">1.0</string>
+    <string name="LumaStrengthFactorMinA_a_3f80_0000_pthcr_key_3">0.84</string>
+    <string name="LumaStrengthFactorMaxA_a_3f80_0000_pthcr_key_3">1.02</string>
+    <string name="ChromaStrengthFactorMinA_a_3f80_0000_pthcr_key_3">1.15</string>
+    <string name="ChromaStrengthFactorMaxA_a_3f80_0000_pthcr_key_3">1.28</string>
+    <string name="LumaRevertFactorMinA_a_3f80_0000_pthcr_key_3">1.10</string>
+    <string name="LumaRevertFactorMaxA_a_3f80_0000_pthcr_key_3">1.05</string>
+    <string name="LumaDenoiseAA_fmov_3f80_0000_pthcr_key_3">0.875</string>
+    <string name="LumaDenoiseBA_fmov_bf80_0000_pthcr_key_3">-1.0</string>
+    <string name="LutNoiseAA_fmov_3f00_0000_pthcr_key_3">0.5</string>
+    <string name="LutNoiseBA_fmov_c000_0000_pthcr_key_3">-2.0</string>
+
+    <!-- Lens 5 (Tele 3x mot_ov64b) -->
+    <string name="RawSharpen_a_3f80_0000_pthcr_key_5">0.95</string>
+    <string name="SharpenStrengthFactorMinA_a_3f80_0000_pthcr_key_5">0.98</string>
+    <string name="SharpenStrengthFactorMaxA_a_3f80_0000_pthcr_key_5">1.08</string>
+    <string name="OverrideSharpenMaxDetailA_a_3F4C_CCCD_pthcr_key_5">0.82</string>
+    <string name="DetailSabre_fmov_3f80_0000_pthcr_key_5">1.0625</string>
+    <string name="LumaStrengthFactorMinA_a_3f80_0000_pthcr_key_5">0.88</string>
+    <string name="LumaStrengthFactorMaxA_a_3f80_0000_pthcr_key_5">1.05</string>
+    <string name="ChromaStrengthFactorMinA_a_3f80_0000_pthcr_key_5">1.18</string>
+    <string name="ChromaStrengthFactorMaxA_a_3f80_0000_pthcr_key_5">1.30</string>
+    <string name="LumaRevertFactorMinA_a_3f80_0000_pthcr_key_5">1.10</string>
+    <string name="LumaRevertFactorMaxA_a_3f80_0000_pthcr_key_5">1.05</string>
+    <string name="LumaDenoiseAA_fmov_3f80_0000_pthcr_key_5">0.875</string>
+    <string name="LumaDenoiseBA_fmov_bf80_0000_pthcr_key_5">-1.0</string>
+    <string name="LutNoiseAA_fmov_3f00_0000_pthcr_key_5">0.5</string>
+    <string name="LutNoiseBA_fmov_c000_0000_pthcr_key_5">-2.0</string>
+
+    <!-- Video (4K60, Slow-Mo, OIS/EIS; amethyst disabled to prevent BSG 9.7 Video ANR in kku.l) & UX -->
+    <boolean name="camera.60fps" value="true" />
+    <boolean name="camcorder.4k60fps" value="true" />
+    <boolean name="camera.enable_slowmo" value="true" />
+    <boolean name="camcorder.amethyst" value="false" />
+    <boolean name="camcorder.amethyst_opt" value="false" />
+    <boolean name="finish_video_capture" value="true" />
+    <string name="pref_video_resolution">RES_2160P</string>
+    <string name="pref_video_fps_4k_key">FPS_60</string>
+    <string name="pref_video_fps_cm_key">FPS_60</string>
+    <string name="pref_video_fps_p2018_key">FPS_AUTO</string>
+    <string name="pref_video_fps_vb_key">FPS_30</string>
+    <string name="pref_video_hevc_setting_key">1</string>
+    <string name="pref_video_amethyst_key">0</string>
+    <string name="pref_video_stabilization_key">1</string>
+    <string name="pref_video_stabilization_ois_key">1</string>
+    <string name="pref_camera_sounds_key">0</string>
+    <string name="pref_camera_selfie_mirror_key">0</string>
+    <string name="galley_key">com.google.android.apps.photos</string>
+</map>

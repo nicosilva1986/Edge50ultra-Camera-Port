@@ -1,0 +1,25 @@
+# Extracted proprietary APKs, libraries, models, and configs (never commit)
+apks/
+configs/
+configs_mod/
+decompiled/
+libs/
+tools/
+work/
+dist/
+*.apk
+*.so
+*.bin
+*.model
+*.mslut
+*.lic
+*.cfg
+*.decrypted.json
+*.mod.json
+
+# Runtime / OS / IDE artifacts
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
