@@ -335,7 +335,7 @@ const changelogCell = (value, emptyLabel) => value === null ? emptyLabel : tick(
 const changelog = [
   '# Motorola Edge 50 Ultra camera config changes',
   '',
-  'Generated for the ctwo Motorola Camera clone. Paths are JSON Pointers into the stock documents. The app feature pointer uses its stock array index. This is the Sin IA / Fast profile.',
+  'Generated for the ctwo Motorola Camera clone. Paths are JSON Pointers into the stock documents. The app feature pointer uses its stock array index. This is the Fast / Low-AI profile.',
   '',
   '| File | JSON Pointer | Stock | Mod | Technical rationale |',
   '| --- | --- | --- | --- | --- |',

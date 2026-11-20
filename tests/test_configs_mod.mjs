@@ -297,7 +297,7 @@ test('app features remove the HDR settings UI suppression flag and preserve ever
   assert.notEqual(JSON.stringify(expected), JSON.stringify(readSchema(stock)));
 });
 
-test('changelog names every Sin IA / Fast edit and its stock token', { skip: !hasStockAndMod }, () => {
+test('changelog names every Fast / Low-AI edit and its stock token', { skip: !hasStockAndMod }, () => {
   const changelog = readMod('CONFIG_CHANGELOG.md').toString('utf8');
   const required = [
     '`/ctwo/qc_mfnr_settings/exposure_schedule_lowlight/0/exposure_time` | `250.0` | `225.0`',
@@ -340,7 +340,7 @@ test('changelog names every Sin IA / Fast edit and its stock token', { skip: !ha
     'RAW_SUPER_NIGHT',
   ];
   for (const fragment of required) assert.equal(changelog.includes(fragment), true, fragment);
-  assert.equal(changelog.includes('Sin IA / Fast'), true);
+  assert.equal(changelog.includes('Fast / Low-AI'), true);
   assert.equal(changelog.includes('| `1` |'), false);
 });
 

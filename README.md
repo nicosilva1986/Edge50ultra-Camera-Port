@@ -1,8 +1,10 @@
 # Edge50ultra-Camera-Port
 
-Clean-room APK patcher, **Moto Camera 5 (`10.0.44.42`)** port, **"Sin IA / Fast"** config generator for **Moto Camera 4 (`9.1.22.52`)**, and tuned **GCam BSG 9.7** XML profiles for the **Motorola Edge 50 Ultra (`ctwo`, Snapdragon 8s Gen 3 / `SM8635`)** — designed for **locked-bootloader, non-root Android 17 (`SDK 37`)**.
+Clean-room APK patcher, **Moto Camera 5 (`10.0.44.42`)** port, **"Fast / Low-AI"** config generator for **Moto Camera 4 (`9.1.22.52`)**, and tuned **GCam BSG 9.7** XML profiles for the **Motorola Edge 50 Ultra (`ctwo`, Snapdragon 8s Gen 3 / `SM8635`)** — designed for **locked-bootloader, non-root Android 17 (`SDK 37`)**.
 
-> **Zero-proprietary-blobs policy:** This repository contains **only** original Node.js (ESM) tooling, Smali patches, third-party Apache-2.0 `AndroidHiddenApiBypass` Smali, GCam XML configs, and documentation. You supply your own `MotCamera4.apk` / `MotCamera3AI.apk` (pulled via `adb`) and Qualcomm `MotCamera5` donor APK.
+> **Prebuilt APKs:** Ready-to-install APKs (`MotCamera5-Port-ctwo.apk` and `MotCamera4-Mod.apk`) are hosted on the [**GitHub Releases**](https://github.com/nicosilva1986/Edge50ultra-Camera-Port/releases/latest) page.
+>
+> **Zero-proprietary-blobs policy:** The Git tree itself contains **only** original Node.js (ESM) tooling, Smali patches, third-party Apache-2.0 `AndroidHiddenApiBypass` Smali, GCam XML configs, and documentation. You can rebuild everything from scratch by supplying your own `MotCamera4.apk` / `MotCamera3AI.apk` (pulled via `adb`) and Qualcomm `MotCamera5` donor APK.
 
 ---
 
@@ -10,8 +12,8 @@ Clean-room APK patcher, **Moto Camera 5 (`10.0.44.42`)** port, **"Sin IA / Fast"
 
 1. **Moto Camera 5 Port (`com.motorola.camera5` `v10.0.44.42`)** — [`scripts/build_motcam5_port.mjs`](scripts/build_motcam5_port.mjs)
    - Ports the 2026 Qualcomm Moto Camera 5 UI, 2x zoom toggle, `VIDEO_HDR10`, `AI_PERSONAL_COLOR_TONE`, and 10-bit Ultra HDR (`MCF_UHDR_ALG` + `libultrahdr.so`) onto `ctwo` in parallel with stock camera.
-   - Fixes the `"Use the official app"` modal (`vendor_ctwo` in `com.android.dynamic.apk.fused.modules`), migrates `mcf_config_ctwo` to Camera 5's Blowfish key (`"uljw91D2"`) & JSON schema, enables `customized-hal-zsl-on-modes` (`["MODE_PHOTO", "MODE_MOTION_CAPTURE"]`) to fix black Photo viewfinder (`ILLEGAL_ARGUMENT`), and merges `0x81` `feature_adobe_scan` resources.
-2. **Moto Camera 4 Clone — "Sin IA / Fast" (`com.motorola.camera3.mod`)** — [`scripts/build_clone.mjs`](scripts/build_clone.mjs) + [`scripts/generate_mod_configs.mjs`](scripts/generate_mod_configs.mjs)
+   - Fixes the `"Use the official app"` modal (`vendor_ctwo` in `com.android.dynamic.apk.fused.modules`), migrates `mcf_config_ctwo` to Camera 5's Blowfish key (`"uljw91D2"`) & JSON schema, enables `customized-hal-zsl-on-modes` (`["MODE_PHOTO", "MODE_MOTION_CAPTURE"]`) to fix black Photo viewfinder (`ILLEGAL_ARGUMENT`), routes Google Lens through `com.google.ar.lens` (`LensLauncherActivity`) to bypass debug-signature caller rejection, and merges `0x81` `feature_adobe_scan` resources.
+2. **Moto Camera 4 Clone — "Fast / Low-AI" (`com.motorola.camera3.mod`)** — [`scripts/build_clone.mjs`](scripts/build_clone.mjs) + [`scripts/generate_mod_configs.mjs`](scripts/generate_mod_configs.mjs)
    - Routes default `hdr_off` / `hdr_auto_off` capture from ArcSoft `RAW_HDR` (which forces `use_zsl: false`) to Qualcomm Spectra ISP **`HAL_FRAME_STACK`** (`use_zsl: true`, `need-to-lock-ae: false`, `shutter_throttle_time` `800/400 -> 150/100 ms`).
    - Disables `ai-scene-detect`, `tetras-raw-sr`, `beauty-shot-fotonation` (`level 0`), and 245 MB startup preload (`fast-init.hold-startup-handle-for-algo`).
    - Bundles all 9 `MotCamera3AI` `.bin` models offline (`LocalAiModelFallback.smali`) and injects `HiddenApiBypass` v6.2 for Android 17 ART hidden-API access without root.
@@ -42,7 +44,7 @@ Clean-room APK patcher, **Moto Camera 5 (`10.0.44.42`)** port, **"Sin IA / Fast"
    ```bash
    npm test
    ```
-3. **Generate "Sin IA / Fast" configs & build `MotCamera4-Mod.apk`:**
+3. **Generate "Fast / Low-AI" configs & build `MotCamera4-Mod.apk`:**
    ```bash
    npm run gen:configs
    node scripts/build_clone.mjs \
