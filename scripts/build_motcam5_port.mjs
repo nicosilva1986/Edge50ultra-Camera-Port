@@ -27,6 +27,7 @@ const SRC4 = process.env.MOTCAM4_SRC || path.join(BASE, 'decompiled', 'MotCamera
 const CTWO_CFG = resolveConfigsDir();
 const MOD_CFG = path.join(REPO_ROOT, 'configs_mod');
 const HIDDEN_API = path.join(REPO_ROOT, 'patches', 'hiddenapibypass_smali');
+const PATCHES_CAM5 = path.join(REPO_ROOT, 'patches', 'smali_patches_cam5.json');
 
 const STAGE = path.join(BASE, 'work_motcam5');
 const OUT_APK = path.join(BASE, 'dist', 'MotCamera5-Port-ctwo.apk');
@@ -88,31 +89,12 @@ for (const ent of fs.readdirSync(resDir, { withFileTypes: true })) {
   if (next !== s) fs.writeFileSync(sp, next);
 }
 
-console.log('3. Applying Smali patches (HiddenApiBypass, system feature check, DeveloperMenu)...');
-patchExact(
-  path.join(STAGE, 'smali', 'com', 'motorola', 'camera', 'CameraApp.smali'),
-  '.method public final onCreate()V\n    .locals 5\n\n    invoke-super {p0}, Landroid/app/Application;->onCreate()V',
-  '.method public final onCreate()V\n    .locals 5\n\n    const/4 v0, 0x1\n\n    new-array v0, v0, [Ljava/lang/String;\n\n    const/4 v1, 0x0\n\n    const-string v2, "L"\n\n    aput-object v2, v0, v1\n\n    invoke-static {v0}, Lorg/lsposed/hiddenapibypass/HiddenApiBypass;->addHiddenApiExemptions([Ljava/lang/String;)Z\n\n    invoke-super {p0}, Landroid/app/Application;->onCreate()V',
-  'bypass_art_hidden_api',
-);
-patchExact(
-  path.join(STAGE, 'smali', 'com', 'motorola', 'camera', 'Camera.smali'),
-  '    const-string v12, "com.motorola.camera5"\n\n    invoke-virtual {v0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;',
-  '    const-string v12, "com.motorola.camera3"\n\n    invoke-virtual {v0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;',
-  'camera5_feature_to_camera3',
-);
-patchExact(
-  path.join(STAGE, 'smali', 'com', 'motorola', 'camera', 'Camera.smali'),
-  '    sget-object v0, Lcom/motorola/camera/utility/lens/LensApi;->TAG:Ljava/lang/String;\n\n    new-instance v0, Landroid/content/Intent;\n\n    const-string v1, "android.intent.action.VIEW"\n\n    invoke-direct {v0, v1}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V\n\n    sget-object v1, Lcom/motorola/camera/utility/lens/LensApi;->GOOGLE_LENS_DATA:Landroid/net/Uri;\n\n    invoke-virtual {v0, v1}, Landroid/content/Intent;->setData(Landroid/net/Uri;)Landroid/content/Intent;\n\n    const-string v1, "com.google.android.googlequicksearchbox"\n\n    invoke-virtual {v0, v1}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;\n\n    const/4 v1, 0x7\n\n    invoke-virtual {p0, v0, v1}, Landroidx/activity/ComponentActivity;->startActivityForResult(Landroid/content/Intent;I)V',
-  '    invoke-virtual {p0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;\n\n    move-result-object v0\n\n    const-string v1, "com.google.ar.lens"\n\n    invoke-virtual {v0, v1}, Landroid/content/pm/PackageManager;->getLaunchIntentForPackage(Ljava/lang/String;)Landroid/content/Intent;\n\n    move-result-object v0\n\n    if-eqz v0, :cond_1\n\n    invoke-virtual {p0, v0}, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V\n\n    goto :goto_1\n\n    :cond_1\n    new-instance v0, Landroid/content/Intent;\n\n    const-string v1, "android.intent.action.VIEW"\n\n    invoke-direct {v0, v1}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V\n\n    sget-object v1, Lcom/motorola/camera/utility/lens/LensApi;->GOOGLE_LENS_DATA:Landroid/net/Uri;\n\n    invoke-virtual {v0, v1}, Landroid/content/Intent;->setData(Landroid/net/Uri;)Landroid/content/Intent;\n\n    const-string v1, "com.google.android.googlequicksearchbox"\n\n    invoke-virtual {v0, v1}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;\n\n    const/4 v1, 0x7\n\n    invoke-virtual {p0, v0, v1}, Landroidx/activity/ComponentActivity;->startActivityForResult(Landroid/content/Intent;I)V\n\n    :goto_1',
-  'google_lens_via_ar_lens',
-);
-patchExact(
-  path.join(STAGE, 'smali', 'com', 'motorola', 'camera', 'instrumentreport', 'DeveloperMenu.smali'),
-  '    sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;\n\n    sput-object v0, Lcom/motorola/camera/instrumentreport/DeveloperMenu;->mDebug:Ljava/lang/Boolean;',
-  '    sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;\n\n    sput-object v0, Lcom/motorola/camera/instrumentreport/DeveloperMenu;->mDebug:Ljava/lang/Boolean;',
-  'unlock_developer_menu',
-);
+console.log('3. Applying Smali & XML patches from patches/smali_patches_cam5.json...');
+const cam5Patches = JSON.parse(fs.readFileSync(PATCHES_CAM5, 'utf8'));
+for (const patch of cam5Patches.patches) {
+  patchExact(path.join(STAGE, patch.file), patch.find, patch.replace, patch.id);
+}
+console.log(`   Applied ${cam5Patches.patches.length} patches cleanly.`);
 
 console.log('4. Copying ctwo SM8635 native libs not present in MotCamera5_roadstr...');
 const src4Lib = path.join(SRC4, 'lib', 'arm64-v8a');
@@ -144,18 +126,28 @@ dev4.ctwo['uhdr-camera-mode-configs'] = dev5['uhdr-camera-mode-configs'];
 dev4.ctwo['active-photo-config'] = dev5['active-photo-config'];
 dev4.ctwo['face-beauty-ui'] = dev5['face-beauty-ui'];
 dev4.ctwo['customized-hal-zsl-on-modes'] = ['MODE_PHOTO', 'MODE_MOTION_CAPTURE'];
+for (const cam of ['BACK_MAIN', 'BACK_TELE', 'ZOOM_BLENDING']) {
+  const idx = dev4.ctwo['camera-type']?.indexOf(cam) ?? -1;
+  if (idx >= 0 && Array.isArray(dev4.ctwo['hq-preview'])) {
+    dev4.ctwo['hq-preview'][idx] = false;
+  }
+}
+if (dev4.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']) {
+  dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-main-overrides']['in-sensor-crop-lux-idx-threshold'] ??= [200, 230];
+}
 fs.writeFileSync(path.join(assetsDir, 'config_device_ctwo'), JSON.stringify(dev4));
 
 fs.copyFileSync(path.join(CTWO_CFG, 'cms_config_ctwo'), path.join(assetsDir, 'cms_config_ctwo'));
 
 const feat4 = JSON.parse(fs.readFileSync(path.join(CTWO_CFG, 'app_feature_ctwo'), 'utf8'));
+feat4.fs = feat4.fs.filter(
+  (x) => x.f !== 'REMOVE_HDR_SETTING_UI' && x.f !== 'SET_EXTRA_FREE_REPEATEDLY',
+);
 const featNames = new Set(feat4.fs.map((x) => x.f));
-feat4.fs = feat4.fs.filter((x) => x.f !== 'REMOVE_HDR_SETTING_UI');
 for (const extra of [
   { f: 'APP_ACCELERATE' },
   { f: 'BG_SERVICE_PROCESSING_SAME_PROCESS' },
   { f: 'PANTONE' },
-  { f: 'SET_EXTRA_FREE_REPEATEDLY', value: '10000' },
   { f: 'VIDEO_AUTO_FPS', value: '6' },
   { f: 'VIDEO_FILTERS', value: '1920' },
   { f: 'VIDEO_HDR10' },
@@ -172,6 +164,7 @@ fs.writeFileSync(path.join(assetsDir, 'app_feature_ctwo'), JSON.stringify(feat4)
 const iqSource = fs.existsSync(path.join(MOD_CFG, 'iq_config_ctwo'))
   ? path.join(MOD_CFG, 'iq_config_ctwo')
   : path.join(CTWO_CFG, 'iq_config_ctwo');
+console.log('   iq_config_ctwo source:', iqSource);
 const iq4 = JSON.parse(fs.readFileSync(iqSource, 'utf8'));
 const iq5 = JSON.parse(fs.readFileSync(path.join(rAssets, 'iq_config_roadstr'), 'utf8')).roadstr;
 delete iq4.ctwo.uhdr_settings;
@@ -289,6 +282,23 @@ if (mcf4.ctwo['fast-init']?.['hold-startup-handle-for-algo']) {
 }
 if (mcf4.ctwo['ai-scene-detect']) mcf4.ctwo['ai-scene-detect'].enable = rep(false);
 if (mcf4.ctwo['tetras-raw-sr']) mcf4.ctwo['tetras-raw-sr'].enable = rep(false);
+if (mcf4.ctwo['state-machine']?.['raw-super-resolution']) {
+  mcf4.ctwo['state-machine']['raw-super-resolution'].enable = rep(false);
+}
+if (mcf4.ctwo['state-machine']?.['hal-super-resolution']) {
+  mcf4.ctwo['state-machine']['hal-super-resolution'].enable = rep(false);
+}
+if (mcf4.ctwo['scene-classifer']?.['super-resolution']) {
+  mcf4.ctwo['scene-classifer']['super-resolution'].enable = rep(false);
+  mcf4.ctwo['scene-classifer']['super-resolution']['need-edge-nr-on-preview'] = rep(false);
+}
+if (Array.isArray(mcf4.ctwo['arcsoft-tf-drsd']?.['custom-thresh'])) {
+  for (const th of mcf4.ctwo['arcsoft-tf-drsd']['custom-thresh']) {
+    if (th?.variant === 'super-resolution') {
+      th['zoom-thresh-in'] = rep(999);
+    }
+  }
+}
 if (mcf4.ctwo['beauty-shot-fotonation']) {
   mcf4.ctwo['beauty-shot-fotonation'].enable = rep(false);
   mcf4.ctwo['beauty-shot-fotonation']['default-beauty-level'] = 0;
@@ -316,6 +326,9 @@ const removedAlgs = new Set([
   'MCF_AL_SUPERRESOLUTION_CAPTURE_ALG',
   'MCF_AL_SUPER_RESOLUTION_AS_HDR_CAPTURE_ALG',
   'MCF_AL_SUPER_RESOLUTION_BST_HDR_CAPTURE_ALG',
+  'MCF_TETRAS_RAW_SUPER_RESOLUTION_CAPTURE_ALG',
+  'MCF_TETRAS_SUPERRESOLUTION_CAPTURE_ALG',
+  'MCF_TETRAS_SUPER_RESOLUTION_BST_HDR_CAPTURE_ALG',
   'MCF_MOT_TEST_BLUR_CAPTURE_ALG',
   'MCF_MOT_IMAGE_STABILIZATION_ALG',
 ]);

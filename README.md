@@ -10,9 +10,10 @@ Clean-room APK patcher, **Moto Camera 5 (`10.0.44.42`)** port, **"Fast / Low-AI"
 
 ## What's Inside
 
-1. **Moto Camera 5 Port (`com.motorola.camera5` `v10.0.44.42`)** — [`scripts/build_motcam5_port.mjs`](scripts/build_motcam5_port.mjs)
-   - Ports the 2026 Qualcomm Moto Camera 5 UI, 2x zoom toggle, `VIDEO_HDR10`, `AI_PERSONAL_COLOR_TONE`, and 10-bit Ultra HDR (`MCF_UHDR_ALG` + `libultrahdr.so`) onto `ctwo` in parallel with stock camera.
-   - Fixes the `"Use the official app"` modal (`vendor_ctwo` in `com.android.dynamic.apk.fused.modules`), migrates `mcf_config_ctwo` to Camera 5's Blowfish key (`"uljw91D2"`) & JSON schema, enables `customized-hal-zsl-on-modes` (`["MODE_PHOTO", "MODE_MOTION_CAPTURE"]`) to fix black Photo viewfinder (`ILLEGAL_ARGUMENT`), routes Google Lens through `com.google.ar.lens` (`LensLauncherActivity`) to bypass debug-signature caller rejection, and merges `0x81` `feature_adobe_scan` resources.
+1. **Moto Camera 5 Port (`com.motorola.camera5` `v10.0.44.42`)** — [`scripts/build_motcam5_port.mjs`](scripts/build_motcam5_port.mjs) + [`patches/smali_patches_cam5.json`](patches/smali_patches_cam5.json)
+   - Ports the Qualcomm Moto Camera 5 UI, 2x zoom toggle, `VIDEO_HDR10`, `AI_PERSONAL_COLOR_TONE`, and 10-bit Ultra HDR (`MCF_UHDR_ALG` + `libultrahdr.so`) onto `ctwo` in parallel with stock camera.
+   - Applies 17 declarative Smali/XML patches: fixes `"Use the official app"` (`vendor_ctwo`), migrates `mcf_config_ctwo` (`uljw91D2`), enables `customized-hal-zsl-on-modes` (`["MODE_PHOTO", "MODE_MOTION_CAPTURE"]`), merges `0x81` `feature_adobe_scan` resources, removes `killApps` / `Mcf$9` Checkin IPC errors, accelerates Touch-AF handoff (`6 frames` vs `8 frames` baseline while keeping frame-1 `onCaptureFailed` recovery), and adds a live **Post-processing profile** switcher under *Settings → Photos* (`Standard`, `Natural ZSL`, `Minimal ISP`, `Detail HDR`) with zoom super-resolution / watercolor mitigation (`iq_override_profile_scene`, `CONTROL_SUPER_ZOOM_KEY` gating, daylight-gated `2x` ISZ, and residual Tetras/DRSD SR suppression).
+   - **Known non-root limits:** In-app **Google Lens** (`com.motorola.camera.utility.lens` / Google Search handshake) and **Meishe V2 Signature LUTs** (`Failed to check lic`) do not pass OEM/Google caller signature verification on user-signed builds (best fallback for Google Lens is opening the standalone Google Lens app).
 2. **Moto Camera 4 Clone — "Fast / Low-AI" (`com.motorola.camera3.mod`)** — [`scripts/build_clone.mjs`](scripts/build_clone.mjs) + [`scripts/generate_mod_configs.mjs`](scripts/generate_mod_configs.mjs)
    - Routes default `hdr_off` / `hdr_auto_off` capture from ArcSoft `RAW_HDR` (which forces `use_zsl: false`) to Qualcomm Spectra ISP **`HAL_FRAME_STACK`** (`use_zsl: true`, `need-to-lock-ae: false`, `shutter_throttle_time` `800/400 -> 150/100 ms`).
    - Disables `ai-scene-detect`, `tetras-raw-sr`, `beauty-shot-fotonation` (`level 0`), and 245 MB startup preload (`fast-init.hold-startup-handle-for-algo`).
@@ -57,8 +58,9 @@ Clean-room APK patcher, **Moto Camera 5 (`10.0.44.42`)** port, **"Fast / Low-AI"
    node scripts/verify_apk.mjs --apk dist/MotCamera4-Mod.apk
    ```
 4. **Build Moto Camera 5 Port (`MotCamera5-Port-ctwo.apk`):**
-   Place a Qualcomm `MotCamera5` donor APK in `apks/MotCamera5_roadstr.apk` and decompile it to `decompiled/MotCamera5_roadstr`, then run:
+   Generate `configs_mod/` first (`npm run gen:configs`) so `HAL_FRAME_STACK` ZSL / MFNR `iq_config_ctwo` tuning is picked up, place a Qualcomm `MotCamera5` donor APK in `apks/MotCamera5_roadstr.apk`, decompile it to `decompiled/MotCamera5_roadstr`, then run:
    ```bash
+   npm run gen:configs
    npm run build:cam5
    ```
 

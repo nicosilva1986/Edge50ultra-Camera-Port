@@ -131,4 +131,22 @@ A local JPEG analyzer was prepared for matched text crops at two distances, grou
 4. Compare original, candidate and restored original with the same target order and observation window. Separate the time to request continuous AF from the total time to focus. Report failures and the final reported distance per target. Confirm optical results with matched captures before drawing conclusions about sharpness.
 5. Restore and hash-verify the original APK. Keep decoded artifacts, complete logs, photos and transport details in the local test environment.
 
-B1 produced a repeatable reduction in the app's AF handoff and a measured benefit on the farther target. The release remains the reference until optical comparison and failure recovery are verified.
+B1 produced a repeatable reduction in the app's AF handoff and a measured benefit on the farther target.
+
+---
+
+## Integrated `v1.1.0` Release Verification (`eeb39291...`)
+
+All startup, Touch-AF, live profile-switching, and zoom-watercolor fixes were integrated into [`patches/smali_patches_cam5.json`](../patches/smali_patches_cam5.json) (17 patches) and [`scripts/build_motcam5_port.mjs`](../scripts/build_motcam5_port.mjs), built cleanly with `configs_mod/iq_config_ctwo`, and verified live on `ctwo`:
+
+- **Final APK SHA-256 (`MotCamera5-Port-ctwo.apk`):** `eeb39291c7b0a5700c1454d5720421d2cd301b8178950a48c564fd105550f8b2` (`369,257,026` bytes)
+- **Cold-start & IPC cleanup (`verify-final.mjs`, `arm64 [status=verify]`, `n=3` settled after trial 0):** `0` `ACCESS_CHECKIN` `SecurityException` errors and `0` `McfEngine`/fatal errors (`killApps` & `Mcf$9` Checkin IPC skipped via `if-nez p0`; `SET_EXTRA_FREE_REPEATEDLY` omitted; `hq-preview: false` on `BACK_MAIN`, `BACK_TELE`, `ZOOM_BLENDING`). Settled cold starts: `TOTAL_COLD_O` **703–760 ms** (trial 0: `793 ms`), `HAL_CREATE_SESSION` **309–351 ms**, `HAL_SET_REPEATING_TO_FIRST_FRAME` **111–136 ms**, `FSM_IDLE` **803–884 ms**.
+- **Hardened Touch-AF (`af_early_ack_*`):** Keeps `mOneShot` true until `onCaptureCompleted` (preserving frame-1 `onCaptureFailed` error callbacks) while dispatching `sendComplete` once on `onCaptureStarted` (`ROI_SINGLE_TAP_SET`, `AF_MODE=1`, 3A `1`). Measured `4/4` taps at **6 frames (`332.3 ms` handoff, `498.8 ms` to `PASSIVE_FOCUSED`, `STATIONARY`)** in the final APK (and `8/8` stationary + `4/4` double-tap bursts + `2/2` lifecycle reopen cycles in `HardenedB1`).
+- **Live Post-Processing Profile switcher (`DisableAppearanceListPreference`, same PID without restart):**
+  - `0`: **Standard (`Moto MCF`)** — `HAL_FRAME_STACK`, `NR=HIGH_QUALITY`, `Edge=HIGH_QUALITY`
+  - `1`: **Natural ZSL (`NR ZSL / Edge ZSL`)** — `HAL_FRAME_STACK`, `NR=ZERO_SHUTTER_LAG`, `Edge=ZERO_SHUTTER_LAG`
+  - `2`: **Minimal ISP (`NR Minimal / Edge Off`)** — `HAL_FRAME_STACK`, `NR=MINIMAL`, `Edge=OFF`
+  - `3`: **Detail HDR (`RAW HDR / Low Halo`)** — `RAW_HDR`, `NR=MINIMAL`, `Edge=FAST`
+- **Zoom Watercolor Mitigation (live `2x / 3x / 6x` + `0.5x` check on `ctwo`):**
+  - Extended `iq_override_profile_scene` so Profiles `1`/`2` route `RAW_HDR`, `SUPER_RESOLUTION`, `SUPER_RESOLUTION_HDR`, `RAW_SUPER_RESOLUTION`, and auto `RAW_SUPER_NIGHT` (preserving dedicated `RAW_SUPER_NIGHT_DEDICATED`) to `HAL_FRAME_STACK`; gated `CONTROL_SUPER_ZOOM_KEY = 0` in Profiles `1`/`2`; disabled `state-machine.raw-super-resolution`, `state-machine.hal-super-resolution`, `scene-classifer.super-resolution` (+ `need-edge-nr-on-preview`), raised `arcsoft-tf-drsd` `super-resolution` `zoom-thresh-in` to `999`, added daylight lux gating `[200, 230]` on `BACK_MAIN` `2x` ISZ, and retained `arcsoft-offline-postproc` so `RAW_HDR` Stage-2 JPEG encoding completes reliably.
+  - Matched `3x` tele captures (`13.3 mm`, `f/2.4`, ISO `~1463–1575`): Profile `1` (`Natural ZSL`, `471 ms` vs `809 ms`) and Profile `2` (`Minimal ISP`, `547 ms`) preserved **~5.2× higher fine Laplacian texture** (`roiMeanLapVar` `87.92` / `86.60` vs `16.86`; `3.24 MB` / `3.22 MB` vs `1.93 MB` in `Standard`) without watercolor blotches or edge halos, with `6x` also faster (`481` / `454 ms` vs `670 ms`) and sharper (`roiMeanLapVar` `14.12` / `13.71` vs `10.15`; `~2.31 MB` vs `1.84 MB`).
