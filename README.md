@@ -66,6 +66,7 @@ Clean-room APK patcher, **Moto Camera 5 (`10.0.44.42`)** port, **"Fast / Low-AI"
 
 ## Documentation
 
+- [Moto Camera 5 optimization investigation](docs/MOTO_CAMERA_5_INVESTIGATION.md) — startup timings, autofocus comparisons and image processing on the v1.0.0 port
 - [Deep Quality & Speed Tuning Guide](docs/QUALITY_AND_SPEED_TUNING.md) (including Pantone validation & `HAL_FRAME_STACK` ZSL analysis)
 - [Smali & Clone Isolation Audit](docs/SMALI_AUDIT.md)
 - [Developer Menu & Tunable Keys](docs/CAMERA_MOD_FEATURES.md)

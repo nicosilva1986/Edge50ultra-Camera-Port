@@ -2,6 +2,8 @@
 
 This document catalogs verified, evidence-backed quality and latency optimizations discovered across `MotCamera5` (`10.0.44.42` / `10.0.47.31`), `MotCamera4` (`9.1.22.52`), and `ctwo`'s live Qualcomm CamX HAL (`SM8635`).
 
+See the [Moto Camera 5 investigation](MOTO_CAMERA_5_INVESTIGATION.md) for the v1.0.0 baseline, measured comparisons and current validation status.
+
 ---
 
 ## 1. Speed & Shutter Latency Optimizations
@@ -18,17 +20,19 @@ This document catalogs verified, evidence-backed quality and latency optimizatio
 - **Root cause:** `iq_config_ctwo.qc_mfnr_settings.default` sets `shutter_throttle_time` to `800 ms` (row 0, dark) and `400 ms` (rows 1–4, daylight), artificially rate-limiting consecutive captures. Meanwhile, `mcf_config_ctwo.fast-init.hold-startup-handle-for-algo` preloads `MCF_AS_TF_MOTION_CAPTURE_ALG`, `MCF_TETRAS_RAW_SUPER_RESOLUTION_CAPTURE_ALG`, and `MCF_ARCSOFT_TF_REFOCUS_CAPTURE_ALG` on startup.
 - **Optimization:** Lower `shutter_throttle_time` (`800 -> 150 ms`, `400 -> 100 ms`), shorten `exposure_schedule_lowlight` hints (`250.0 -> 225.0`, `200.0 -> 185.0`), and clear `hold-startup-handle-for-algo.algorithms` to `[]` per slot.
 
-### D. Re-enable `APP_ACCELERATE` + `SET_EXTRA_FREE_REPEATEDLY` in `MotCamera5`
-- **Root cause:** `APP_ACCELERATE` skips blocking `CameraCharacteristics.getAvailableSessionKeys()` queries on photo session creation (`CreateCaptureSessionRunnable.smali:1305–1338`). It was temporarily disabled while debugging the MCF JSON crash, which is now resolved.
-- **Optimization:** Re-add `{ "f": "APP_ACCELERATE" }` and `{ "f": "SET_EXTRA_FREE_REPEATEDLY", "value": "10000" }` from `app_feature_roadstr` to `app_feature_ctwo` once MCF startup is verified clean.
+### D. Session setup and extra memory handling in Moto Camera 5
+
+- `APP_ACCELERATE` lets the applicable Photo setup path skip the explicit `CameraCharacteristics.getAvailableSessionKeys()` query.
+- The [Camera 5 builder](../scripts/build_motcam5_port.mjs) adds it alongside `SET_EXTRA_FREE_REPEATEDLY=10000`. The separate contribution of either flag to the measured startup time remains unverified.
 
 ---
 
 ## 2. Image Quality & Dynamic Range Optimizations
 
-### A. Wire `MCF_UHDR_ALG` (10-bit Ultra HDR Gainmap) into `ctwo` state machines
-- **Current gap:** `MotCamera5-Port-ctwo` enables `mcf_config_ctwo['ultra-hdr']` (`libultrahdr.so` + `gainmap_tuning_roadstr.json`) and `config_device_ctwo['uhdr-camera-mode-configs']`, **but** `ctwo`'s `state-machine-to-algorithms-map` lacks `MCF_UHDR_ALG` in `MCF_RAW_HDR_STATE_MACHINE`, `MCF_RAW_SUPER_RESOLUTION_STATE_MACHINE`, `MCF_AS_TF_RAW_NV_STATE_MACHINE`, and `MCF_HAL_FRAME_STACK_STATE_MACHINE` (whereas `MotCamera5_roadstr` includes `MCF_UHDR_ALG` in all 5).
-- **Improvement:** Append `MCF_UHDR_ALG` right before `MCF_MEISHE_NV_EFFECTS_CAPTURE_ALG` in those state machines to generate true ISO 21496-1 HDR gainmaps on `ctwo`.
+### A. Ultra HDR gain-map routing in Moto Camera 5
+
+- The [Camera 5 builder](../scripts/build_motcam5_port.mjs) supplies the Ultra HDR configuration and adds `MCF_UHDR_ALG` to the RAW HDR, RAW super-resolution, ArcSoft RAW NV and HAL frame-stack maps in the verified APK.
+- Output verification requires inspecting a captured image for its encoded gain map and SDR fallback.
 
 ### B. Highlight headroom on `RAW_HDR` & `Tetras RAW SR` suppression
 - **Highlight protection:** Extending `state-machine.raw-hdr.frame-ev-default[slot][4]` from `-24.0` to `-26.0` on `mot_ov50h` (slot 0), `mot_ov64b` (slot 2), and `mot_s5kjn1` (slot 3) gives the darkest bracket 2 EV-steps more highlight headroom against clipped skies/lamps.
