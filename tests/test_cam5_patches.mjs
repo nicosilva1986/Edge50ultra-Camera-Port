@@ -14,7 +14,7 @@ test('smali_patches_cam5.json loads cleanly and defines valid unique patch entri
   const data = JSON.parse(fs.readFileSync(PATCHES_PATH, 'utf8'));
   assert.equal(data.targetPackage, 'com.motorola.camera5');
   assert.equal(data.targetVersion, '10.0.44.42');
-  assert.ok(Array.isArray(data.patches) && data.patches.length === 21);
+  assert.ok(Array.isArray(data.patches) && data.patches.length === 23);
 
   for (const name of ['CustomImagingBridge', 'ScenePostProcSelector', 'AppleStyleToneEngine', 'CleanBayerRawProcessor']) {
     const sp = path.join(REPO_ROOT, 'patches', 'custom_imaging_smali', 'com', 'motorola', 'camera', 'custom', `${name}.smali`);
@@ -65,6 +65,7 @@ test(
       dev.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']?.['in-sensor-crop-lux-idx-threshold'],
       [200, 230],
     );
+    assert.ok((dev.ctwo['remosaic-config']?.['to-high-res-rg-threshold']?.[0] ?? 9) <= 0.1);
 
     const feat = JSON.parse(fs.readFileSync(path.join(STAGE_CAM5, 'assets', 'app_feature_ctwo'), 'utf8'));
     assert.equal(

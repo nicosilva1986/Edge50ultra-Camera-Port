@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { after, before, test } from 'node:test';
@@ -21,12 +21,13 @@ const KEEP = [0, -1, -1, -1, -1, 0, 0];
 const FIXED = {
   1: [1, 4, 3, 1, 0, 0, 0],
   2: [1, 3, 0, 1, 0, 0, 0],
-  3: [2, 3, 1, 1, 0, 0, 0],
+  3: [2, 3, 0, 1, 0, 0, 0],
   4: [1, 0, 0, 0, 0, 0, 0],
-  5: [1, 3, 1, 1, 0, 1, 0],
-  6: [1, 3, 1, 1, 0, 2, 0],
-  7: [1, 3, 1, 1, 0, 3, 0],
-  8: [0, 3, 1, 1, 0, 1, 1],
+  5: [1, 3, 0, 1, 0, 1, 0],
+  6: [1, 3, 0, 1, 0, 2, 0],
+  7: [1, 3, 0, 1, 0, 3, 0],
+  8: [0, 3, 0, 1, 0, 1, 1],
+  9: [0, 0, 0, 0, 0, 0, 0],
 };
 
 const VALID_CUBE = `# photographic identity with a marked white corner
@@ -201,34 +202,34 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
     expectResolve.set(name, expected);
   }
 
-  addResolve('daylight-1x', 0, '1', '100', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
-  addResolve('daylight-hdr', 0, '1', '120', 1, 0, 0, [2, 3, 1, 1, 0, 0, 0]);
-  addResolve('tele-3x', 0, '3', '100', 0, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
-  addResolve('tele-3x-hdr', 0, '3', '140', 1, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
-  addResolve('tele-295', 0, '2.95', '200', 0, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
+  addResolve('daylight-1x', 0, '1', '100', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('daylight-hdr', 0, '1', '120', 1, 0, 0, [2, 3, 0, 1, 0, 0, 0]);
+  addResolve('tele-3x', 0, '3', '100', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('tele-3x-hdr', 0, '3', '140', 1, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('tele-295', 0, '2.95', '200', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
   addResolve('zoom-15x', 0, '15', '90', 0, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
   addResolve('zoom-15x-hdr', 0, '15', '90', 1, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
   addResolve('zoom-12-low-light', 0, '12', '400', 1, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
-  addResolve('low-light', 0, '1', '280', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
-  addResolve('low-light-hdr', 0, '1', '350', 1, 0, 0, [0, 4, 3, 1, 0, 0, 0]);
-  addResolve('tele-goes-low-light', 0, '3.5', '280', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
-  addResolve('nan-zoom', 0, 'NaN', '100', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
-  addResolve('nan-lux', 0, '1', 'NaN', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
-  addResolve('nan-zoom-keeps-low-light', 0, 'NaN', '320', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
-  addResolve('negative-zoom', 0, '-2', '80', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
-  addResolve('negative-lux-hdr', 0, '1', '-40', 1, 0, 0, [2, 3, 1, 1, 0, 0, 0]);
-  addResolve('infinity-zoom', 0, 'Infinity', '100', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
-  addResolve('negative-infinity-lux', 0, '1', '-Infinity', 0, 0, 0, [1, 4, 3, 1, 0, 0, 0]);
+  addResolve('low-light', 0, '1', '280', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('low-light-hdr', 0, '1', '350', 1, 0, 0, [0, 3, 0, 1, 0, 0, 0]);
+  addResolve('tele-goes-low-light', 0, '3.5', '280', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('nan-zoom', 0, 'NaN', '100', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('nan-lux', 0, '1', 'NaN', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('nan-zoom-keeps-low-light', 0, 'NaN', '320', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('negative-zoom', 0, '-2', '80', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('negative-lux-hdr', 0, '1', '-40', 1, 0, 0, [2, 3, 0, 1, 0, 0, 0]);
+  addResolve('infinity-zoom', 0, 'Infinity', '100', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('negative-infinity-lux', 0, '1', '-Infinity', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
   addResolve('flash-auto', 0, '1', '100', 1, 0, 1, KEEP);
   addResolve('flash-natural', 1, '20', '500', 1, 0, 1, KEEP);
   addResolve('flash-amber', 7, '15', '400', 1, 0, 1, KEEP);
   addResolve('ded-night-detail', 3, '1', '100', 0, 1, 0, KEEP);
   addResolve('ded-night-and-flash', 5, '1', '10', 0, 1, 1, KEEP);
-  addResolve('unknown-profile', 9, '1', '100', 0, 0, 0, KEEP);
+  addResolve('unknown-profile', 99, '1', '100', 0, 0, 0, KEEP);
   addResolve('negative-profile', -1, '1', '100', 0, 0, 0, KEEP);
   addResolve('nan-on-pure-isp', 4, 'NaN', '-5', 1, 0, 0, FIXED[4]);
 
-  for (const profile of [1, 2, 3, 4, 5, 6, 7, 8]) {
+  for (const profile of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
     addResolve(`profile-${profile}-day`, profile, '1', '100', 0, 0, 0, FIXED[profile]);
     addResolve(`profile-${profile}-extreme`, profile, '30', '500', 1, 0, 0, FIXED[profile]);
   }
@@ -239,10 +240,10 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   jobs.push('E below-12 nextDown12 100 0');
   jobs.push('E below-295 nextDown295 100 0');
   expectResolve.set('exact-12', [1, 3, 1, 1, 0, 0, 0]);
-  expectResolve.set('exact-295', [1, 3, 1, 1, 0, 0, 0]);
-  expectResolve.set('exact-280', [1, 4, 3, 1, 0, 0, 0]);
-  expectResolve.set('below-12', [1, 3, 1, 1, 0, 0, 0]);
-  expectResolve.set('below-295', [1, 4, 3, 1, 0, 0, 0]);
+  expectResolve.set('exact-295', [1, 3, 0, 1, 0, 0, 0]);
+  expectResolve.set('exact-280', [1, 3, 0, 1, 0, 0, 0]);
+  expectResolve.set('below-12', [1, 3, 0, 1, 0, 0, 0]);
+  expectResolve.set('below-295', [1, 3, 0, 1, 0, 0, 0]);
 
   for (const style of [1, 2, 3]) {
     jobs.push(`P black-${style} ${style} ff000000`);
@@ -252,6 +253,8 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   jobs.push('P shadow-2 2 ff282828');
   jobs.push('P warm-1 1 ffbea58c');
   jobs.push('P warm-3 3 ffbea58c');
+  jobs.push('P cyansky-1 1 ff6ec2d8');
+  jobs.push('P cyansky-2 2 ff6ec2d8');
   jobs.push('P alpha-1 1 80ffffff');
   jobs.push('P alpha-black-2 2 7f000000');
   jobs.push('P noop-0 0 ff123456');
@@ -334,6 +337,8 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   for (const sample of [naturalWarm, amberWarm]) {
     assert.ok(sample.r > sample.g && sample.g > sample.b, `${sample.r},${sample.g},${sample.b}`);
   }
+  const cyanSky2 = pixels.get('cyansky-2')[0];
+  assert.ok(cyanSky2.b > cyanSky2.g, `expected cyan sky shift toward cobalt blue (${cyanSky2.r},${cyanSky2.g},${cyanSky2.b})`);
 
   const fadedWhite = pixels.get('alpha-1')[0];
   assert.equal(fadedWhite.a, 0x80);
@@ -358,7 +363,11 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
       previous = [r, g, b];
     }
     assert.equal(values[0], 0);
-    assert.ok(values[255 * 3] >= 252);
+    assert.ok(values[253 * 3] >= 251, `style ${style} 253=${values[253 * 3]}`);
+    assert.ok(values[254 * 3] >= 253, `style ${style} 254=${values[254 * 3]}`);
+    assert.equal(values[255 * 3], 255, `style ${style} 255`);
+    assert.ok(values[255 * 3] - values[254 * 3] <= 2,
+      `style ${style} white shoulder discontinuity: ${values[254 * 3]} -> ${values[255 * 3]}`);
   }
 
   const valid = lines.get('C valid');
@@ -387,4 +396,187 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   const graded = channels(bench[3]);
   assert.equal(graded.a, 0xA5);
   console.log(`1920x1080 AppleStyleToneEngine benchmark: ${elapsed} ms`);
+});
+
+test('specialized scenes, per-capture bridge isolation, and strip overlap parity', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'bridge-isolation-test-'));
+  try {
+    const stubsDir = fileURLToPath(new URL(
+      '../patches/custom_imaging_java/stubs/',
+      import.meta.url,
+    ));
+    const stubFiles = [];
+    const walk = (d) => {
+      for (const entry of readdirSync(d, { withFileTypes: true })) {
+        const full = join(d, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (entry.name.endsWith('.java')) stubFiles.push(full);
+      }
+    };
+    walk(stubsDir);
+    const bridgeClasses = join(dir, 'classes');
+    const overrideSrc = join(dir, 'override');
+    const harnessSrc = join(dir, 'BridgeChecks.java');
+    mkdirSync(bridgeClasses, { recursive: true });
+    mkdirSync(join(overrideSrc, 'com', 'motorola', 'camera', 'settings'), { recursive: true });
+
+    // Controllable PersistBehavior test double inside temp dir (keeps repo stubs unchanged).
+    const testPersist = join(overrideSrc, 'com', 'motorola', 'camera', 'settings', 'PersistBehavior.java');
+    writeFileSync(testPersist, `package com.motorola.camera.settings;
+import android.content.SharedPreferences;
+public final class PersistBehavior {
+    public static String mockProfile = "0";
+    public static SharedPreferences getPreferences() {
+        return (key, defValue) -> mockProfile;
+    }
+}
+`);
+    const filteredStubs = stubFiles.filter((f) => !f.endsWith('PersistBehavior.java'));
+    run(javac, ['--release', '11', '-d', bridgeClasses, ...filteredStubs, testPersist]);
+
+    const customFiles = [
+      selectorSource,
+      toneSource,
+      join(sourceDir, 'CleanBayerRawProcessor.java'),
+      join(sourceDir, 'CustomImagingBridge.java'),
+    ];
+    run(javac, ['--release', '11', '-cp', bridgeClasses, '-d', bridgeClasses, ...customFiles]);
+
+    writeFileSync(harnessSrc, `
+import android.hardware.camera2.CaptureRequest;
+import com.motorola.camera.capturedmediadata.CapturedImageMediaData;
+import com.motorola.camera.custom.AppleStyleToneEngine;
+import com.motorola.camera.custom.CustomImagingBridge;
+import com.motorola.camera.custom.ScenePostProcSelector;
+import com.motorola.camera.fsm.camera.record.ImageCaptureRecord;
+import com.motorola.camera.fsm.camera.record.SequenceIdentifier;
+import com.motorola.camera.saving.SaveImageService;
+import com.motorola.camera.settings.PersistBehavior;
+import java.util.Arrays;
+
+public final class BridgeChecks {
+    public static void main(String[] args) {
+        // 1. Specialized Portrait/Bokeh/Night/SuperRes scenes must stay untouched (KEEP) across profiles.
+        String[] preserved = {
+            "RAW_HDR_PORTRAIT", "MULTI_FRAME_BOKEH", "RAW_HDR_NIGHT",
+            "RAW_SN_AUTO", "SUPER_PORTRAIT", "RAW_SUPER_RESOLUTION", "FLASH"
+        };
+        for (int p : new int[] {0, 3, 5, 6, 7}) {
+            for (String s : preserved) {
+                int[] r = ScenePostProcSelector.resolve(p, 1.0f, 50.0f, s, false);
+                if (r[0] != 0 || r[1] != -1 || r[2] != -1 || r[3] != -1 || r[5] != 0) {
+                    throw new AssertionError("Specialized scene mutated for p=" + p + " scene=" + s + ": " + Arrays.toString(r));
+                }
+            }
+        }
+        int[] hdrRes = ScenePostProcSelector.resolve(0, 1.0f, 50.0f, "HDR", false);
+        if (hdrRes[0] != ScenePostProcSelector.SCENE_RAW_HDR || hdrRes[1] != ScenePostProcSelector.NR_MINIMAL) {
+            throw new AssertionError("Expected Auto HDR -> RAW_HDR+MINIMAL: " + Arrays.toString(hdrRes));
+        }
+
+        // 2. Per-capture isolation: Shot 10 (profile 5 LUT=1) vs overlapping Shot 11 (profile 0 LUT=0).
+        ImageCaptureRecord rec10 = new ImageCaptureRecord();
+        rec10.mSeqId = new SequenceIdentifier();
+        rec10.mSeqId.mSeqId = 10;
+        rec10.mUUID = 1001L;
+
+        ImageCaptureRecord rec11 = new ImageCaptureRecord();
+        rec11.mSeqId = new SequenceIdentifier();
+        rec11.mSeqId.mSeqId = 11;
+        rec11.mUUID = 1001L;
+
+        PersistBehavior.mockProfile = "5";
+        CustomImagingBridge.applyCaptureRequestOverrides("0", new CaptureRequest.Builder(), rec10);
+        PersistBehavior.mockProfile = "0";
+        CustomImagingBridge.applyCaptureRequestOverrides("0", new CaptureRequest.Builder(), rec11);
+
+        SaveImageService.ImageContainer c10 = new SaveImageService.ImageContainer();
+        c10.mMediaData = new CapturedImageMediaData();
+        c10.mMediaData.mCaptureRecord = rec10;
+
+        SaveImageService.ImageContainer c11 = new SaveImageService.ImageContainer();
+        c11.mMediaData = new CapturedImageMediaData();
+        c11.mMediaData.mCaptureRecord = rec11;
+
+        if (!CustomImagingBridge.isCustomLutActive(c10)) {
+            throw new AssertionError("Shot 10 lost its LUT=1 decision after Shot 11 captured");
+        }
+        if (CustomImagingBridge.isCustomLutActive(c11)) {
+            throw new AssertionError("Shot 11 inherited LUT=1 unexpectedly");
+        }
+        // Delayed save survival after 600 newer distinct shots (> 512 LRU size) while rec10 stays alive.
+        PersistBehavior.mockProfile = "0";
+        for (int k = 100; k < 700; k++) {
+            ImageCaptureRecord recK = new ImageCaptureRecord();
+            recK.mSeqId = new SequenceIdentifier();
+            recK.mSeqId.mSeqId = k;
+            recK.mUUID = 1001L;
+            CustomImagingBridge.applyCaptureRequestOverrides("0", new CaptureRequest.Builder(), recK);
+        }
+        if (!CustomImagingBridge.isCustomLutActive(c10)) {
+            throw new AssertionError("Shot 10 was evicted after 600 newer captures despite live CaptureRecord");
+        }
+
+        // 2b. Profile 9 Disable Post Processing & flash MFNR preservation.
+        PersistBehavior.mockProfile = "9";
+        if (CustomImagingBridge.shouldAllowMcf(true)) {
+            throw new AssertionError("Profile 9 must disable MCF");
+        }
+        int[] p9 = ScenePostProcSelector.resolve(9, 1.0f, 50.0f, "NORMAL", false, false);
+        if (p9[0] != 0 || p9[1] != 0 || p9[2] != 0 || p9[3] != 0 || p9[5] != 0 || p9[6] != 0) {
+            throw new AssertionError("Profile 9 unexpected decision: " + Arrays.toString(p9));
+        }
+        PersistBehavior.mockProfile = "4";
+        if (!CustomImagingBridge.shouldAllowMcf(true)) {
+            throw new AssertionError("Profile 4 Pure ISP keeps MCF flag intact");
+        }
+        if (!CustomImagingBridge.resolveEnableMfnr(true, true)) {
+            throw new AssertionError("Flash=true must preserve stock MFNR enable");
+        }
+        if (CustomImagingBridge.resolveEnableMfnr(true, false)) {
+            throw new AssertionError("Profile 4 without flash must force MFNR off");
+        }
+        if (CustomImagingBridge.resolveJpegQuality(95) != 98) {
+            throw new AssertionError("Expected JPEG quality bump 95 -> 98");
+        }
+
+        // 3. Real parallel strip runner parity across BOTH strip seam (512) and batch-4 boundary (2048).
+        int w = 64, h = 2160;
+        int[] full = new int[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                boolean brightBand = y < 512 || (y >= 1500 && y < 2048);
+                int v = brightBand ? (180 + ((x + y) & 15)) : (40 + ((x * 3 + y) & 15));
+                full[y * w + x] = 0xFF000000 | (v << 16) | ((v - 10) << 8) | Math.min(255, v + 12);
+            }
+        }
+        int[] fullExpected = full.clone();
+        AppleStyleToneEngine.applyToArgbPixels(fullExpected, w, h, AppleStyleToneEngine.STYLE_IPHONE_RICH_CONTRAST);
+
+        int[] fullStripped = full.clone();
+        if (!CustomImagingBridge.gradePixelBufferStrips(
+                fullStripped, w, h, 512, 24, AppleStyleToneEngine.STYLE_IPHONE_RICH_CONTRAST)) {
+            throw new AssertionError("gradePixelBufferStrips returned false");
+        }
+
+        for (int y : new int[] {508, 511, 512, 513, 518, 2025, 2047, 2048, 2049, 2055}) {
+            for (int x = 16; x < w - 16; x++) {
+                int pExp = fullExpected[y * w + x];
+                int pStrip = fullStripped[y * w + x];
+                int dr = Math.abs(((pExp >> 16) & 0xFF) - ((pStrip >> 16) & 0xFF));
+                int dg = Math.abs(((pExp >> 8) & 0xFF) - ((pStrip >> 8) & 0xFF));
+                int db = Math.abs((pExp & 0xFF) - (pStrip & 0xFF));
+                if (dr > 1 || dg > 1 || db > 1) {
+                    throw new AssertionError("Strip seam mismatch at (" + x + "," + y + ") dr=" + dr + " dg=" + dg + " db=" + db);
+                }
+            }
+        }
+    }
+}
+`);
+    run(javac, ['--release', '11', '-cp', bridgeClasses, '-d', bridgeClasses, harnessSrc]);
+    run(java, ['-cp', bridgeClasses, 'BridgeChecks']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

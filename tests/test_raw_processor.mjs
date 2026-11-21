@@ -41,9 +41,44 @@ public final class RawChecks {
             case "impulse": impulse(); break;
             case "edges": edges(); break;
             case "tone": tone(); break;
+            case "lsc_and_halo": lscAndHalo(); break;
+            case "lsc_high_gain": lscHighGain(); break;
             case "invalid": invalid(); break;
             default: throw new AssertionError(args[0]);
         }
+    }
+
+    private static void lscAndHalo() {
+        // 1. Dark wire against saturated bright sky must never create white halos in headroom-damped sharpen.
+        int w = 16, h = 12;
+        int[] wireRaw = new int[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                wireRaw[y * w + x] = (x == 7 || x == 8) ? 60 : 950;
+            }
+        }
+        int[] wirePixels = processRawToArgb(wireRaw, w, h, CFA_RGGB, ZERO, 1023, UNITY, null, 0.5f, null, 0, 0, 100);
+        // Bright pixels right next to the wire must not overshoot brighter than distant sky background.
+        int farSky = channel(at(wirePixels, w, 2, 6), 8);
+        int edgeSky = channel(at(wirePixels, w, 6, 6), 8);
+        check(edgeSky <= farSky + 2, "expected zero white wire halo, edge=" + edgeSky + " far=" + farSky);
+
+        // 2. LensShadingMap 2x2x4 corner vignetting compensation recovers uniform corner brightness.
+        float[] lscGrid = new float[2 * 2 * 4];
+        for (int i = 0; i < lscGrid.length; i++) lscGrid[i] = 2.0f; // bottom-right/corners boosted uniformly in this synthetic check
+        lscGrid[0] = lscGrid[1] = lscGrid[2] = lscGrid[3] = 1.0f; // top-left = 1.0x
+        int[] vignRaw = new int[12 * 10];
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 12; x++) {
+                float u = x / 11f, v = y / 9f;
+                float gainApprox = (1f - u) * (1f - v) * 1.0f + (1f - (1f - u) * (1f - v)) * 2.0f;
+                vignRaw[y * 12 + x] = Math.round(400f / gainApprox);
+            }
+        }
+        int[] flat = processRawToArgb(vignRaw, 12, 10, CFA_RGGB, ZERO, 1023, UNITY, null, 0f, lscGrid, 2, 2, 100);
+        int tl = channel(at(flat, 12, 2, 2), 8);
+        int br = channel(at(flat, 12, 9, 7), 8);
+        check(Math.abs(tl - br) <= 4, "LSC corner flat-field check tl=" + tl + " br=" + br);
     }
 
     private static void raw10() {
@@ -265,6 +300,25 @@ public final class RawChecks {
         throw new AssertionError("Expected IllegalArgumentException");
     }
 
+    private static void lscHighGain() {
+        int w = 12, h = 8;
+        int[] raw = new int[w * h];
+        Arrays.fill(raw, 128);
+        // 2x2 LensShadingMap: left column 1.0f, right column 4.2f (exceeds legacy 4.0f cutoff).
+        float[] lsc = {
+            1.0f, 1.0f, 1.0f, 1.0f,  4.2f, 4.2f, 4.2f, 4.2f,
+            1.0f, 1.0f, 1.0f, 1.0f,  4.2f, 4.2f, 4.2f, 4.2f
+        };
+        float[] identity = {1, 0, 0, 0, 1, 0, 0, 0, 1};
+        int[] pixels = processRawToArgb(
+                raw, w, h, CFA_RGGB, ZERO, 1024f, UNITY, identity, 0f, lsc, 2, 2, 100);
+        int leftG = channel(at(pixels, w, 0, h / 2), 8);
+        int rightG = channel(at(pixels, w, w - 1, h / 2), 8);
+        check(leftG >= 90 && leftG <= 115, "left baseline green=" + leftG);
+        check(rightG >= 165, "right 4.2x LSC corner dropped back to 1.0x: green=" + rightG);
+        check(rightG - leftG >= 60, "corner vs center delta too small: " + (rightG - leftG));
+    }
+
     private static void check(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
     }
@@ -293,6 +347,8 @@ for (const [name, check] of [
   ['5×5 impulse coefficients and bilinear border match expected RGB', 'impulse'],
   ['vertical and horizontal edges have low phase-dependent error', 'edges'],
   ['highlight shoulder and bounded luminance sharpening', 'tone'],
+  ['LensShadingMap flat-field and zero white cable halo in 13-arg pipeline', 'lsc_and_halo'],
+  ['LensShadingMap preserves continuous corner gains above 4.0x', 'lsc_high_gain'],
   ['invalid buffers, geometry, and calibration are rejected', 'invalid'],
 ]) {
   test(name, () => run(java, ['-cp', classes, 'RawChecks', check]));

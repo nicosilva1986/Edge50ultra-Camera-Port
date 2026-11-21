@@ -137,6 +137,9 @@ for (const cam of ['BACK_MAIN', 'BACK_TELE', 'ZOOM_BLENDING']) {
 if (dev4.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']) {
   dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-main-overrides']['in-sensor-crop-lux-idx-threshold'] ??= [200, 230];
 }
+if (dev4.ctwo['remosaic-config']) {
+  dev4.ctwo['remosaic-config']['to-high-res-rg-threshold'] = [0.05];
+}
 fs.writeFileSync(path.join(assetsDir, 'config_device_ctwo'), JSON.stringify(dev4));
 
 fs.copyFileSync(path.join(CTWO_CFG, 'cms_config_ctwo'), path.join(assetsDir, 'cms_config_ctwo'));
@@ -171,9 +174,21 @@ const iq4 = JSON.parse(fs.readFileSync(iqSource, 'utf8'));
 const iq5 = JSON.parse(fs.readFileSync(path.join(rAssets, 'iq_config_roadstr'), 'utf8')).roadstr;
 delete iq4.ctwo.uhdr_settings;
 iq4.ctwo.uhdr_settings_advanced = iq5.uhdr_settings_advanced;
+for (const camObj of Object.values(iq4.ctwo.scene_selection_advanced_overrides || {})) {
+  if (camObj?.auto_ultra_resolution?.hdr_default && !camObj.auto_ultra_resolution.hdr_auto_on) {
+    const def = camObj.auto_ultra_resolution.hdr_default;
+    delete camObj.auto_ultra_resolution.hdr_default;
+    camObj.auto_ultra_resolution.hdr_off = structuredClone(def);
+    camObj.auto_ultra_resolution.hdr_auto_off = structuredClone(def);
+    camObj.auto_ultra_resolution.hdr_auto_on = def.map((row) => ({ ...row, override_scene: 'RAW_HDR' }));
+  }
+}
 fs.writeFileSync(path.join(assetsDir, 'iq_config_ctwo'), JSON.stringify(iq4));
 
-const mcf4 = JSON.parse(decryptMcf(fs.readFileSync(path.join(CTWO_CFG, 'mcf_config_ctwo'))).toString('utf8'));
+const mcfSource = fs.existsSync(path.join(MOD_CFG, 'mcf_config_ctwo'))
+  ? path.join(MOD_CFG, 'mcf_config_ctwo')
+  : path.join(CTWO_CFG, 'mcf_config_ctwo');
+const mcf4 = JSON.parse(decryptMcf(fs.readFileSync(mcfSource)).toString('utf8'));
 const mcf5 = JSON.parse(decryptMcf(fs.readFileSync(path.join(rAssets, 'mcf_config_roadstr')), MCF5_KEY).toString('utf8')).roadstr;
 const N = mcf4.ctwo.imagers.length;
 const rep = (val) => Array.from({ length: N }, () => structuredClone(val));
@@ -331,6 +346,8 @@ const removedAlgs = new Set([
   'MCF_TETRAS_RAW_SUPER_RESOLUTION_CAPTURE_ALG',
   'MCF_TETRAS_SUPERRESOLUTION_CAPTURE_ALG',
   'MCF_TETRAS_SUPER_RESOLUTION_BST_HDR_CAPTURE_ALG',
+  'MCF_TETRAS_SENSEPR_CAPTURE_ALG',
+  'MCF_FOTONATION_BEAUTY_CAPTURE_ALG',
   'MCF_MOT_TEST_BLUR_CAPTURE_ALG',
   'MCF_MOT_IMAGE_STABILIZATION_ALG',
 ]);

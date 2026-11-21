@@ -80,6 +80,268 @@ public final class CleanBayerRawProcessor {
     }
 
     /**
+     * Converts a Bayer mosaic using optional Camera2 LensShadingMap gains, pre-demosaic
+     * hot-pixel suppression, ISO-scaled chroma denoising, and headroom-damped sharpening.
+     */
+    public static int[] processRawToArgb(int[] raw, int width, int height, int cfaPattern,
+                                         float[] blackLevel4, float whiteLevel, float[] wbGains3,
+                                         float[] ccm3x3, float sharpenAmount,
+                                         float[] lscGrid4, int lscCols, int lscRows,
+                                         int isoSensitivity) {
+        int count = pixelCount(width, height);
+        if (width < 2 || height < 2 || raw == null || raw.length < count
+                || cfaPattern < CFA_RGGB || cfaPattern > CFA_BGGR
+                || blackLevel4 == null || blackLevel4.length != 4
+                || wbGains3 == null || wbGains3.length != 3
+                || !Float.isFinite(whiteLevel) || !Float.isFinite(sharpenAmount)) {
+            throw new IllegalArgumentException("Invalid Bayer image or calibration");
+        }
+        int[] colors = CFA[cfaPattern];
+        double[] inverseRange = new double[4];
+        for (int site = 0; site < 4; site++) {
+            double range = (double) whiteLevel - blackLevel4[site];
+            if (range <= 0 || !Double.isFinite(range)) {
+                throw new IllegalArgumentException("White level must exceed each finite black level");
+            }
+            inverseRange[site] = 1.0 / range;
+        }
+        for (float gain : wbGains3) {
+            if (!Float.isFinite(gain) || gain < 0) {
+                throw new IllegalArgumentException("White balance gains must be finite and nonnegative");
+            }
+        }
+
+        boolean hasLsc = lscGrid4 != null && lscCols >= 2 && lscRows >= 2
+                && lscGrid4.length >= lscCols * lscRows * 4;
+        float[] mosaic = new float[count];
+        for (int y = 0; y < height; y++) {
+            int rowSite = (y & 1) << 1;
+            float lscY = hasLsc ? (y * (lscRows - 1)) / (float) Math.max(1, height - 1) : 0f;
+            int ly0 = hasLsc ? Math.min(lscRows - 2, (int) lscY) : 0;
+            float fy = hasLsc ? lscY - ly0 : 0f;
+            for (int x = 0, i = y * width; x < width; x++, i++) {
+                int site = rowSite | (x & 1);
+                double normalized = ((double) raw[i] - blackLevel4[site]) * inverseRange[site];
+                double val = Math.max(0.0, Math.min(1.0, normalized)) * wbGains3[colors[site]];
+                if (hasLsc) {
+                    int color = colors[site];
+                    int lscCh = color == RED ? 0 : (color == BLUE ? 3 : ((y & 1) == 0 ? 1 : 2));
+                    float lscX = (x * (lscCols - 1)) / (float) Math.max(1, width - 1);
+                    int lx0 = Math.min(lscCols - 2, (int) lscX);
+                    float fx = lscX - lx0;
+                    int idx00 = ((ly0 * lscCols + lx0) << 2) + lscCh;
+                    int idx10 = idx00 + 4;
+                    int idx01 = idx00 + (lscCols << 2);
+                    int idx11 = idx01 + 4;
+                    float g0 = lscGrid4[idx00] + (lscGrid4[idx10] - lscGrid4[idx00]) * fx;
+                    float g1 = lscGrid4[idx01] + (lscGrid4[idx11] - lscGrid4[idx01]) * fx;
+                    float lscGain = g0 + (g1 - g0) * fy;
+                    if (Float.isFinite(lscGain) && lscGain > 0.0f) {
+                        val *= Math.max(0.8f, Math.min(8.0f, lscGain));
+                    }
+                }
+                mosaic[i] = (float) val;
+            }
+        }
+
+        if (width >= 6 && height >= 6) {
+            clampBayerHotPixels(mosaic, width, height);
+        }
+
+        double[] matrix = normalizedMatrix(ccm3x3);
+        float[] linR = new float[count];
+        float[] linG = new float[count];
+        float[] linB = new float[count];
+        demosaicMalvar(mosaic, width, height, colors, matrix, linR, linG, linB);
+
+        if (isoSensitivity > 150 && width >= 4 && height >= 4) {
+            smoothChromaByIso(linR, linG, linB, width, height, isoSensitivity);
+        }
+
+        int[] argb = new int[count];
+        float[] sRed = sharpenAmount > 0 ? new float[count] : null;
+        float[] sGreen = sharpenAmount > 0 ? new float[count] : null;
+        float[] sBlue = sharpenAmount > 0 ? new float[count] : null;
+        float[] luma = sharpenAmount > 0 ? new float[count] : null;
+
+        for (int i = 0; i < count; i++) {
+            double cr = linR[i];
+            double cg = linG[i];
+            double cb = linB[i];
+            double peak = Math.max(cr, Math.max(cg, cb));
+            double scale = 1.0;
+            if (peak > 0.72) {
+                double excess = peak - 0.72;
+                scale = (0.72 + 0.28 * (excess / (0.28 + excess))) / peak;
+            }
+            float sr = encode(cr * scale);
+            float sg = encode(cg * scale);
+            float sb = encode(cb * scale);
+            if (luma == null) {
+                argb[i] = pack(sr, sg, sb);
+            } else {
+                sRed[i] = sr;
+                sGreen[i] = sg;
+                sBlue[i] = sb;
+                luma[i] = 0.2126f * sr + 0.7152f * sg + 0.0722f * sb;
+            }
+        }
+        if (luma != null) {
+            sharpenHeadroomDamped(argb, width, height, sRed, sGreen, sBlue, luma, sharpenAmount);
+        }
+        return argb;
+    }
+
+    private static void clampBayerHotPixels(float[] mosaic, int width, int height) {
+        int s2 = width * 2;
+        for (int y = 2; y < height - 2; y++) {
+            int row = y * width;
+            for (int x = 2; x < width - 2; x++) {
+                int i = row + x;
+                float c = mosaic[i];
+                float n0 = mosaic[i - s2 - 2], n1 = mosaic[i - s2], n2 = mosaic[i - s2 + 2];
+                float n3 = mosaic[i - 2],                              n4 = mosaic[i + 2];
+                float n5 = mosaic[i + s2 - 2], n6 = mosaic[i + s2], n7 = mosaic[i + s2 + 2];
+                float maxN = Math.max(Math.max(Math.max(n0, n1), Math.max(n2, n3)),
+                                      Math.max(Math.max(n4, n5), Math.max(n6, n7)));
+                float minN = Math.min(Math.min(Math.min(n0, n1), Math.min(n2, n3)),
+                                      Math.min(Math.min(n4, n5), Math.min(n6, n7)));
+                if (c > maxN * 1.75f + 0.02f) {
+                    mosaic[i] = maxN;
+                } else if (c < minN * 0.40f && minN > 0.04f) {
+                    mosaic[i] = minN;
+                }
+            }
+        }
+    }
+
+    private static void demosaicMalvar(float[] mosaic, int width, int height, int[] colors,
+                                       double[] matrix, float[] outR, float[] outG, float[] outB) {
+        for (int y = 0; y < height; y++) {
+            int up = y == 0 ? width : -width;
+            int down = y == height - 1 ? -width : width;
+            for (int x = 0, i = y * width; x < width; x++, i++) {
+                int left = x == 0 ? 1 : -1;
+                int right = x == width - 1 ? -1 : 1;
+                int site = ((y & 1) << 1) | (x & 1);
+                int color = colors[site];
+                double center = mosaic[i];
+                double horizontal = (double) mosaic[i + left] + mosaic[i + right];
+                double vertical = (double) mosaic[i + up] + mosaic[i + down];
+                double diagonals = (double) mosaic[i + up + left] + mosaic[i + up + right]
+                        + mosaic[i + down + left] + mosaic[i + down + right];
+                boolean interior = x >= 2 && x < width - 2 && y >= 2 && y < height - 2;
+                double h2 = interior ? (double) mosaic[i - 2] + mosaic[i + 2] : 0;
+                double v2 = interior ? (double) mosaic[i - 2 * width] + mosaic[i + 2 * width] : 0;
+
+                double r, g, b;
+                if (color == GREEN) {
+                    g = center;
+                    double h = interior ? (5 * center + 4 * horizontal - diagonals - h2 + 0.5 * v2) / 8 : horizontal / 2;
+                    double v = interior ? (5 * center + 4 * vertical - diagonals - v2 + 0.5 * h2) / 8 : vertical / 2;
+                    boolean redHorizontal = colors[site ^ 1] == RED;
+                    r = redHorizontal ? h : v;
+                    b = redHorizontal ? v : h;
+                } else {
+                    g = interior ? (4 * center + 2 * (horizontal + vertical) - h2 - v2) / 8 : (horizontal + vertical) / 4;
+                    double opposite = interior ? (6 * center + 2 * diagonals - 1.5 * (h2 + v2)) / 8 : diagonals / 4;
+                    r = color == RED ? center : opposite;
+                    b = color == BLUE ? center : opposite;
+                }
+                outR[i] = (float) Math.max(0.0, matrix[0] * r + matrix[1] * g + matrix[2] * b);
+                outG[i] = (float) Math.max(0.0, matrix[3] * r + matrix[4] * g + matrix[5] * b);
+                outB[i] = (float) Math.max(0.0, matrix[6] * r + matrix[7] * g + matrix[8] * b);
+            }
+        }
+    }
+
+    /** Edge-preserving chroma-only denoise in linear YCbCr leaving luminance detail untouched. */
+    private static void smoothChromaByIso(float[] rArr, float[] gArr, float[] bArr,
+                                          int width, int height, int iso) {
+        int count = width * height;
+        float[] yArr = new float[count];
+        float[] cbArr = new float[count];
+        float[] crArr = new float[count];
+        for (int i = 0; i < count; i++) {
+            float y = 0.2126f * rArr[i] + 0.7152f * gArr[i] + 0.0722f * bArr[i];
+            yArr[i] = y;
+            cbArr[i] = bArr[i] - y;
+            crArr[i] = rArr[i] - y;
+        }
+        float strength = Math.min(1f, (iso - 150f) / 1400f);
+        float invLumaThresh = 1f / (0.04f + 0.06f * strength);
+        for (int y = 1; y < height - 1; y++) {
+            int row = y * width;
+            for (int x = 1; x < width - 1; x++) {
+                int i = row + x;
+                float yc = yArr[i];
+                float accCb = cbArr[i], accCr = crArr[i], wSum = 1f;
+                for (int dy = -1; dy <= 1; dy++) {
+                    int nRow = (y + dy) * width;
+                    for (int dx = -1; dx <= 1; dx++) {
+                        if (dx == 0 && dy == 0) continue;
+                        int ni = nRow + x + dx;
+                        float dyL = Math.abs(yArr[ni] - yc) * invLumaThresh;
+                        float w = dyL >= 1f ? 0f : (1f - dyL);
+                        accCb += cbArr[ni] * w;
+                        accCr += crArr[ni] * w;
+                        wSum += w;
+                    }
+                }
+                float fCb = cbArr[i] + (accCb / wSum - cbArr[i]) * (0.35f + 0.55f * strength);
+                float fCr = crArr[i] + (accCr / wSum - crArr[i]) * (0.35f + 0.55f * strength);
+                float rr = yc + fCr;
+                float bb = yc + fCb;
+                float gg = (yc - 0.2126f * rr - 0.0722f * bb) / 0.7152f;
+                rArr[i] = Math.max(0f, rr);
+                gArr[i] = Math.max(0f, gg);
+                bArr[i] = Math.max(0f, bb);
+            }
+        }
+    }
+
+    /** Symmetric nearest-neighbor headroom-damped sharpening: eliminates white halos on dark wires. */
+    private static void sharpenHeadroomDamped(int[] argb, int width, int height, float[] red,
+                                              float[] green, float[] blue, float[] luma, float amount) {
+        final int[] oppX = {-1, 0, -1, 1};
+        final int[] oppY = {0, -1, -1, -1};
+        for (int y = 0; y < height; y++) {
+            for (int x = 0, i = y * width; x < width; x++, i++) {
+                float yc = luma[i];
+                float minY = yc, maxY = yc;
+                float sumSym = 0f;
+                for (int k = 0; k < 4; k++) {
+                    int x1 = Math.max(0, Math.min(width - 1, x + oppX[k]));
+                    int y1 = Math.max(0, Math.min(height - 1, y + oppY[k]));
+                    int x2 = Math.max(0, Math.min(width - 1, x - oppX[k]));
+                    int y2 = Math.max(0, Math.min(height - 1, y - oppY[k]));
+                    float a = luma[y1 * width + x1];
+                    float b = luma[y2 * width + x2];
+                    if (a < minY) minY = a;
+                    if (b < minY) minY = b;
+                    if (a > maxY) maxY = a;
+                    if (b > maxY) maxY = b;
+                    sumSym += (Math.abs(a - yc) <= Math.abs(b - yc)) ? a : b;
+                }
+                float meanSym = (sumSym + yc) / 5f;
+                float delta = (yc - meanSym) * amount;
+                float dMax = Math.max(0f, maxY - yc);
+                float dMin = Math.max(0f, yc - minY);
+                float headroom = delta > 0f
+                        ? Math.min(1f - Math.max(red[i], Math.max(green[i], blue[i])), dMax * 0.5f)
+                        : Math.min(Math.min(red[i], Math.min(green[i], blue[i])), dMin * 0.5f);
+                float limit = Math.max(0f, Math.min(headroom, 3.0f / 255f));
+                float boost = limit <= 0f ? 0f : (float) (delta * limit / (limit + Math.abs(delta)));
+                argb[i] = pack(clamp01(red[i] + boost), clamp01(green[i] + boost), clamp01(blue[i] + boost));
+            }
+        }
+    }
+
+    private static float clamp01(float v) {
+        return v < 0f ? 0f : (v > 1f ? 1f : v);
+    }
+
+    /**
      * Processes a mosaic of at least 2 by 2 pixels. Black levels are in row-major
      * CFA tile order. Gains are in RGB order and the optional matrix is row-major.
      */

@@ -121,7 +121,7 @@
       "file": "smali/com/motorola/camera/fsm/camera/modes/RequestBuilderHelper.smali",
       "description": "Allow CustomImagingBridge.resolveEnableMfnr to turn off QC_MFNR_CAPTURE_REQUEST_KEY in Pure ISP profile (4) while preserving other profiles.",
       "find": ".method public static setMfnr(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;ZZ)V\n    .locals 2\n\n    sget-object v0, Lcom/motorola/camera/settings/CustomKeyHelper;->QC_MFNR_SUPPORT_KEY:Lcom/motorola/camera/settings/CustomKeyHelper$CaptureResultKey;",
-      "replace": ".method public static setMfnr(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;ZZ)V\n    .locals 2\n\n    invoke-static {p2}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveEnableMfnr(Z)Z\n\n    move-result p2\n\n    sget-object v0, Lcom/motorola/camera/settings/CustomKeyHelper;->QC_MFNR_SUPPORT_KEY:Lcom/motorola/camera/settings/CustomKeyHelper$CaptureResultKey;"
+      "replace": ".method public static setMfnr(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;ZZ)V\n    .locals 2\n\n    invoke-static {p2, p3}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveEnableMfnr(ZZ)Z\n\n    move-result p2\n\n    sget-object v0, Lcom/motorola/camera/settings/CustomKeyHelper;->QC_MFNR_SUPPORT_KEY:Lcom/motorola/camera/settings/CustomKeyHelper$CaptureResultKey;"
     },
     {
       "id": "rbh_gate_in_sensor_crop_by_profile",
@@ -145,7 +145,7 @@
       "file": "smali/com/motorola/camera/fsm/camera/states/runnables/McfCaptureRequestRunnable$CreateRequestsRunnable.smali",
       "description": "Apply CustomImagingBridge.applyCaptureRequestOverrides (NR, Edge, MFNR=0) on MCF CaptureRequest builders after McfMetadata population.",
       "find": "    :cond_1a\n    iget-object p3, p0, Lcom/motorola/camera/fsm/camera/CameraRunnable;->mFsmContext:Lcom/motorola/camera/fsm/camera/FsmContext;",
-      "replace": "    :cond_1a\n    invoke-static {p3, v4}, Lcom/motorola/camera/custom/CustomImagingBridge;->applyCaptureRequestOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;)V\n\n    iget-object p3, p0, Lcom/motorola/camera/fsm/camera/CameraRunnable;->mFsmContext:Lcom/motorola/camera/fsm/camera/FsmContext;"
+      "replace": "    :cond_1a\n    iget-object v1, p0, Lcom/motorola/camera/fsm/camera/states/runnables/McfCaptureRequestRunnable$CreateRequestsRunnable;->mRootRecord:Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;\n\n    invoke-static {p3, v4, v1}, Lcom/motorola/camera/custom/CustomImagingBridge;->applyCaptureRequestOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;Lcom/motorola/camera/fsm/camera/record/CaptureRecord;)V\n\n    iget-object p3, p0, Lcom/motorola/camera/fsm/camera/CameraRunnable;->mFsmContext:Lcom/motorola/camera/fsm/camera/FsmContext;"
     },
     {
       "id": "iq_override_profile_scene",
@@ -159,9 +159,9 @@
       "id": "save_apply_custom_lut",
       "category": "postproc-lut",
       "file": "smali/com/motorola/camera/saving/SaveImageService.smali",
-      "description": "Apply Apple-style 17x17x17 trilinear 3D LUT in memory inside SaveImageService after applyColorTone when profile 5/6/7 (or Clean Bayer with LUT) is active, preserving full EXIF.",
+      "description": "Skip stock applyColorTone when AppleStyleToneEngine is active and apply perceptual Oklab + guided tone grading in memory inside SaveImageService preserving full EXIF.",
       "find": "    :goto_10\n    invoke-static {v1}, Lcom/motorola/camera/saving/SaveImageService;->applyColorTone(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V",
-      "replace": "    :goto_10\n    invoke-static {v1}, Lcom/motorola/camera/saving/SaveImageService;->applyColorTone(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V\n\n    invoke-static {v1}, Lcom/motorola/camera/custom/CustomImagingBridge;->applyCustomLutIfEnabled(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V"
+      "replace": "    :goto_10\n    invoke-static {v1}, Lcom/motorola/camera/custom/CustomImagingBridge;->isCustomLutActive(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)Z\n\n    move-result v4\n\n    if-nez v4, :cond_skip_stock_tone\n\n    invoke-static {v1}, Lcom/motorola/camera/saving/SaveImageService;->applyColorTone(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V\n\n    :cond_skip_stock_tone\n    invoke-static {v1}, Lcom/motorola/camera/custom/CustomImagingBridge;->applyCustomLutIfEnabled(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V"
     },
     {
       "id": "save_export_clean_bayer_raw",
@@ -170,6 +170,22 @@
       "description": "When Clean RAW Bayer profile (8) is active in Pro RAW/DNG mode, demosaic RAW10/RAW16 via 5x5 Malvar-He-Cutler and write a clean companion _CLEAN.jpg alongside the DNG.",
       "find": "    :try_start_9\n    invoke-static/range {v17 .. v24}, Lcom/motorola/camera/saving/SaveImageService;->createDng(Ljava/nio/ByteBuffer;Ljava/io/FileOutputStream;Landroid/hardware/camera2/TotalCaptureResult;Landroid/location/Location;ILjava/lang/String;II)V\n    :try_end_9\n    .catch Ljava/lang/Exception; {:try_start_9 .. :try_end_9} :catch_4\n    .catchall {:try_start_9 .. :try_end_9} :catchall_2\n\n    move-object/from16 v4, v18",
       "replace": "    :try_start_9\n    invoke-static/range {v17 .. v24}, Lcom/motorola/camera/saving/SaveImageService;->createDng(Ljava/nio/ByteBuffer;Ljava/io/FileOutputStream;Landroid/hardware/camera2/TotalCaptureResult;Landroid/location/Location;ILjava/lang/String;II)V\n    :try_end_9\n    .catch Ljava/lang/Exception; {:try_start_9 .. :try_end_9} :catch_4\n    .catchall {:try_start_9 .. :try_end_9} :catchall_2\n\n    move-object/from16 v15, v17\n\n    invoke-static {v15, v13, v14, v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->exportCleanBayerJpeg(Ljava/nio/ByteBuffer;Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V\n\n    move-object/from16 v4, v18"
+    },
+    {
+      "id": "disable_postproc_mcf",
+      "category": "postproc-profile",
+      "file": "smali/com/motorola/camera/settings/SettingsHelper.smali",
+      "description": "Allow Disable Post Processing profile (9) to disable MCF multi-frame fusion via CustomImagingBridge.shouldAllowMcf.",
+      "find": "    invoke-static {}, Lcom/motorola/camera/mcf/Mcf;->isInitialized()Z\n\n    move-result v0\n\n    if-eqz v0, :cond_0\n\n    const/4 v0, 0x1\n\n    return v0",
+      "replace": "    invoke-static {}, Lcom/motorola/camera/mcf/Mcf;->isInitialized()Z\n\n    move-result v0\n\n    if-eqz v0, :cond_0\n\n    const/4 v0, 0x1\n\n    invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->shouldAllowMcf(Z)Z\n\n    move-result v0\n\n    return v0"
+    },
+    {
+      "id": "jpeg_quality_98",
+      "category": "postproc-quality",
+      "file": "smali/com/motorola/camera/settings/SettingsHelper.smali",
+      "description": "Raise default Moto JPEG quality from 95 to 98 via CustomImagingBridge.resolveJpegQuality while keeping HAL/UltraHDR native encode path.",
+      "find": ".method public static getJpegQuality()I\n    .locals 1\n\n    sget-object v0, Lcom/motorola/camera/settings/SettingsManager;->JPEG_QUALITY:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v0}, Lcom/motorola/camera/settings/SettingsManager;->get(Lcom/motorola/camera/settings/SettingsManager$Key;)Lcom/motorola/camera/settings/Setting;\n\n    move-result-object v0\n\n    iget-object v0, v0, Lcom/motorola/camera/settings/Setting;->mValue:Ljava/lang/Object;\n\n    check-cast v0, Ljava/lang/Integer;\n\n    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I\n\n    move-result v0\n\n    return v0\n.end method",
+      "replace": ".method public static getJpegQuality()I\n    .locals 1\n\n    sget-object v0, Lcom/motorola/camera/settings/SettingsManager;->JPEG_QUALITY:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v0}, Lcom/motorola/camera/settings/SettingsManager;->get(Lcom/motorola/camera/settings/SettingsManager$Key;)Lcom/motorola/camera/settings/Setting;\n\n    move-result-object v0\n\n    iget-object v0, v0, Lcom/motorola/camera/settings/Setting;->mValue:Ljava/lang/Object;\n\n    check-cast v0, Ljava/lang/Integer;\n\n    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I\n\n    move-result v0\n\n    invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveJpegQuality(I)I\n\n    move-result v0\n\n    return v0\n.end method"
     }
   ]
 }
