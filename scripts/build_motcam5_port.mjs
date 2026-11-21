@@ -27,6 +27,7 @@ const SRC4 = process.env.MOTCAM4_SRC || path.join(BASE, 'decompiled', 'MotCamera
 const CTWO_CFG = resolveConfigsDir();
 const MOD_CFG = path.join(REPO_ROOT, 'configs_mod');
 const HIDDEN_API = path.join(REPO_ROOT, 'patches', 'hiddenapibypass_smali');
+const CUSTOM_IMAGING = path.join(REPO_ROOT, 'patches', 'custom_imaging_smali');
 const PATCHES_CAM5 = path.join(REPO_ROOT, 'patches', 'smali_patches_cam5.json');
 
 const STAGE = path.join(BASE, 'work_motcam5');
@@ -53,6 +54,7 @@ console.log('1. Staging MotCamera5_roadstr...');
 fs.rmSync(STAGE, { recursive: true, force: true });
 fs.cpSync(SRC5, STAGE, { recursive: true });
 fs.cpSync(HIDDEN_API, path.join(STAGE, 'smali_classes2'), { recursive: true });
+fs.cpSync(CUSTOM_IMAGING, path.join(STAGE, 'smali_classes2'), { recursive: true });
 
 console.log('2. Patching AndroidManifest.xml and locale labels...');
 let manifest = fs.readFileSync(path.join(STAGE, 'AndroidManifest.xml'), 'utf8');

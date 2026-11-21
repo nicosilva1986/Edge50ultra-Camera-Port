@@ -14,7 +14,12 @@ test('smali_patches_cam5.json loads cleanly and defines valid unique patch entri
   const data = JSON.parse(fs.readFileSync(PATCHES_PATH, 'utf8'));
   assert.equal(data.targetPackage, 'com.motorola.camera5');
   assert.equal(data.targetVersion, '10.0.44.42');
-  assert.ok(Array.isArray(data.patches) && data.patches.length === 17);
+  assert.ok(Array.isArray(data.patches) && data.patches.length === 21);
+
+  for (const name of ['CustomImagingBridge', 'ScenePostProcSelector', 'AppleStyleToneEngine', 'CleanBayerRawProcessor']) {
+    const sp = path.join(REPO_ROOT, 'patches', 'custom_imaging_smali', 'com', 'motorola', 'camera', 'custom', `${name}.smali`);
+    assert.ok(fs.existsSync(sp), `Missing compiled custom smali: ${sp}`);
+  }
 
   const ids = new Set();
   for (const patch of data.patches) {
