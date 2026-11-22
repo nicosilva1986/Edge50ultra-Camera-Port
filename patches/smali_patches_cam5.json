@@ -186,6 +186,22 @@
       "description": "Raise default Moto JPEG quality from 95 to 98 via CustomImagingBridge.resolveJpegQuality while keeping HAL/UltraHDR native encode path.",
       "find": ".method public static getJpegQuality()I\n    .locals 1\n\n    sget-object v0, Lcom/motorola/camera/settings/SettingsManager;->JPEG_QUALITY:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v0}, Lcom/motorola/camera/settings/SettingsManager;->get(Lcom/motorola/camera/settings/SettingsManager$Key;)Lcom/motorola/camera/settings/Setting;\n\n    move-result-object v0\n\n    iget-object v0, v0, Lcom/motorola/camera/settings/Setting;->mValue:Ljava/lang/Object;\n\n    check-cast v0, Ljava/lang/Integer;\n\n    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I\n\n    move-result v0\n\n    return v0\n.end method",
       "replace": ".method public static getJpegQuality()I\n    .locals 1\n\n    sget-object v0, Lcom/motorola/camera/settings/SettingsManager;->JPEG_QUALITY:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v0}, Lcom/motorola/camera/settings/SettingsManager;->get(Lcom/motorola/camera/settings/SettingsManager$Key;)Lcom/motorola/camera/settings/Setting;\n\n    move-result-object v0\n\n    iget-object v0, v0, Lcom/motorola/camera/settings/Setting;->mValue:Ljava/lang/Object;\n\n    check-cast v0, Ljava/lang/Integer;\n\n    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I\n\n    move-result v0\n\n    invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveJpegQuality(I)I\n\n    move-result v0\n\n    return v0\n.end method"
+    },
+    {
+      "id": "session_apply_custom_params",
+      "category": "postproc-engine",
+      "file": "smali/com/motorola/camera/fsm/camera/states/runnables/CreateCaptureSessionRunnable.smali",
+      "description": "Configure verified CamX session parameters (MFHDR, AutoHDR, ISZ, XCFA, VSR) via CustomImagingBridge.applySessionParameterOverrides at CameraCaptureSession creation.",
+      "find": "    invoke-static {v5, v6}, Lcom/motorola/camera/fsm/camera/modes/RequestBuilderHelper;->setInsensorZoomForSession(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;)V\n\n    goto :goto_5",
+      "replace": "    invoke-static {v5, v6}, Lcom/motorola/camera/fsm/camera/modes/RequestBuilderHelper;->setInsensorZoomForSession(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;)V\n\n    invoke-static {v5, v6}, Lcom/motorola/camera/custom/CustomImagingBridge;->applySessionParameterOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;)V\n\n    goto :goto_5"
+    },
+    {
+      "id": "photo_apply_custom_capture_overrides",
+      "category": "postproc-engine",
+      "file": "smali/com/motorola/camera/fsm/camera/modes/PhotoMode.smali",
+      "description": "Apply CustomImagingBridge.applyCaptureRequestOverrides on direct PhotoMode capture requests (non-MCF / Profile 9 / fallback) for consistent HAL vendor key and NR/Edge tuning.",
+      "find": "    invoke-static {v6, v1, p0}, Lcom/motorola/camera/fsm/camera/modes/RequestBuilderHelper;->setIsFaceBeautyCapture(ILandroid/hardware/camera2/CaptureRequest$Builder;Ljava/lang/String;)V\n\n    return-void\n.end method\n\n.method public onSetupStreamingRequests",
+      "replace": "    invoke-static {v6, v1, p0}, Lcom/motorola/camera/fsm/camera/modes/RequestBuilderHelper;->setIsFaceBeautyCapture(ILandroid/hardware/camera2/CaptureRequest$Builder;Ljava/lang/String;)V\n\n    invoke-static {p0, v1}, Lcom/motorola/camera/custom/CustomImagingBridge;->applyCaptureRequestOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;)V\n\n    return-void\n.end method\n\n.method public onSetupStreamingRequests"
     }
   ]
 }

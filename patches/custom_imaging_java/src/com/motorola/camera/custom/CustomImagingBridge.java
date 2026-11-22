@@ -40,9 +40,12 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -64,6 +67,23 @@ public final class CustomImagingBridge {
     private static final int MAX_BAYER_PIXELS = 20_000_000;
     private static final int MAX_SHOT_CACHE = 512;
     private static final int JPEG_SAVE_QUALITY = 98;
+    private static final boolean HTP_RPC_AVAILABLE = checkAdspRpcReadable();
+
+    private static boolean checkAdspRpcReadable() {
+        try {
+            java.io.File dev = new java.io.File("/dev/adsprpc-smd");
+            if (!dev.exists()) {
+                return true;
+            }
+            try (java.io.FileInputStream ignored = new java.io.FileInputStream(dev)) {
+                return true;
+            } catch (Throwable denied) {
+                return false;
+            }
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
 
     private static final ExecutorService LUT_POOL = Executors.newFixedThreadPool(
             Math.min(4, Math.max(2, Runtime.getRuntime().availableProcessors() / 2)),
@@ -217,13 +237,20 @@ public final class CustomImagingBridge {
 
         String name = scene != null ? scene.name() : "";
         int profile = getSelectedProfile();
-        int[] res = ScenePostProcSelector.resolve(profile, zoom, lux, name, isFlash, isUiSpecial);
-        String summary = "Edge50Port v1.3 p=" + profile
+        int[] res = ScenePostProcSelector.resolveExtended(profile, zoom, lux, name, isFlash, isUiSpecial, HTP_RPC_AVAILABLE);
+        String summary = "Edge50Port v1.4.0 p=" + profile
                 + " z=" + (Math.round(zoom * 10f) / 10f)
                 + " lux=" + Math.round(lux)
                 + " act=" + res[0] + " nr=" + res[1] + " edge=" + res[2]
                 + " mfnr=" + res[3] + " sz=" + res[4] + " lut=" + res[5] + " raw=" + res[6]
+                + (res[7] >= 0 ? (" isz=" + res[7]) : "")
+                + (res[8] >= 0 ? (" aide=" + res[8]) : "")
+                + (res[9] > 0 ? (" vsr=" + res[9]) : "")
+                + (res[10] >= 0 ? (" hdr=" + res[10]) : "")
+                + (res[11] == 1 ? " t2w=0" : "")
+                + (res[12] == 1 ? " qll=1" : "")
                 + (profile == ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING ? " mcf=0" : "")
+                + (!HTP_RPC_AVAILABLE ? " htp=0" : "")
                 + (name.isEmpty() ? "" : " in=" + name)
                 + (isFlash ? " flash=1" : "");
         return new ShotDecision(res, summary);
@@ -292,12 +319,8 @@ public final class CustomImagingBridge {
             if (getSelectedProfile() == ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING) {
                 return origScene;
             }
-            String name = origScene != null ? origScene.name() : "";
             boolean effectiveFlash = isFlash || isFlashExpectedSafe();
             boolean uiSpecial = isUiSpecialModeSafe();
-            if (effectiveFlash || uiSpecial || ScenePostProcSelector.isPreservedSceneName(name)) {
-                return origScene;
-            }
             ShotDecision dec = resolveDecision(origScene, effectiveFlash, uiSpecial);
             if (dec.resolved[0] == ScenePostProcSelector.SCENE_HAL_FRAME_STACK) {
                 return Mcf.SceneMode.HAL_FRAME_STACK;
@@ -340,6 +363,88 @@ public final class CustomImagingBridge {
         return v != 0;
     }
 
+    private static final String KEY_ENABLE_ISZ = "org.codeaurora.qcamera3.sessionParameters.EnableInsensorZoom";
+    private static final String KEY_ENABLE_SNAPSHOT_ISZ = "org.codeaurora.qcamera3.sessionParameters.EnableSnapshotOnlyInsensorZoom";
+    private static final String KEY_ENABLE_XCFA = "org.codeaurora.qcamera3.sessionParameters.EnableXCFAOptimization";
+    private static final String KEY_ENABLE_MFNR_AIDE = "org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode";
+    private static final String KEY_ENABLE_VSR = "org.codeaurora.qcamera3.sessionParameters.EnableVSR";
+    private static final String KEY_ENABLE_AUTO_HDR = "org.codeaurora.qcamera3.sessionParameters.EnableAutoHDR";
+    private static final String KEY_ENABLE_MFHDR = "org.codeaurora.qcamera3.sessionParameters.EnableMFHDR";
+    private static final String KEY_ENABLE_SHDR = "org.codeaurora.qcamera3.sessionParameters.EnableSHDR";
+    private static final String KEY_ENABLE_QHDR = "org.codeaurora.qcamera3.sessionParameters.EnableQHDR";
+    private static final String KEY_HDR_MODE = "org.codeaurora.qcamera3.sessionParameters.HDRMode";
+    private static final String KEY_SNAPSHOT_HDR_MODE = "org.codeaurora.qcamera3.sessionParameters.SnapshotHDRMode";
+    private static final String KEY_HDR_MODE_PREF = "org.codeaurora.qcamera3.sessionParameters.HDRModePreference";
+    private static final String KEY_ENABLE_QLL = "org.codeaurora.qcamera3.sessionParameters.enableQLL";
+    private static final String KEY_SAT_FALLBACK_T2W = "com.lenovo.moto.SATFallback.T2W";
+
+    private static final Map<CameraCharacteristics, Set<String>> REQ_KEY_CACHE =
+            Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<CameraCharacteristics, Set<String>> SES_KEY_CACHE =
+            Collections.synchronizedMap(new WeakHashMap<>());
+
+    private static Set<String> getKeyNames(CameraCharacteristics chars, boolean sessionKeys) {
+        if (chars == null) return Collections.emptySet();
+        Map<CameraCharacteristics, Set<String>> cache = sessionKeys ? SES_KEY_CACHE : REQ_KEY_CACHE;
+        Set<String> cached = cache.get(chars);
+        if (cached != null) return cached;
+        Set<String> names = new HashSet<>();
+        try {
+            List<CaptureRequest.Key<?>> list = sessionKeys
+                    ? chars.getAvailableSessionKeys()
+                    : chars.getAvailableCaptureRequestKeys();
+            if (list != null) {
+                for (CaptureRequest.Key<?> key : list) {
+                    if (key != null && key.getName() != null) {
+                        names.add(key.getName());
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        Set<String> unmodifiable = Collections.unmodifiableSet(names);
+        cache.put(chars, unmodifiable);
+        return unmodifiable;
+    }
+
+    private static <T> void setVendorKeyIfSupported(CaptureRequest.Builder builder, Set<String> supported,
+                                                    String keyName, Class<T> valueType, T value) {
+        if (builder == null || supported == null || !supported.contains(keyName)) {
+            return;
+        }
+        try {
+            CaptureRequest.Key<T> key = new CaptureRequest.Key<>(keyName, valueType);
+            builder.set(key, value);
+        } catch (Throwable ignored) {}
+    }
+
+    /**
+     * Session parameters are only cleared for explicit Pure ISP / Disable PostProc modes;
+     * never force MFHDR/VSR at CreateCaptureSession time because Chi MCXSuperFG streaming
+     * preview fails WalkAllExtSinkLinks when HDRFeatureMode=2 is forced on SDR sessions.
+     */
+    public static void applySessionParameterOverrides(String cameraId, CaptureRequest.Builder builder) {
+        if (builder == null || cameraId == null) return;
+        try {
+            int profile = getSelectedProfile();
+            if (profile != ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING
+                    && profile != ScenePostProcSelector.PROFILE_PURE_ISP) {
+                return;
+            }
+            CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
+            if (chars == null) return;
+            Set<String> sesKeys = getKeyNames(chars, true);
+            if (sesKeys.isEmpty()) return;
+
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_AUTO_HDR, Integer.class, Integer.valueOf(0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFHDR, Integer.class, Integer.valueOf(0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_VSR, Integer.class, Integer.valueOf(0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFNR_AIDE, Byte.class, Byte.valueOf((byte) 0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_QLL, Integer.class, Integer.valueOf(0));
+        } catch (Throwable t) {
+            Log.w(TAG, "applySessionParameterOverrides failed", t);
+        }
+    }
+
     public static void applyCaptureRequestOverrides(String cameraId, CaptureRequest.Builder builder) {
         applyCaptureRequestOverrides(cameraId, builder, null);
     }
@@ -368,9 +473,10 @@ public final class CustomImagingBridge {
             }
 
             ShotDecision dec = getOrComputeDecision(record, sceneHint, isFlash, isUiSpecialModeSafe());
-            int nr = dec.resolved[1];
-            int edge = dec.resolved[2];
-            int enableMfnr = dec.resolved[3];
+            int[] r = dec.resolved;
+            int nr = r[1];
+            int edge = r[2];
+            int enableMfnr = r[3];
 
             CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
             if (chars != null) {
@@ -384,6 +490,61 @@ public final class CustomImagingBridge {
                     int[] availEdge = chars.get(CameraCharacteristics.EDGE_AVAILABLE_EDGE_MODES);
                     if (SettingsHelper.isContainedInArray(availEdge, edge)) {
                         builder.set(CaptureRequest.EDGE_MODE, Integer.valueOf(edge));
+                    }
+                }
+
+                // Only write vendor keys that are true per-request keys (absent from
+                // getAvailableSessionKeys()): mutating any session key on a CaptureRequest forces
+                // Camera3Device::isReconfigurationRequired -> mid-shot reconfigureCamera() ->
+                // MCXSuperFG (-38) teardown on SM8635 Moto HAL.
+                Set<String> reqKeys = getKeyNames(chars, false);
+                Set<String> sesKeys = getKeyNames(chars, true);
+                Set<String> reqOnlyKeys;
+                if (reqKeys.isEmpty()) {
+                    reqOnlyKeys = Collections.emptySet();
+                } else if (sesKeys.isEmpty()) {
+                    reqOnlyKeys = reqKeys;
+                } else {
+                    reqOnlyKeys = new HashSet<>(reqKeys);
+                    reqOnlyKeys.removeAll(sesKeys);
+                }
+                if (!reqOnlyKeys.isEmpty() && r.length >= 13) {
+                    int iszMode = r[7];
+                    int aideMode = r[8];
+                    int vsrMode = r[9];
+                    int hdrMode = r[10];
+                    int t2wLock = r[11];
+                    int qllMode = r[12];
+
+                    if (iszMode >= 0) {
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_SNAPSHOT_ISZ, Integer.class, Integer.valueOf(iszMode));
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_XCFA, Byte.class, Byte.valueOf((byte) iszMode));
+                        if (iszMode == 0) {
+                            setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_ISZ, Integer.class, Integer.valueOf(0));
+                        }
+                    }
+                    if (aideMode >= 0) {
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_MFNR_AIDE, Byte.class, Byte.valueOf((byte) aideMode));
+                    }
+                    if (vsrMode >= 0) {
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_VSR, Integer.class, Integer.valueOf(vsrMode));
+                    }
+                    if (hdrMode >= 0) {
+                        int hdrEnable = hdrMode > 0 ? 1 : 0;
+                        int mfHdrVal = hdrMode > 0 ? 2 : 0;
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_AUTO_HDR, Integer.class, Integer.valueOf(hdrEnable));
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_MFHDR, Integer.class, Integer.valueOf(hdrEnable));
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_HDR_MODE, Integer.class, Integer.valueOf(mfHdrVal));
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_SNAPSHOT_HDR_MODE, Integer.class, Integer.valueOf(hdrMode));
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_HDR_MODE_PREF, Integer.class, Integer.valueOf(mfHdrVal));
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_SHDR, Integer.class, Integer.valueOf(0));
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_QHDR, Integer.class, Integer.valueOf(0));
+                    }
+                    if (t2wLock == 1) {
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_SAT_FALLBACK_T2W, Byte.class, Byte.valueOf((byte) 0));
+                    }
+                    if (qllMode >= 0) {
+                        setVendorKeyIfSupported(builder, reqOnlyKeys, KEY_ENABLE_QLL, Integer.class, Integer.valueOf(qllMode));
                     }
                 }
             }
@@ -532,8 +693,9 @@ public final class CustomImagingBridge {
             batchBuffers.add(srcStrip);
             batchMeta.add(new int[] {y, rows, writeOff});
             final int taskRows = srcRows;
+            final int taskTopY = srcY;
             batchFutures.add(LUT_POOL.submit(() ->
-                    AppleStyleToneEngine.applyToArgbPixels(srcStrip, w, taskRows, lutStyle)));
+                    AppleStyleToneEngine.applyToArgbPixels(srcStrip, w, taskRows, lutStyle, w, h, taskTopY)));
 
             boolean isBatchEnd = batchBuffers.size() == batchLimit || y + rows >= h;
             if (isBatchEnd) {

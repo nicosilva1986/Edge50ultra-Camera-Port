@@ -187,7 +187,7 @@
 .method private static clamp01(F)F
     .locals 2
 
-    .line 341
+    .line 446
     const/4 v0, 0x0
 
     cmpg-float v1, p0, v0
@@ -216,10 +216,10 @@
 .method private static clampBayerHotPixels([FII)V
     .locals 17
 
-    .line 196
+    .line 199
     mul-int/lit8 v0, p1, 0x2
 
-    .line 197
+    .line 200
     const/4 v1, 0x2
 
     move v2, v1
@@ -229,10 +229,10 @@
 
     if-ge v2, v3, :cond_3
 
-    .line 198
+    .line 201
     mul-int v3, v2, p1
 
-    .line 199
+    .line 202
     move v4, v1
 
     :goto_1
@@ -240,13 +240,13 @@
 
     if-ge v4, v5, :cond_2
 
-    .line 200
+    .line 203
     add-int v5, v3, v4
 
-    .line 201
+    .line 204
     aget v6, p0, v5
 
-    .line 202
+    .line 205
     sub-int v7, v5, v0
 
     add-int/lit8 v8, v7, -0x2
@@ -259,7 +259,7 @@
 
     aget v7, p0, v7
 
-    .line 203
+    .line 206
     add-int/lit8 v10, v5, -0x2
 
     aget v10, p0, v10
@@ -268,7 +268,7 @@
 
     aget v11, p0, v11
 
-    .line 204
+    .line 207
     add-int v12, v5, v0
 
     add-int/lit8 v13, v12, -0x2
@@ -281,7 +281,7 @@
 
     aget v12, p0, v12
 
-    .line 205
+    .line 208
     invoke-static {v8, v9}, Ljava/lang/Math;->max(FF)F
 
     move-result v15
@@ -294,7 +294,7 @@
 
     move-result v1
 
-    .line 206
+    .line 209
     invoke-static {v11, v13}, Ljava/lang/Math;->max(FF)F
 
     move-result v15
@@ -309,12 +309,12 @@
 
     move-result v0
 
-    .line 205
+    .line 208
     invoke-static {v1, v0}, Ljava/lang/Math;->max(FF)F
 
     move-result v0
 
-    .line 207
+    .line 210
     invoke-static {v8, v9}, Ljava/lang/Math;->min(FF)F
 
     move-result v1
@@ -327,7 +327,7 @@
 
     move-result v1
 
-    .line 208
+    .line 211
     invoke-static {v11, v13}, Ljava/lang/Math;->min(FF)F
 
     move-result v7
@@ -340,12 +340,12 @@
 
     move-result v7
 
-    .line 207
+    .line 210
     invoke-static {v1, v7}, Ljava/lang/Math;->min(FF)F
 
     move-result v1
 
-    .line 209
+    .line 212
     const/high16 v7, 0x3fe00000    # 1.75f
 
     mul-float/2addr v7, v0
@@ -358,12 +358,12 @@
 
     if-lez v7, :cond_0
 
-    .line 210
+    .line 213
     aput v0, p0, v5
 
     goto :goto_2
 
-    .line 211
+    .line 214
     :cond_0
     const v0, 0x3ecccccd    # 0.4f
 
@@ -379,10 +379,10 @@
 
     if-lez v0, :cond_1
 
-    .line 212
+    .line 215
     aput v1, p0, v5
 
-    .line 199
+    .line 202
     :cond_1
     :goto_2
     add-int/lit8 v4, v4, 0x1
@@ -393,7 +393,7 @@
 
     goto/16 :goto_1
 
-    .line 197
+    .line 200
     :cond_2
     move/from16 v16, v0
 
@@ -403,7 +403,7 @@
 
     goto/16 :goto_0
 
-    .line 216
+    .line 219
     :cond_3
     return-void
 .end method
@@ -411,7 +411,7 @@
 .method private static demosaicMalvar([FII[I[D[F[F[F)V
     .locals 38
 
-    .line 220
+    .line 223
     move/from16 v0, p1
 
     move/from16 v1, p2
@@ -421,7 +421,7 @@
     :goto_0
     if-ge v3, v1, :cond_13
 
-    .line 221
+    .line 224
     if-nez v3, :cond_0
 
     move v4, v0
@@ -431,7 +431,7 @@
     :cond_0
     neg-int v4, v0
 
-    .line 222
+    .line 225
     :goto_1
     add-int/lit8 v5, v1, -0x1
 
@@ -444,7 +444,7 @@
     :cond_1
     move v5, v0
 
-    .line 223
+    .line 226
     :goto_2
     mul-int v6, v3, v0
 
@@ -453,7 +453,7 @@
     :goto_3
     if-ge v7, v0, :cond_12
 
-    .line 224
+    .line 227
     const/4 v8, -0x1
 
     const/4 v9, 0x1
@@ -467,7 +467,7 @@
     :cond_2
     move v10, v8
 
-    .line 225
+    .line 228
     :goto_4
     add-int/lit8 v11, v0, -0x1
 
@@ -478,7 +478,7 @@
     :cond_3
     move v8, v9
 
-    .line 226
+    .line 229
     :goto_5
     and-int/lit8 v11, v3, 0x1
 
@@ -488,15 +488,15 @@
 
     or-int/2addr v11, v12
 
-    .line 227
+    .line 230
     aget v12, p3, v11
 
-    .line 228
+    .line 231
     aget v13, p0, v6
 
     float-to-double v13, v13
 
-    .line 229
+    .line 232
     add-int v15, v6, v10
 
     aget v15, p0, v15
@@ -517,7 +517,7 @@
 
     add-double/2addr v9, v2
 
-    .line 230
+    .line 233
     add-int v2, v6, v4
 
     aget v3, p0, v2
@@ -534,7 +534,7 @@
 
     add-double v0, v20, v0
 
-    .line 231
+    .line 234
     add-int v15, v2, v17
 
     aget v15, p0, v15
@@ -571,7 +571,7 @@
 
     add-double/2addr v0, v2
 
-    .line 233
+    .line 236
     const/4 v2, 0x2
 
     if-lt v7, v2, :cond_4
@@ -598,7 +598,7 @@
     :cond_5
     move/from16 v8, v18
 
-    .line 234
+    .line 237
     :goto_6
     move/from16 v19, v3
 
@@ -627,7 +627,7 @@
 
     const-wide/16 v0, 0x0
 
-    .line 235
+    .line 238
     :goto_7
     if-eqz v8, :cond_7
 
@@ -656,7 +656,7 @@
 
     const-wide/16 v0, 0x0
 
-    .line 238
+    .line 241
     :goto_8
     const-wide/high16 v2, 0x4020000000000000L    # 8.0
 
@@ -668,10 +668,10 @@
 
     if-ne v12, v15, :cond_d
 
-    .line 239
+    .line 242
     nop
 
-    .line 240
+    .line 243
     const-wide/high16 v32, 0x3fe0000000000000L    # 0.5
 
     const-wide/high16 v34, 0x4014000000000000L    # 5.0
@@ -699,7 +699,7 @@
     :cond_8
     div-double v36, v9, v28
 
-    .line 241
+    .line 244
     :goto_9
     if-eqz v8, :cond_9
 
@@ -724,7 +724,7 @@
     :cond_9
     div-double v34, v20, v28
 
-    .line 242
+    .line 245
     :goto_a
     xor-int/lit8 v0, v11, 0x1
 
@@ -739,7 +739,7 @@
     :cond_a
     move/from16 v15, v18
 
-    .line 243
+    .line 246
     :goto_b
     if-eqz v15, :cond_b
 
@@ -750,17 +750,17 @@
     :cond_b
     move-wide/from16 v0, v34
 
-    .line 244
+    .line 247
     :goto_c
     if-eqz v15, :cond_c
 
     move-wide/from16 v36, v34
 
-    .line 245
+    .line 248
     :cond_c
     goto :goto_11
 
-    .line 246
+    .line 249
     :cond_d
     if-eqz v8, :cond_e
 
@@ -785,7 +785,7 @@
 
     div-double v32, v9, v30
 
-    .line 247
+    .line 250
     :goto_d
     if-eqz v8, :cond_f
 
@@ -812,7 +812,7 @@
     :cond_f
     div-double v8, v24, v30
 
-    .line 248
+    .line 251
     :goto_e
     if-nez v12, :cond_10
 
@@ -823,7 +823,7 @@
     :cond_10
     move-wide v0, v8
 
-    .line 249
+    .line 252
     :goto_f
     const/4 v15, 0x2
 
@@ -839,7 +839,7 @@
 
     move-wide/from16 v13, v32
 
-    .line 251
+    .line 254
     :goto_11
     aget-wide v2, p4, v18
 
@@ -871,7 +871,7 @@
 
     aput v2, p5, v6
 
-    .line 252
+    .line 255
     const/4 v2, 0x3
 
     aget-wide v2, p4, v2
@@ -904,7 +904,7 @@
 
     aput v2, p6, v6
 
-    .line 253
+    .line 256
     const/4 v2, 0x6
 
     aget-wide v2, p4, v2
@@ -937,7 +937,7 @@
 
     aput v0, p7, v6
 
-    .line 223
+    .line 226
     add-int/lit8 v7, v7, 0x1
 
     add-int/lit8 v6, v6, 0x1
@@ -950,7 +950,7 @@
 
     goto/16 :goto_3
 
-    .line 220
+    .line 223
     :cond_12
     move/from16 v19, v3
 
@@ -964,7 +964,7 @@
 
     goto/16 :goto_0
 
-    .line 256
+    .line 259
     :cond_13
     return-void
 .end method
@@ -972,19 +972,19 @@
 .method private static encode(D)F
     .locals 5
 
-    .line 485
+    .line 590
     const-wide/16 v0, 0x0
 
     cmpg-double v0, p0, v0
 
     if-gtz v0, :cond_0
 
-    .line 486
+    .line 591
     const/4 p0, 0x0
 
     return p0
 
-    .line 488
+    .line 593
     :cond_0
     const-wide/high16 v0, 0x3ff0000000000000L    # 1.0
 
@@ -992,21 +992,21 @@
 
     if-ltz v0, :cond_1
 
-    .line 489
+    .line 594
     const/high16 p0, 0x3f800000    # 1.0f
 
     return p0
 
-    .line 491
+    .line 596
     :cond_1
     const-wide/high16 v0, 0x40b0000000000000L    # 4096.0
 
     mul-double/2addr p0, v0
 
-    .line 492
+    .line 597
     double-to-int v0, p0
 
-    .line 493
+    .line 598
     sget-object v1, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->SRGB:[F
 
     aget v1, v1, v0
@@ -1043,7 +1043,7 @@
 .method private static normalizedMatrix([F)[D
     .locals 13
 
-    .line 468
+    .line 573
     const/16 v0, 0x9
 
     new-array v1, v0, [D
@@ -1088,20 +1088,20 @@
 
     aput-wide v3, v1, v5
 
-    .line 469
+    .line 574
     if-eqz p0, :cond_1
 
     array-length v3, p0
 
     if-ne v3, v0, :cond_1
 
-    .line 470
+    .line 575
     nop
 
     :goto_0
     if-ge v2, v0, :cond_1
 
-    .line 471
+    .line 576
     aget v3, p0, v2
 
     float-to-double v3, v3
@@ -1122,7 +1122,7 @@
 
     add-double/2addr v3, v7
 
-    .line 472
+    .line 577
     aget v7, p0, v2
 
     float-to-double v7, v7
@@ -1145,14 +1145,14 @@
 
     float-to-double v9, v9
 
-    .line 473
+    .line 578
     invoke-static {v9, v10}, Ljava/lang/Math;->abs(D)D
 
     move-result-wide v9
 
     add-double/2addr v7, v9
 
-    .line 474
+    .line 579
     invoke-static {v3, v4}, Ljava/lang/Double;->isFinite(D)Z
 
     move-result v9
@@ -1177,7 +1177,7 @@
 
     if-lez v7, :cond_0
 
-    .line 475
+    .line 580
     aget v7, p0, v2
 
     float-to-double v7, v7
@@ -1186,7 +1186,7 @@
 
     aput-wide v7, v1, v2
 
-    .line 476
+    .line 581
     aget v7, p0, v5
 
     float-to-double v7, v7
@@ -1195,7 +1195,7 @@
 
     aput-wide v7, v1, v5
 
-    .line 477
+    .line 582
     aget v5, p0, v6
 
     float-to-double v7, v5
@@ -1204,13 +1204,13 @@
 
     aput-wide v7, v1, v6
 
-    .line 470
+    .line 575
     :cond_0
     add-int/lit8 v2, v2, 0x3
 
     goto :goto_0
 
-    .line 481
+    .line 586
     :cond_1
     return-object v1
 .end method
@@ -1218,7 +1218,7 @@
 .method private static pack(FFF)I
     .locals 2
 
-    .line 519
+    .line 624
     const/high16 v0, 0x437f0000    # 255.0f
 
     mul-float/2addr p0, v0
@@ -1245,14 +1245,14 @@
 
     mul-float/2addr p2, v0
 
-    .line 520
+    .line 625
     invoke-static {p2}, Ljava/lang/Math;->round(F)I
 
     move-result p1
 
     or-int/2addr p0, p1
 
-    .line 519
+    .line 624
     return p0
 .end method
 
@@ -1296,7 +1296,7 @@
 .method public static processRawToArgb([IIII[FF[F[FF)[I
     .locals 49
 
-    .line 351
+    .line 456
     move-object/from16 v0, p0
 
     move/from16 v1, p1
@@ -1313,7 +1313,7 @@
 
     move-result v6
 
-    .line 352
+    .line 457
     const/4 v7, 0x2
 
     if-lt v1, v7, :cond_1f
@@ -1346,7 +1346,7 @@
 
     if-ne v9, v8, :cond_1f
 
-    .line 356
+    .line 461
     invoke-static/range {p5 .. p5}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v9
@@ -1359,15 +1359,15 @@
 
     if-eqz v9, :cond_1f
 
-    .line 359
+    .line 464
     sget-object v9, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->CFA:[[I
 
     aget-object v3, v9, v3
 
-    .line 360
+    .line 465
     new-array v9, v10, [D
 
-    .line 361
+    .line 466
     const/4 v12, 0x0
 
     :goto_0
@@ -1379,7 +1379,7 @@
 
     if-ge v12, v10, :cond_1
 
-    .line 362
+    .line 467
     move/from16 v16, v10
 
     move/from16 v18, v12
@@ -1400,7 +1400,7 @@
 
     sub-double/2addr v11, v7
 
-    .line 363
+    .line 468
     cmpg-double v7, v11, v21
 
     if-lez v7, :cond_0
@@ -1411,12 +1411,12 @@
 
     if-eqz v7, :cond_0
 
-    .line 366
+    .line 471
     div-double/2addr v13, v11
 
     aput-wide v13, p3, v18
 
-    .line 361
+    .line 466
     add-int/lit8 v12, v18, 0x1
 
     move-object/from16 v9, p3
@@ -1429,7 +1429,7 @@
 
     goto :goto_0
 
-    .line 364
+    .line 469
     :cond_0
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -1439,7 +1439,7 @@
 
     throw v0
 
-    .line 368
+    .line 473
     :cond_1
     move/from16 v16, v10
 
@@ -1460,7 +1460,7 @@
 
     aget v10, v5, v8
 
-    .line 369
+    .line 474
     invoke-static {v10}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v11
@@ -1471,12 +1471,12 @@
 
     if-ltz v9, :cond_2
 
-    .line 368
+    .line 473
     add-int/lit8 v8, v8, 0x1
 
     goto :goto_1
 
-    .line 370
+    .line 475
     :cond_2
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -1486,11 +1486,11 @@
 
     throw v0
 
-    .line 374
+    .line 479
     :cond_3
     new-array v7, v6, [F
 
-    .line 375
+    .line 480
     move/from16 v8, v17
 
     :goto_2
@@ -1498,12 +1498,12 @@
 
     if-ge v8, v2, :cond_5
 
-    .line 376
+    .line 481
     and-int/lit8 v11, v8, 0x1
 
     shl-int/2addr v11, v10
 
-    .line 377
+    .line 482
     mul-int v12, v8, v1
 
     move/from16 v15, v17
@@ -1511,12 +1511,12 @@
     :goto_3
     if-ge v15, v1, :cond_4
 
-    .line 378
+    .line 483
     and-int/lit8 v18, v15, 0x1
 
     or-int v18, v11, v18
 
-    .line 379
+    .line 484
     move/from16 p5, v9
 
     aget v9, v0, v12
@@ -1537,7 +1537,7 @@
 
     mul-double/2addr v10, v13
 
-    .line 380
+    .line 485
     const-wide/high16 v13, 0x3ff0000000000000L    # 1.0
 
     invoke-static {v13, v14, v10, v11}, Ljava/lang/Math;->min(DD)D
@@ -1562,7 +1562,7 @@
 
     aput v9, v7, v12
 
-    .line 377
+    .line 482
     add-int/lit8 v15, v15, 0x1
 
     add-int/lit8 v12, v12, 0x1
@@ -1579,7 +1579,7 @@
 
     goto :goto_3
 
-    .line 375
+    .line 480
     :cond_4
     move/from16 p5, v9
 
@@ -1591,7 +1591,7 @@
 
     goto :goto_2
 
-    .line 384
+    .line 489
     :cond_5
     move/from16 p5, v9
 
@@ -1601,12 +1601,12 @@
 
     move-result-object v0
 
-    .line 385
+    .line 490
     move-object v4, v0
 
     new-array v0, v6, [I
 
-    .line 387
+    .line 492
     cmpl-float v5, p8, p5
 
     const/4 v8, 0x0
@@ -1620,7 +1620,7 @@
     :cond_6
     move-object v9, v8
 
-    .line 388
+    .line 493
     :goto_4
     if-lez v5, :cond_7
 
@@ -1631,7 +1631,7 @@
     :cond_7
     move-object v10, v8
 
-    .line 389
+    .line 494
     :goto_5
     if-lez v5, :cond_8
 
@@ -1642,7 +1642,7 @@
     :cond_8
     move-object v11, v8
 
-    .line 390
+    .line 495
     :goto_6
     if-lez v5, :cond_9
 
@@ -1651,13 +1651,13 @@
     :cond_9
     move-object v6, v8
 
-    .line 392
+    .line 497
     move/from16 v5, v17
 
     :goto_7
     if-ge v5, v2, :cond_1d
 
-    .line 393
+    .line 498
     if-nez v5, :cond_a
 
     move v8, v1
@@ -1667,7 +1667,7 @@
     :cond_a
     neg-int v8, v1
 
-    .line 394
+    .line 499
     :goto_8
     add-int/lit8 v12, v2, -0x1
 
@@ -1680,7 +1680,7 @@
     :cond_b
     move v12, v1
 
-    .line 395
+    .line 500
     :goto_9
     mul-int v13, v5, v1
 
@@ -1689,7 +1689,7 @@
     :goto_a
     if-ge v14, v1, :cond_1c
 
-    .line 396
+    .line 501
     if-nez v14, :cond_c
 
     move/from16 v18, v23
@@ -1699,7 +1699,7 @@
     :cond_c
     const/16 v18, -0x1
 
-    .line 397
+    .line 502
     :goto_b
     add-int/lit8 v15, v1, -0x1
 
@@ -1712,7 +1712,7 @@
     :cond_d
     move/from16 v15, v23
 
-    .line 398
+    .line 503
     :goto_c
     and-int/lit8 v24, v5, 0x1
 
@@ -1722,17 +1722,17 @@
 
     or-int v24, v24, v25
 
-    .line 399
+    .line 504
     move-object/from16 v25, v0
 
     aget v0, v3, v24
 
-    .line 400
+    .line 505
     aget v1, v7, v13
 
     float-to-double v1, v1
 
-    .line 401
+    .line 506
     add-int v26, v13, v18
 
     move-wide/from16 p3, v1
@@ -1751,7 +1751,7 @@
 
     add-double v1, p5, v1
 
-    .line 402
+    .line 507
     add-int v26, v13, v8
 
     move-wide/from16 p5, v1
@@ -1770,7 +1770,7 @@
 
     add-double v1, v28, v1
 
-    .line 403
+    .line 508
     add-int v28, v26, v18
 
     move-wide/from16 v29, v1
@@ -1809,7 +1809,7 @@
 
     add-double v1, v26, v1
 
-    .line 405
+    .line 510
     const/4 v15, 0x2
 
     if-lt v14, v15, :cond_e
@@ -1833,17 +1833,17 @@
     :cond_e
     move/from16 v15, v17
 
-    .line 406
+    .line 511
     :goto_d
     nop
 
-    .line 407
+    .line 512
     nop
 
-    .line 408
+    .line 513
     if-eqz v15, :cond_f
 
-    .line 409
+    .line 514
     add-int/lit8 v18, v13, -0x2
 
     move-wide/from16 v26, v1
@@ -1862,7 +1862,7 @@
 
     add-double v1, v31, v1
 
-    .line 410
+    .line 515
     mul-int/lit8 v18, p1, 0x2
 
     sub-int v28, v13, v18
@@ -1891,7 +1891,7 @@
 
     goto :goto_e
 
-    .line 408
+    .line 513
     :cond_f
     move-wide/from16 v26, v1
 
@@ -1899,7 +1899,7 @@
 
     const-wide/16 v31, 0x0
 
-    .line 418
+    .line 523
     :goto_e
     const-wide/high16 v33, 0x4020000000000000L    # 8.0
 
@@ -1913,17 +1913,17 @@
 
     if-ne v0, v1, :cond_15
 
-    .line 419
+    .line 524
     nop
 
-    .line 420
+    .line 525
     const-wide/high16 v0, 0x3fe0000000000000L    # 0.5
 
     const-wide/high16 v41, 0x4014000000000000L    # 5.0
 
     if-eqz v15, :cond_10
 
-    .line 421
+    .line 526
     mul-double v43, p3, v41
 
     mul-double v45, p5, v37
@@ -1942,15 +1942,15 @@
 
     goto :goto_f
 
-    .line 422
+    .line 527
     :cond_10
     div-double v43, p5, v35
 
-    .line 423
+    .line 528
     :goto_f
     if-eqz v15, :cond_11
 
-    .line 424
+    .line 529
     mul-double v35, p3, v41
 
     mul-double v28, v29, v37
@@ -1969,11 +1969,11 @@
 
     goto :goto_10
 
-    .line 425
+    .line 530
     :cond_11
     div-double v35, v29, v35
 
-    .line 426
+    .line 531
     :goto_10
     xor-int/lit8 v0, v24, 0x1
 
@@ -1988,7 +1988,7 @@
     :cond_12
     move/from16 v1, v17
 
-    .line 427
+    .line 532
     :goto_11
     if-eqz v1, :cond_13
 
@@ -1999,19 +1999,19 @@
     :cond_13
     move-wide/from16 v26, v35
 
-    .line 428
+    .line 533
     :goto_12
     if-eqz v1, :cond_14
 
     move-wide/from16 v43, v35
 
-    .line 429
+    .line 534
     :cond_14
     move-wide/from16 v1, p3
 
     goto :goto_16
 
-    .line 430
+    .line 535
     :cond_15
     if-eqz v15, :cond_16
 
@@ -2031,13 +2031,13 @@
 
     goto :goto_13
 
-    .line 431
+    .line 536
     :cond_16
     add-double v1, p5, v29
 
     div-double v1, v1, v37
 
-    .line 432
+    .line 537
     :goto_13
     if-eqz v15, :cond_17
 
@@ -2061,11 +2061,11 @@
 
     goto :goto_14
 
-    .line 433
+    .line 538
     :cond_17
     div-double v28, v26, v37
 
-    .line 434
+    .line 539
     :goto_14
     if-nez v0, :cond_18
 
@@ -2076,7 +2076,7 @@
     :cond_18
     move-wide/from16 v26, v28
 
-    .line 435
+    .line 540
     :goto_15
     const/4 v15, 0x2
 
@@ -2087,7 +2087,7 @@
     :cond_19
     move-wide/from16 v43, v28
 
-    .line 438
+    .line 543
     :goto_16
     aget-wide v28, v4, v17
 
@@ -2111,7 +2111,7 @@
 
     add-double v0, v28, v30
 
-    .line 439
+    .line 544
     aget-wide v28, v4, v19
 
     mul-double v28, v28, v26
@@ -2132,7 +2132,7 @@
 
     add-double v2, v28, v30
 
-    .line 440
+    .line 545
     const/16 v18, 0x6
 
     aget-wide v28, v4, v18
@@ -2159,7 +2159,7 @@
 
     add-double v4, v28, v26
 
-    .line 441
+    .line 546
     move-object/from16 p3, v6
 
     move-object/from16 v24, v7
@@ -2172,20 +2172,20 @@
 
     move-result-wide v6
 
-    .line 442
+    .line 547
     nop
 
-    .line 443
+    .line 548
     const-wide v26, 0x3fe999999999999aL    # 0.8
 
     cmpl-double v28, v6, v26
 
     if-lez v28, :cond_1a
 
-    .line 444
+    .line 549
     sub-double v28, v6, v26
 
-    .line 446
+    .line 551
     const-wide v30, 0x3fc999999999999aL    # 0.2
 
     add-double v32, v28, v30
@@ -2200,11 +2200,11 @@
 
     goto :goto_17
 
-    .line 443
+    .line 548
     :cond_1a
     const-wide/high16 v28, 0x3ff0000000000000L    # 1.0
 
-    .line 448
+    .line 553
     :goto_17
     mul-double v0, v0, v28
 
@@ -2212,24 +2212,24 @@
 
     move-result v0
 
-    .line 449
+    .line 554
     mul-double v2, v2, v28
 
     invoke-static {v2, v3}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->encode(D)F
 
     move-result v1
 
-    .line 450
+    .line 555
     mul-double v4, v4, v28
 
     invoke-static {v4, v5}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->encode(D)F
 
     move-result v2
 
-    .line 451
+    .line 556
     if-nez p3, :cond_1b
 
-    .line 452
+    .line 557
     invoke-static {v0, v1, v2}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->pack(FFF)I
 
     move-result v0
@@ -2238,17 +2238,17 @@
 
     goto :goto_18
 
-    .line 454
+    .line 559
     :cond_1b
     aput v0, v9, v13
 
-    .line 455
+    .line 560
     aput v1, v10, v13
 
-    .line 456
+    .line 561
     aput v2, v11, v13
 
-    .line 457
+    .line 562
     const v3, 0x3e59b3d0    # 0.2126f
 
     mul-float/2addr v0, v3
@@ -2267,7 +2267,7 @@
 
     aput v0, p3, v13
 
-    .line 395
+    .line 500
     :goto_18
     add-int/lit8 v14, v14, 0x1
 
@@ -2291,7 +2291,7 @@
 
     goto/16 :goto_a
 
-    .line 392
+    .line 497
     :cond_1c
     move-object/from16 v25, v0
 
@@ -2315,7 +2315,7 @@
 
     goto/16 :goto_7
 
-    .line 461
+    .line 566
     :cond_1d
     move-object/from16 v25, v0
 
@@ -2323,7 +2323,7 @@
 
     if-eqz p3, :cond_1e
 
-    .line 462
+    .line 567
     move/from16 v1, p1
 
     move/from16 v2, p2
@@ -2342,11 +2342,11 @@
 
     invoke-static/range {v0 .. v7}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->sharpen([III[F[F[F[FF)V
 
-    .line 464
+    .line 569
     :cond_1e
     return-object v25
 
-    .line 357
+    .line 462
     :cond_1f
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -2386,48 +2386,48 @@
     .line 92
     const/4 v10, 0x2
 
-    if-lt v1, v10, :cond_19
+    if-lt v1, v10, :cond_1a
 
-    if-lt v2, v10, :cond_19
+    if-lt v2, v10, :cond_1a
 
-    if-eqz v0, :cond_19
+    if-eqz v0, :cond_1a
 
     array-length v11, v0
 
-    if-lt v11, v9, :cond_19
+    if-lt v11, v9, :cond_1a
 
-    if-ltz v3, :cond_19
+    if-ltz v3, :cond_1a
 
     const/4 v11, 0x3
 
-    if-gt v3, v11, :cond_19
+    if-gt v3, v11, :cond_1a
 
-    if-eqz v4, :cond_19
+    if-eqz v4, :cond_1a
 
     array-length v12, v4
 
     const/4 v13, 0x4
 
-    if-ne v12, v13, :cond_19
+    if-ne v12, v13, :cond_1a
 
-    if-eqz v5, :cond_19
+    if-eqz v5, :cond_1a
 
     array-length v12, v5
 
-    if-ne v12, v11, :cond_19
+    if-ne v12, v11, :cond_1a
 
     .line 96
     invoke-static/range {p5 .. p5}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v12
 
-    if-eqz v12, :cond_19
+    if-eqz v12, :cond_1a
 
     invoke-static/range {p8 .. p8}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v12
 
-    if-eqz v12, :cond_19
+    if-eqz v12, :cond_1a
 
     .line 99
     sget-object v12, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->CFA:[[I
@@ -2919,11 +2919,11 @@
 
     move/from16 p5, v12
 
-    const/4 v3, 0x6
+    const/4 v8, 0x6
 
-    if-lt v1, v3, :cond_f
+    if-lt v1, v8, :cond_f
 
-    if-lt v2, v3, :cond_f
+    if-lt v2, v8, :cond_f
 
     .line 148
     invoke-static {v0, v1, v2}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->clampBayerHotPixels([FII)V
@@ -2978,148 +2978,161 @@
 
     move-object v5, v0
 
-    .line 161
+    move v1, v3
+
+    move v2, v4
+
+    .line 160
     :cond_10
-    new-array v0, v9, [I
+    if-lt v1, v8, :cond_11
 
-    .line 162
-    cmpl-float v1, p8, p5
+    if-lt v2, v8, :cond_11
 
-    const/4 v2, 0x0
-
-    if-lez v1, :cond_11
-
-    new-array v3, v9, [F
-
-    goto :goto_a
-
-    :cond_11
-    move-object v3, v2
-
-    .line 163
-    :goto_a
-    if-lez v1, :cond_12
-
-    new-array v4, v9, [F
-
-    goto :goto_b
-
-    :cond_12
-    move-object v4, v2
+    .line 161
+    invoke-static {v5, v6, v7, v1, v2}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->suppressDemosaicFringes([F[F[FII)V
 
     .line 164
-    :goto_b
-    if-lez v1, :cond_13
+    :cond_11
+    new-array v0, v9, [I
+
+    .line 165
+    cmpl-float v3, p8, p5
+
+    const/4 v4, 0x0
+
+    if-lez v3, :cond_12
 
     new-array v8, v9, [F
 
-    goto :goto_c
+    goto :goto_a
+
+    :cond_12
+    move-object v8, v4
+
+    .line 166
+    :goto_a
+    if-lez v3, :cond_13
+
+    new-array v10, v9, [F
+
+    goto :goto_b
 
     :cond_13
-    move-object v8, v2
-
-    .line 165
-    :goto_c
-    if-lez v1, :cond_14
-
-    new-array v2, v9, [F
+    move-object v10, v4
 
     .line 167
+    :goto_b
+    if-lez v3, :cond_14
+
+    new-array v11, v9, [F
+
+    goto :goto_c
+
     :cond_14
+    move-object v11, v4
+
+    .line 168
+    :goto_c
+    if-lez v3, :cond_15
+
+    new-array v4, v9, [F
+
+    .line 170
+    :cond_15
     const/4 v14, 0x0
 
     :goto_d
-    if-ge v14, v9, :cond_17
+    if-ge v14, v9, :cond_18
 
-    .line 168
-    aget v1, v5, v14
+    .line 171
+    aget v3, v5, v14
 
-    float-to-double v10, v1
+    float-to-double v12, v3
 
-    .line 169
-    aget v1, v6, v14
-
-    float-to-double v12, v1
-
-    .line 170
-    aget v1, v7, v14
+    .line 172
+    aget v3, v6, v14
 
     move-object v15, v0
 
-    float-to-double v0, v1
-
-    .line 171
-    move-object/from16 p3, v2
-
-    move-object/from16 p0, v3
-
-    invoke-static {v12, v13, v0, v1}, Ljava/lang/Math;->max(DD)D
-
-    move-result-wide v2
-
-    invoke-static {v10, v11, v2, v3}, Ljava/lang/Math;->max(DD)D
-
-    move-result-wide v2
-
-    .line 172
-    nop
+    float-to-double v0, v3
 
     .line 173
-    const-wide v16, 0x3fe70a3d70a3d70aL    # 0.72
+    aget v3, v7, v14
 
-    cmpl-double v18, v2, v16
-
-    if-lez v18, :cond_15
+    float-to-double v2, v3
 
     .line 174
-    sub-double v18, v2, v16
+    move-object/from16 p0, v4
+
+    move-object/from16 v16, v5
+
+    invoke-static {v0, v1, v2, v3}, Ljava/lang/Math;->max(DD)D
+
+    move-result-wide v4
+
+    invoke-static {v12, v13, v4, v5}, Ljava/lang/Math;->max(DD)D
+
+    move-result-wide v4
 
     .line 175
-    const-wide v22, 0x3fd1eb851eb851ecL    # 0.28
+    nop
 
-    add-double v24, v18, v22
+    .line 176
+    const-wide v17, 0x3fe70a3d70a3d70aL    # 0.72
 
-    div-double v18, v18, v24
+    cmpl-double v19, v4, v17
 
-    mul-double v18, v18, v22
+    if-lez v19, :cond_16
 
-    add-double v18, v18, v16
+    .line 177
+    sub-double v22, v4, v17
 
-    div-double v18, v18, v2
+    .line 178
+    const-wide v24, 0x3fd1eb851eb851ecL    # 0.28
+
+    add-double v26, v22, v24
+
+    div-double v22, v22, v26
+
+    mul-double v22, v22, v24
+
+    add-double v22, v22, v17
+
+    div-double v22, v22, v4
 
     goto :goto_e
 
-    .line 173
-    :cond_15
-    const-wide/high16 v18, 0x3ff0000000000000L    # 1.0
+    .line 176
+    :cond_16
+    const-wide/high16 v22, 0x3ff0000000000000L    # 1.0
 
-    .line 177
+    .line 180
     :goto_e
-    mul-double v10, v10, v18
-
-    invoke-static {v10, v11}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->encode(D)F
-
-    move-result v2
-
-    .line 178
-    mul-double v12, v12, v18
+    mul-double v12, v12, v22
 
     invoke-static {v12, v13}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->encode(D)F
 
-    move-result v3
+    move-result v4
 
-    .line 179
-    mul-double v0, v0, v18
+    .line 181
+    mul-double v0, v0, v22
 
     invoke-static {v0, v1}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->encode(D)F
 
     move-result v0
 
-    .line 180
-    if-nez p3, :cond_16
+    .line 182
+    mul-double v2, v2, v22
 
-    .line 181
-    invoke-static {v2, v3, v0}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->pack(FFF)I
+    invoke-static {v2, v3}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->encode(D)F
+
+    move-result v1
+
+    .line 183
+    if-nez p0, :cond_17
+
+    .line 184
+    invoke-static {v4, v0, v1}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->pack(FFF)I
 
     move-result v0
 
@@ -3127,80 +3140,86 @@
 
     goto :goto_f
 
-    .line 183
-    :cond_16
-    aput v2, p0, v14
-
-    .line 184
-    aput v3, v4, v14
-
-    .line 185
-    aput v0, v8, v14
-
     .line 186
-    const v1, 0x3e59b3d0    # 0.2126f
+    :cond_17
+    aput v4, v8, v14
 
-    mul-float/2addr v2, v1
+    .line 187
+    aput v0, v10, v14
 
-    const v1, 0x3f371759    # 0.7152f
+    .line 188
+    aput v1, v11, v14
 
-    mul-float/2addr v3, v1
+    .line 189
+    const v2, 0x3e59b3d0    # 0.2126f
 
-    add-float/2addr v2, v3
+    mul-float/2addr v4, v2
 
-    const v1, 0x3d93dd98    # 0.0722f
+    const v2, 0x3f371759    # 0.7152f
 
-    mul-float/2addr v0, v1
+    mul-float/2addr v0, v2
 
-    add-float/2addr v2, v0
+    add-float/2addr v4, v0
 
-    aput v2, p3, v14
+    const v0, 0x3d93dd98    # 0.0722f
 
-    .line 167
+    mul-float/2addr v1, v0
+
+    add-float/2addr v4, v1
+
+    aput v4, p0, v14
+
+    .line 170
     :goto_f
     add-int/lit8 v14, v14, 0x1
 
-    move-object/from16 v3, p0
-
-    move-object/from16 v2, p3
-
-    move-object v0, v15
-
-    goto :goto_d
-
-    .line 189
-    :cond_17
-    move-object v15, v0
-
-    move-object/from16 p3, v2
-
-    move-object/from16 p0, v3
-
-    if-eqz p3, :cond_18
-
-    .line 190
-    move-object/from16 v3, p0
+    move-object/from16 v4, p0
 
     move/from16 v1, p1
 
     move/from16 v2, p2
 
-    move-object/from16 v6, p3
-
-    move/from16 v7, p8
-
-    move-object v5, v8
-
     move-object v0, v15
 
-    invoke-static/range {v0 .. v7}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->sharpenHeadroomDamped([III[F[F[F[FF)V
+    move-object/from16 v5, v16
+
+    goto :goto_d
 
     .line 192
     :cond_18
+    move-object v15, v0
+
+    move-object/from16 p0, v4
+
+    if-eqz p0, :cond_19
+
+    .line 193
+    move-object/from16 v6, p0
+
+    move/from16 v1, p1
+
+    move/from16 v2, p2
+
+    move/from16 v7, p8
+
+    move-object v3, v8
+
+    move-object v4, v10
+
+    move-object v5, v11
+
+    move-object v0, v15
+
+    move/from16 v8, p12
+
+    invoke-static/range {v0 .. v8}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->sharpenHeadroomDamped([III[F[F[F[FFI)V
+
+    .line 195
+    :cond_19
     return-object v15
 
     .line 97
-    :cond_19
+    :cond_1a
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
     const-string v1, "Invalid Bayer image or calibration"
@@ -3213,7 +3232,7 @@
 .method private static sharpen([III[F[F[F[FF)V
     .locals 17
 
-    .line 498
+    .line 603
     move/from16 v0, p1
 
     move/from16 v1, p2
@@ -3223,7 +3242,7 @@
     :goto_0
     if-ge v3, v1, :cond_7
 
-    .line 499
+    .line 604
     if-nez v3, :cond_0
 
     const/4 v4, 0x0
@@ -3233,7 +3252,7 @@
     :cond_0
     neg-int v4, v0
 
-    .line 500
+    .line 605
     :goto_1
     add-int/lit8 v5, v1, -0x1
 
@@ -3246,7 +3265,7 @@
     :cond_1
     move v5, v0
 
-    .line 501
+    .line 606
     :goto_2
     mul-int v6, v3, v0
 
@@ -3255,7 +3274,7 @@
     :goto_3
     if-ge v7, v0, :cond_6
 
-    .line 502
+    .line 607
     if-nez v7, :cond_2
 
     const/4 v8, 0x0
@@ -3265,7 +3284,7 @@
     :cond_2
     const/4 v8, -0x1
 
-    .line 503
+    .line 608
     :goto_4
     add-int/lit8 v9, v0, -0x1
 
@@ -3278,7 +3297,7 @@
     :cond_3
     const/4 v9, 0x1
 
-    .line 504
+    .line 609
     :goto_5
     add-int v10, v6, v4
 
@@ -3334,7 +3353,7 @@
 
     div-float/2addr v11, v8
 
-    .line 507
+    .line 612
     aget v8, p6, v6
 
     sub-float/2addr v8, v11
@@ -3347,7 +3366,7 @@
 
     mul-double/2addr v8, v11
 
-    .line 508
+    .line 613
     const-wide/16 v11, 0x0
 
     cmpl-double v13, v8, v11
@@ -3376,7 +3395,7 @@
 
     goto :goto_6
 
-    .line 509
+    .line 614
     :cond_4
     aget v13, p3, v6
 
@@ -3394,7 +3413,7 @@
 
     float-to-double v13, v13
 
-    .line 511
+    .line 616
     :goto_6
     move/from16 v16, v3
 
@@ -3404,7 +3423,7 @@
 
     move-result-wide v2
 
-    .line 512
+    .line 617
     cmpl-double v13, v2, v11
 
     if-nez v13, :cond_5
@@ -3425,7 +3444,7 @@
     :goto_7
     double-to-float v2, v11
 
-    .line 513
+    .line 618
     aget v3, p3, v6
 
     add-float/2addr v3, v2
@@ -3444,7 +3463,7 @@
 
     aput v2, p0, v6
 
-    .line 501
+    .line 606
     add-int/lit8 v7, v7, 0x1
 
     add-int/lit8 v6, v6, 0x1
@@ -3453,7 +3472,7 @@
 
     goto/16 :goto_3
 
-    .line 498
+    .line 603
     :cond_6
     move/from16 v10, p7
 
@@ -3463,15 +3482,15 @@
 
     goto/16 :goto_0
 
-    .line 516
+    .line 621
     :cond_7
     return-void
 .end method
 
-.method private static sharpenHeadroomDamped([III[F[F[F[FF)V
-    .locals 18
+.method private static sharpenHeadroomDamped([III[F[F[F[FFI)V
+    .locals 20
 
-    .line 306
+    .line 399
     move/from16 v0, p1
 
     move/from16 v1, p2
@@ -3486,371 +3505,493 @@
 
     move-result-object v2
 
-    .line 307
+    .line 400
     filled-new-array {v4, v3, v3, v3}, [I
 
     move-result-object v3
 
-    .line 308
-    move v5, v4
+    .line 401
+    move/from16 v5, p8
 
-    :goto_0
-    if-ge v5, v1, :cond_9
+    add-int/lit16 v5, v5, -0xc8
 
-    .line 309
-    mul-int v6, v5, v0
+    invoke-static {v4, v5}, Ljava/lang/Math;->max(II)I
 
+    move-result v5
+
+    int-to-float v5, v5
+
+    const/high16 v6, 0x44af0000    # 1400.0f
+
+    div-float/2addr v5, v6
+
+    const/high16 v6, 0x3f800000    # 1.0f
+
+    add-float/2addr v5, v6
+
+    div-float v5, v6, v5
+
+    .line 402
+    mul-float v5, v5, p7
+
+    .line 403
     move v7, v4
 
+    :goto_0
+    if-ge v7, v1, :cond_b
+
+    .line 404
+    mul-int v8, v7, v0
+
+    move v9, v4
+
     :goto_1
-    if-ge v7, v0, :cond_8
+    if-ge v9, v0, :cond_a
 
-    .line 310
-    aget v8, p6, v6
+    .line 405
+    aget v10, p6, v8
 
-    .line 311
+    .line 406
     nop
 
-    .line 312
+    .line 407
     nop
 
-    .line 313
-    move v10, v4
+    .line 408
+    nop
 
-    move v12, v8
+    .line 409
+    nop
 
-    move v13, v12
+    .line 410
+    move v12, v4
 
-    const/4 v11, 0x0
+    move v15, v10
+
+    move/from16 v17, v15
+
+    const/4 v13, 0x0
+
+    const/4 v14, 0x0
+
+    const/16 v16, 0x0
 
     :goto_2
-    const/4 v14, 0x4
+    move/from16 p8, v6
 
-    if-ge v10, v14, :cond_5
+    const/4 v6, 0x4
 
-    .line 314
-    add-int/lit8 v14, v0, -0x1
+    if-ge v12, v6, :cond_6
 
-    aget v15, v2, v10
+    .line 411
+    add-int/lit8 v6, v0, -0x1
 
-    add-int/2addr v15, v7
+    aget v18, v2, v12
 
-    invoke-static {v14, v15}, Ljava/lang/Math;->min(II)I
+    const/16 p7, 0x0
 
-    move-result v15
+    add-int v11, v9, v18
 
-    invoke-static {v4, v15}, Ljava/lang/Math;->max(II)I
+    invoke-static {v6, v11}, Ljava/lang/Math;->min(II)I
 
-    move-result v15
+    move-result v11
 
-    .line 315
-    add-int/lit8 v9, v1, -0x1
+    invoke-static {v4, v11}, Ljava/lang/Math;->max(II)I
 
-    aget v16, v3, v10
+    move-result v11
 
-    add-int v0, v5, v16
+    .line 412
+    add-int/lit8 v4, v1, -0x1
 
-    invoke-static {v9, v0}, Ljava/lang/Math;->min(II)I
+    aget v19, v3, v12
+
+    add-int v0, v7, v19
+
+    invoke-static {v4, v0}, Ljava/lang/Math;->min(II)I
 
     move-result v0
 
-    invoke-static {v4, v0}, Ljava/lang/Math;->max(II)I
+    const/4 v1, 0x0
+
+    invoke-static {v1, v0}, Ljava/lang/Math;->max(II)I
 
     move-result v0
 
-    .line 316
-    aget v16, v2, v10
+    .line 413
+    aget v18, v2, v12
+
+    move/from16 v19, v0
+
+    sub-int v0, v9, v18
+
+    invoke-static {v6, v0}, Ljava/lang/Math;->min(II)I
+
+    move-result v0
+
+    invoke-static {v1, v0}, Ljava/lang/Math;->max(II)I
+
+    move-result v0
+
+    .line 414
+    aget v6, v3, v12
+
+    sub-int v6, v7, v6
+
+    invoke-static {v4, v6}, Ljava/lang/Math;->min(II)I
+
+    move-result v4
+
+    invoke-static {v1, v4}, Ljava/lang/Math;->max(II)I
+
+    move-result v4
+
+    .line 415
+    mul-int v6, v19, p1
+
+    add-int/2addr v6, v11
+
+    aget v6, p6, v6
+
+    .line 416
+    mul-int v4, v4, p1
+
+    add-int/2addr v4, v0
+
+    aget v0, p6, v4
+
+    .line 417
+    cmpg-float v4, v6, v15
+
+    if-gez v4, :cond_0
+
+    move v15, v6
+
+    .line 418
+    :cond_0
+    cmpg-float v4, v0, v15
+
+    if-gez v4, :cond_1
+
+    move v15, v0
+
+    .line 419
+    :cond_1
+    cmpl-float v4, v6, v17
+
+    if-lez v4, :cond_2
+
+    move/from16 v17, v6
+
+    .line 420
+    :cond_2
+    cmpl-float v4, v0, v17
+
+    if-lez v4, :cond_3
 
     move/from16 v17, v0
 
-    sub-int v0, v7, v16
-
-    invoke-static {v14, v0}, Ljava/lang/Math;->min(II)I
-
-    move-result v0
-
-    invoke-static {v4, v0}, Ljava/lang/Math;->max(II)I
-
-    move-result v0
-
-    .line 317
-    aget v14, v3, v10
-
-    sub-int v14, v5, v14
-
-    invoke-static {v9, v14}, Ljava/lang/Math;->min(II)I
-
-    move-result v9
-
-    invoke-static {v4, v9}, Ljava/lang/Math;->max(II)I
-
-    move-result v9
-
-    .line 318
-    mul-int v14, v17, p1
-
-    add-int/2addr v14, v15
-
-    aget v14, p6, v14
-
-    .line 319
-    mul-int v9, v9, p1
-
-    add-int/2addr v9, v0
-
-    aget v0, p6, v9
-
-    .line 320
-    cmpg-float v9, v14, v13
-
-    if-gez v9, :cond_0
-
-    move v13, v14
-
-    .line 321
-    :cond_0
-    cmpg-float v9, v0, v13
-
-    if-gez v9, :cond_1
-
-    move v13, v0
-
-    .line 322
-    :cond_1
-    cmpl-float v9, v14, v12
-
-    if-lez v9, :cond_2
-
-    move v12, v14
-
-    .line 323
-    :cond_2
-    cmpl-float v9, v0, v12
-
-    if-lez v9, :cond_3
-
-    move v12, v0
-
-    .line 324
+    .line 421
     :cond_3
-    sub-float v9, v14, v8
+    sub-float v4, v6, v0
 
-    invoke-static {v9}, Ljava/lang/Math;->abs(F)F
+    invoke-static {v4}, Ljava/lang/Math;->abs(F)F
 
-    move-result v9
+    move-result v4
 
-    sub-float v15, v0, v8
+    .line 422
+    cmpl-float v11, v4, v13
 
-    invoke-static {v15}, Ljava/lang/Math;->abs(F)F
+    if-lez v11, :cond_4
 
-    move-result v15
+    move v13, v4
 
-    cmpg-float v9, v9, v15
+    .line 424
+    :cond_4
+    const v11, 0x3ca3d70a    # 0.02f
 
-    if-gtz v9, :cond_4
+    add-float/2addr v4, v11
+
+    .line 425
+    sub-float v11, v6, v10
+
+    invoke-static {v11}, Ljava/lang/Math;->abs(F)F
+
+    move-result v11
+
+    sub-float v18, v0, v10
+
+    invoke-static/range {v18 .. v18}, Ljava/lang/Math;->abs(F)F
+
+    move-result v18
+
+    cmpg-float v11, v11, v18
+
+    if-gtz v11, :cond_5
 
     goto :goto_3
 
-    :cond_4
-    move v14, v0
+    :cond_5
+    move v6, v0
 
+    .line 426
     :goto_3
-    add-float/2addr v11, v14
+    mul-float/2addr v6, v4
 
-    .line 313
-    add-int/lit8 v10, v10, 0x1
+    add-float v16, v16, v6
+
+    .line 427
+    add-float/2addr v14, v4
+
+    .line 410
+    add-int/lit8 v12, v12, 0x1
 
     move/from16 v0, p1
 
-    goto :goto_2
+    move/from16 v6, p8
 
-    .line 326
-    :cond_5
-    add-float/2addr v11, v8
+    move v4, v1
 
-    const/high16 v0, 0x40a00000    # 5.0f
+    move/from16 v1, p2
 
-    div-float/2addr v11, v0
+    goto/16 :goto_2
 
-    .line 327
-    sub-float v0, v8, v11
+    .line 429
+    :cond_6
+    move v1, v4
 
-    mul-float v0, v0, p7
+    const/16 p7, 0x0
 
-    .line 328
-    sub-float/2addr v12, v8
+    const v0, 0x3c449ba6    # 0.012f
 
-    const/4 v9, 0x0
+    sub-float/2addr v13, v0
 
-    invoke-static {v9, v12}, Ljava/lang/Math;->max(FF)F
+    const v0, 0x3d072b02    # 0.033f
+
+    div-float/2addr v13, v0
+
+    invoke-static {v13}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->clamp01(F)F
+
+    move-result v0
+
+    .line 430
+    mul-float v4, v0, v0
+
+    const/high16 v6, 0x40000000    # 2.0f
+
+    mul-float/2addr v0, v6
+
+    const/high16 v6, 0x40400000    # 3.0f
+
+    sub-float/2addr v6, v0
+
+    mul-float/2addr v4, v6
+
+    .line 431
+    cmpl-float v0, v14, p7
+
+    if-lez v0, :cond_7
+
+    div-float v16, v16, v14
+
+    goto :goto_4
+
+    :cond_7
+    move/from16 v16, v10
+
+    .line 432
+    :goto_4
+    sub-float v0, v10, v16
+
+    mul-float/2addr v0, v5
+
+    mul-float/2addr v0, v4
+
+    .line 433
+    sub-float v4, v17, v10
+
+    move/from16 v6, p7
+
+    invoke-static {v6, v4}, Ljava/lang/Math;->max(FF)F
+
+    move-result v4
+
+    .line 434
+    sub-float/2addr v10, v15
+
+    invoke-static {v6, v10}, Ljava/lang/Math;->max(FF)F
 
     move-result v10
 
-    .line 329
-    sub-float/2addr v8, v13
+    .line 435
+    cmpl-float v11, v0, v6
 
-    invoke-static {v9, v8}, Ljava/lang/Math;->max(FF)F
+    const/high16 v6, 0x3f000000    # 0.5f
 
-    move-result v8
+    if-lez v11, :cond_8
 
-    .line 330
-    cmpl-float v11, v0, v9
+    .line 436
+    aget v10, p3, v8
 
-    const/high16 v9, 0x3f000000    # 0.5f
+    aget v11, p4, v8
 
-    if-lez v11, :cond_6
-
-    .line 331
-    aget v8, p3, v6
-
-    aget v11, p4, v6
-
-    aget v12, p5, v6
+    aget v12, p5, v8
 
     invoke-static {v11, v12}, Ljava/lang/Math;->max(FF)F
 
     move-result v11
 
-    invoke-static {v8, v11}, Ljava/lang/Math;->max(FF)F
+    invoke-static {v10, v11}, Ljava/lang/Math;->max(FF)F
 
-    move-result v8
+    move-result v10
 
-    const/high16 v11, 0x3f800000    # 1.0f
+    sub-float v10, p8, v10
 
-    sub-float/2addr v11, v8
+    mul-float/2addr v4, v6
 
-    mul-float/2addr v10, v9
+    invoke-static {v10, v4}, Ljava/lang/Math;->min(FF)F
 
-    invoke-static {v11, v10}, Ljava/lang/Math;->min(FF)F
+    move-result v4
 
-    move-result v8
+    goto :goto_5
 
-    goto :goto_4
+    .line 437
+    :cond_8
+    aget v4, p3, v8
 
-    .line 332
-    :cond_6
-    aget v10, p3, v6
+    aget v11, p4, v8
 
-    aget v11, p4, v6
-
-    aget v12, p5, v6
+    aget v12, p5, v8
 
     invoke-static {v11, v12}, Ljava/lang/Math;->min(FF)F
 
     move-result v11
 
-    invoke-static {v10, v11}, Ljava/lang/Math;->min(FF)F
+    invoke-static {v4, v11}, Ljava/lang/Math;->min(FF)F
 
-    move-result v10
+    move-result v4
 
-    mul-float/2addr v8, v9
+    mul-float/2addr v10, v6
 
-    invoke-static {v10, v8}, Ljava/lang/Math;->min(FF)F
+    invoke-static {v4, v10}, Ljava/lang/Math;->min(FF)F
 
-    move-result v8
+    move-result v4
 
-    .line 333
-    :goto_4
-    const v9, 0x3c40c0c1
+    .line 438
+    :goto_5
+    const v6, 0x3c40c0c1
 
-    invoke-static {v8, v9}, Ljava/lang/Math;->min(FF)F
+    invoke-static {v4, v6}, Ljava/lang/Math;->min(FF)F
 
-    move-result v8
+    move-result v4
 
-    const/4 v9, 0x0
+    const/4 v6, 0x0
 
-    invoke-static {v9, v8}, Ljava/lang/Math;->max(FF)F
+    invoke-static {v6, v4}, Ljava/lang/Math;->max(FF)F
 
-    move-result v8
+    move-result v4
 
-    .line 334
-    cmpg-float v10, v8, v9
+    .line 439
+    cmpg-float v10, v4, v6
 
-    if-gtz v10, :cond_7
+    if-gtz v10, :cond_9
 
-    goto :goto_5
+    move v11, v6
 
-    :cond_7
-    mul-float v9, v0, v8
+    goto :goto_6
+
+    :cond_9
+    mul-float v6, v0, v4
 
     invoke-static {v0}, Ljava/lang/Math;->abs(F)F
 
     move-result v0
 
-    add-float/2addr v8, v0
+    add-float/2addr v4, v0
 
-    div-float/2addr v9, v8
+    div-float v11, v6, v4
 
-    .line 335
-    :goto_5
-    aget v0, p3, v6
+    .line 440
+    :goto_6
+    aget v0, p3, v8
 
-    add-float/2addr v0, v9
+    add-float/2addr v0, v11
 
     invoke-static {v0}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->clamp01(F)F
 
     move-result v0
 
-    aget v8, p4, v6
+    aget v4, p4, v8
 
-    add-float/2addr v8, v9
+    add-float/2addr v4, v11
 
-    invoke-static {v8}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->clamp01(F)F
+    invoke-static {v4}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->clamp01(F)F
 
-    move-result v8
+    move-result v4
 
-    aget v10, p5, v6
+    aget v6, p5, v8
 
-    add-float/2addr v10, v9
+    add-float/2addr v6, v11
 
-    invoke-static {v10}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->clamp01(F)F
+    invoke-static {v6}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->clamp01(F)F
 
-    move-result v9
+    move-result v6
 
-    invoke-static {v0, v8, v9}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->pack(FFF)I
+    invoke-static {v0, v4, v6}, Lcom/motorola/camera/custom/CleanBayerRawProcessor;->pack(FFF)I
 
     move-result v0
 
-    aput v0, p0, v6
+    aput v0, p0, v8
 
-    .line 309
-    add-int/lit8 v7, v7, 0x1
+    .line 404
+    add-int/lit8 v9, v9, 0x1
 
-    add-int/lit8 v6, v6, 0x1
+    add-int/lit8 v8, v8, 0x1
 
     move/from16 v0, p1
+
+    move/from16 v6, p8
+
+    move v4, v1
+
+    move/from16 v1, p2
 
     goto/16 :goto_1
 
-    .line 308
-    :cond_8
-    add-int/lit8 v5, v5, 0x1
+    .line 403
+    :cond_a
+    move v1, v4
+
+    move/from16 p8, v6
+
+    add-int/lit8 v7, v7, 0x1
 
     move/from16 v0, p1
 
+    move/from16 v1, p2
+
     goto/16 :goto_0
 
-    .line 338
-    :cond_9
+    .line 443
+    :cond_b
     return-void
 .end method
 
 .method private static smoothChromaByIso([F[F[FIII)V
     .locals 25
 
-    .line 261
+    .line 264
     mul-int v0, p3, p4
 
-    .line 262
+    .line 265
     new-array v1, v0, [F
 
-    .line 263
+    .line 266
     new-array v2, v0, [F
 
-    .line 264
+    .line 267
     new-array v3, v0, [F
 
-    .line 265
+    .line 268
     const/4 v4, 0x0
 
     :goto_0
@@ -3862,7 +4003,7 @@
 
     if-ge v4, v0, :cond_0
 
-    .line 266
+    .line 269
     aget v8, p0, v4
 
     mul-float/2addr v8, v7
@@ -3879,29 +4020,29 @@
 
     add-float/2addr v8, v6
 
-    .line 267
+    .line 270
     aput v8, v1, v4
 
-    .line 268
+    .line 271
     aget v5, p2, v4
 
     sub-float/2addr v5, v8
 
     aput v5, v2, v4
 
-    .line 269
+    .line 272
     aget v5, p0, v4
 
     sub-float/2addr v5, v8
 
     aput v5, v3, v4
 
-    .line 265
+    .line 268
     add-int/lit8 v4, v4, 0x1
 
     goto :goto_0
 
-    .line 271
+    .line 274
     :cond_0
     move/from16 v0, p5
 
@@ -3921,7 +4062,7 @@
 
     move-result v0
 
-    .line 272
+    .line 275
     const v8, 0x3d75c28f    # 0.06f
 
     mul-float/2addr v8, v0
@@ -3932,7 +4073,7 @@
 
     div-float v8, v4, v8
 
-    .line 273
+    .line 276
     const/4 v9, 0x1
 
     move v10, v9
@@ -3942,10 +4083,10 @@
 
     if-ge v10, v11, :cond_6
 
-    .line 274
+    .line 277
     mul-int v11, v10, p3
 
-    .line 275
+    .line 278
     move v12, v9
 
     :goto_2
@@ -3953,18 +4094,18 @@
 
     if-ge v12, v13, :cond_5
 
-    .line 276
+    .line 279
     add-int v13, v11, v12
 
-    .line 277
+    .line 280
     aget v14, v1, v13
 
-    .line 278
+    .line 281
     aget v15, v2, v13
 
     aget v16, v3, v13
 
-    .line 279
+    .line 282
     const/16 v17, -0x1
 
     move/from16 p5, v4
@@ -3980,12 +4121,12 @@
 
     if-gt v4, v9, :cond_4
 
-    .line 280
+    .line 283
     add-int v20, v10, v4
 
     mul-int v20, v20, p3
 
-    .line 281
+    .line 284
     move/from16 v21, v6
 
     move/from16 v6, v17
@@ -3993,20 +4134,20 @@
     :goto_4
     if-gt v6, v9, :cond_3
 
-    .line 282
+    .line 285
     if-nez v6, :cond_1
 
     if-nez v4, :cond_1
 
     goto :goto_6
 
-    .line 283
+    .line 286
     :cond_1
     add-int v22, v20, v12
 
     add-int v22, v22, v6
 
-    .line 284
+    .line 287
     aget v23, v1, v22
 
     sub-float v23, v23, v14
@@ -4017,7 +4158,7 @@
 
     mul-float v23, v23, v8
 
-    .line 285
+    .line 288
     cmpl-float v24, v23, p5
 
     if-ltz v24, :cond_2
@@ -4029,7 +4170,7 @@
     :cond_2
     sub-float v23, p5, v23
 
-    .line 286
+    .line 289
     :goto_5
     aget v24, v2, v22
 
@@ -4037,23 +4178,23 @@
 
     add-float v15, v15, v24
 
-    .line 287
+    .line 290
     aget v22, v3, v22
 
     mul-float v22, v22, v23
 
     add-float v16, v16, v22
 
-    .line 288
+    .line 291
     add-float v18, v18, v23
 
-    .line 281
+    .line 284
     :goto_6
     add-int/lit8 v6, v6, 0x1
 
     goto :goto_4
 
-    .line 279
+    .line 282
     :cond_3
     add-int/lit8 v4, v4, 0x1
 
@@ -4063,7 +4204,7 @@
 
     goto :goto_3
 
-    .line 291
+    .line 294
     :cond_4
     move/from16 v21, v6
 
@@ -4087,7 +4228,7 @@
 
     add-float/2addr v4, v15
 
-    .line 292
+    .line 295
     aget v15, v3, v13
 
     div-float v16, v16, v18
@@ -4100,13 +4241,13 @@
 
     add-float v15, v15, v16
 
-    .line 293
+    .line 296
     add-float/2addr v15, v14
 
-    .line 294
+    .line 297
     add-float/2addr v4, v14
 
-    .line 295
+    .line 298
     mul-float v6, v15, v7
 
     sub-float/2addr v14, v6
@@ -4117,28 +4258,28 @@
 
     div-float v14, v14, v21
 
-    .line 296
+    .line 299
     invoke-static {v5, v15}, Ljava/lang/Math;->max(FF)F
 
     move-result v6
 
     aput v6, p0, v13
 
-    .line 297
+    .line 300
     invoke-static {v5, v14}, Ljava/lang/Math;->max(FF)F
 
     move-result v6
 
     aput v6, p1, v13
 
-    .line 298
+    .line 301
     invoke-static {v5, v4}, Ljava/lang/Math;->max(FF)F
 
     move-result v4
 
     aput v4, p2, v13
 
-    .line 275
+    .line 278
     add-int/lit8 v12, v12, 0x1
 
     move/from16 v4, p5
@@ -4149,7 +4290,7 @@
 
     goto/16 :goto_2
 
-    .line 273
+    .line 276
     :cond_5
     move/from16 p5, v4
 
@@ -4161,8 +4302,516 @@
 
     goto/16 :goto_1
 
-    .line 301
+    .line 304
     :cond_6
+    return-void
+.end method
+
+.method private static suppressDemosaicFringes([F[F[FII)V
+    .locals 26
+
+    .line 313
+    move/from16 v0, p3
+
+    move/from16 v1, p4
+
+    mul-int v2, v0, v1
+
+    .line 314
+    new-array v3, v2, [F
+
+    .line 315
+    new-array v4, v2, [F
+
+    .line 316
+    const/4 v6, 0x0
+
+    :goto_0
+    if-ge v6, v2, :cond_0
+
+    .line 317
+    aget v7, p0, v6
+
+    aget v8, p1, v6
+
+    sub-float/2addr v7, v8
+
+    aput v7, v3, v6
+
+    .line 318
+    aget v7, p2, v6
+
+    aget v8, p1, v6
+
+    sub-float/2addr v7, v8
+
+    aput v7, v4, v6
+
+    .line 316
+    add-int/lit8 v6, v6, 0x1
+
+    goto :goto_0
+
+    .line 320
+    :cond_0
+    const/4 v2, 0x1
+
+    move v6, v2
+
+    :goto_1
+    add-int/lit8 v7, v1, -0x1
+
+    if-ge v6, v7, :cond_10
+
+    .line 321
+    mul-int v7, v6, v0
+
+    .line 322
+    move v8, v2
+
+    :goto_2
+    add-int/lit8 v9, v0, -0x1
+
+    if-ge v8, v9, :cond_f
+
+    .line 323
+    add-int v9, v7, v8
+
+    .line 324
+    aget v10, p1, v9
+
+    .line 325
+    sub-int v11, v9, v0
+
+    aget v11, p1, v11
+
+    add-int v12, v9, v0
+
+    aget v12, p1, v12
+
+    .line 326
+    add-int/lit8 v13, v9, -0x1
+
+    aget v13, p1, v13
+
+    add-int/lit8 v14, v9, 0x1
+
+    aget v14, p1, v14
+
+    .line 327
+    invoke-static {v10, v11}, Ljava/lang/Math;->max(FF)F
+
+    move-result v15
+
+    invoke-static {v13, v14}, Ljava/lang/Math;->max(FF)F
+
+    move-result v5
+
+    invoke-static {v12, v5}, Ljava/lang/Math;->max(FF)F
+
+    move-result v5
+
+    invoke-static {v15, v5}, Ljava/lang/Math;->max(FF)F
+
+    move-result v5
+
+    .line 328
+    invoke-static {v10, v11}, Ljava/lang/Math;->min(FF)F
+
+    move-result v11
+
+    invoke-static {v13, v14}, Ljava/lang/Math;->min(FF)F
+
+    move-result v13
+
+    invoke-static {v12, v13}, Ljava/lang/Math;->min(FF)F
+
+    move-result v12
+
+    invoke-static {v11, v12}, Ljava/lang/Math;->min(FF)F
+
+    move-result v11
+
+    sub-float/2addr v5, v11
+
+    .line 329
+    const v11, 0x3e0f5c29    # 0.14f
+
+    cmpg-float v5, v5, v11
+
+    if-gez v5, :cond_1
+
+    .line 330
+    goto/16 :goto_9
+
+    .line 332
+    :cond_1
+    aget v5, v3, v9
+
+    .line 333
+    aget v11, v4, v9
+
+    .line 334
+    nop
+
+    .line 335
+    nop
+
+    .line 336
+    mul-float v12, v5, v5
+
+    mul-float v13, v11, v11
+
+    add-float/2addr v12, v13
+
+    .line 337
+    nop
+
+    .line 338
+    nop
+
+    .line 339
+    move/from16 v16, v5
+
+    move/from16 v17, v11
+
+    move v15, v12
+
+    const/4 v14, -0x1
+
+    const/16 v18, 0x0
+
+    :goto_3
+    const v19, 0x3da3d70a    # 0.08f
+
+    if-gt v14, v2, :cond_5
+
+    .line 340
+    add-int v20, v6, v14
+
+    mul-int v20, v20, v0
+
+    .line 341
+    const/4 v13, -0x1
+
+    :goto_4
+    if-gt v13, v2, :cond_4
+
+    .line 342
+    if-nez v13, :cond_2
+
+    if-nez v14, :cond_2
+
+    goto :goto_5
+
+    .line 343
+    :cond_2
+    add-int v22, v20, v8
+
+    add-int v22, v22, v13
+
+    .line 344
+    aget v23, p1, v22
+
+    sub-float v23, v23, v10
+
+    invoke-static/range {v23 .. v23}, Ljava/lang/Math;->abs(F)F
+
+    move-result v23
+
+    cmpg-float v23, v23, v19
+
+    if-gez v23, :cond_3
+
+    .line 345
+    aget v23, v3, v22
+
+    .line 346
+    aget v22, v4, v22
+
+    .line 347
+    mul-float v24, v23, v23
+
+    mul-float v25, v22, v22
+
+    add-float v24, v24, v25
+
+    .line 348
+    cmpg-float v25, v24, v15
+
+    if-gez v25, :cond_3
+
+    .line 349
+    nop
+
+    .line 350
+    nop
+
+    .line 351
+    nop
+
+    .line 352
+    move/from16 v18, v2
+
+    move/from16 v17, v22
+
+    move/from16 v16, v23
+
+    move/from16 v15, v24
+
+    .line 341
+    :cond_3
+    :goto_5
+    add-int/lit8 v13, v13, 0x1
+
+    goto :goto_4
+
+    .line 339
+    :cond_4
+    add-int/lit8 v14, v14, 0x1
+
+    goto :goto_3
+
+    .line 358
+    :cond_5
+    const/4 v13, 0x0
+
+    :goto_6
+    const/4 v14, 0x4
+
+    if-ge v13, v14, :cond_b
+
+    .line 359
+    const/4 v14, 0x2
+
+    if-nez v13, :cond_6
+
+    const/16 v21, -0x2
+
+    goto :goto_7
+
+    :cond_6
+    if-ne v13, v2, :cond_7
+
+    move/from16 v21, v14
+
+    goto :goto_7
+
+    :cond_7
+    const/16 v21, 0x0
+
+    :goto_7
+    add-int v2, v8, v21
+
+    .line 360
+    if-ne v13, v14, :cond_8
+
+    const/4 v14, -0x2
+
+    goto :goto_8
+
+    :cond_8
+    const/4 v14, 0x3
+
+    if-ne v13, v14, :cond_9
+
+    const/4 v14, 0x2
+
+    goto :goto_8
+
+    :cond_9
+    const/4 v14, 0x0
+
+    :goto_8
+    add-int/2addr v14, v6
+
+    .line 361
+    if-ltz v2, :cond_a
+
+    if-ge v2, v0, :cond_a
+
+    if-ltz v14, :cond_a
+
+    if-ge v14, v1, :cond_a
+
+    .line 362
+    mul-int/2addr v14, v0
+
+    add-int/2addr v14, v2
+
+    .line 363
+    aget v2, p1, v14
+
+    sub-float/2addr v2, v10
+
+    invoke-static {v2}, Ljava/lang/Math;->abs(F)F
+
+    move-result v2
+
+    cmpg-float v2, v2, v19
+
+    if-gez v2, :cond_a
+
+    .line 364
+    aget v2, v3, v14
+
+    .line 365
+    aget v14, v4, v14
+
+    .line 366
+    mul-float v20, v2, v2
+
+    mul-float v21, v14, v14
+
+    add-float v20, v20, v21
+
+    .line 367
+    cmpg-float v21, v20, v15
+
+    if-gez v21, :cond_a
+
+    .line 368
+    nop
+
+    .line 369
+    nop
+
+    .line 370
+    nop
+
+    .line 371
+    move/from16 v16, v2
+
+    move/from16 v17, v14
+
+    move/from16 v15, v20
+
+    const/16 v18, 0x1
+
+    .line 358
+    :cond_a
+    add-int/lit8 v13, v13, 0x1
+
+    const/4 v2, 0x1
+
+    goto :goto_6
+
+    .line 376
+    :cond_b
+    if-eqz v18, :cond_e
+
+    cmpl-float v2, v15, v12
+
+    if-ltz v2, :cond_c
+
+    .line 377
+    goto :goto_9
+
+    .line 379
+    :cond_c
+    sub-float v16, v16, v5
+
+    const v2, 0x3f59999a    # 0.85f
+
+    mul-float v16, v16, v2
+
+    add-float v16, v5, v16
+
+    .line 380
+    sub-float v17, v17, v11
+
+    mul-float v17, v17, v2
+
+    add-float v17, v11, v17
+
+    .line 381
+    cmpl-float v2, v16, v5
+
+    if-nez v2, :cond_d
+
+    cmpl-float v2, v17, v11
+
+    if-eqz v2, :cond_e
+
+    .line 382
+    :cond_d
+    aget v2, p0, v9
+
+    const v5, 0x3e59b3d0    # 0.2126f
+
+    mul-float/2addr v2, v5
+
+    const v10, 0x3f371759    # 0.7152f
+
+    aget v11, p1, v9
+
+    mul-float/2addr v11, v10
+
+    add-float/2addr v2, v11
+
+    aget v10, p2, v9
+
+    const v11, 0x3d93dd98    # 0.0722f
+
+    mul-float/2addr v10, v11
+
+    add-float/2addr v2, v10
+
+    .line 383
+    mul-float v5, v5, v16
+
+    sub-float/2addr v2, v5
+
+    mul-float v11, v11, v17
+
+    sub-float/2addr v2, v11
+
+    .line 384
+    add-float v5, v2, v16
+
+    const/4 v10, 0x0
+
+    invoke-static {v10, v5}, Ljava/lang/Math;->max(FF)F
+
+    move-result v5
+
+    aput v5, p0, v9
+
+    .line 385
+    invoke-static {v10, v2}, Ljava/lang/Math;->max(FF)F
+
+    move-result v5
+
+    aput v5, p1, v9
+
+    .line 386
+    add-float v2, v2, v17
+
+    invoke-static {v10, v2}, Ljava/lang/Math;->max(FF)F
+
+    move-result v2
+
+    aput v2, p2, v9
+
+    .line 322
+    :cond_e
+    :goto_9
+    add-int/lit8 v8, v8, 0x1
+
+    const/4 v2, 0x1
+
+    goto/16 :goto_2
+
+    .line 320
+    :cond_f
+    add-int/lit8 v6, v6, 0x1
+
+    const/4 v2, 0x1
+
+    goto/16 :goto_1
+
+    .line 390
+    :cond_10
     return-void
 .end method
 

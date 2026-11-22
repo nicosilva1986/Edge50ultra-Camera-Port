@@ -14,7 +14,37 @@
 
 
 # static fields
+.field private static final HTP_RPC_AVAILABLE:Z
+
 .field private static final JPEG_SAVE_QUALITY:I = 0x62
+
+.field private static final KEY_ENABLE_AUTO_HDR:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.EnableAutoHDR"
+
+.field private static final KEY_ENABLE_ISZ:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.EnableInsensorZoom"
+
+.field private static final KEY_ENABLE_MFHDR:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.EnableMFHDR"
+
+.field private static final KEY_ENABLE_MFNR_AIDE:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode"
+
+.field private static final KEY_ENABLE_QHDR:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.EnableQHDR"
+
+.field private static final KEY_ENABLE_QLL:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.enableQLL"
+
+.field private static final KEY_ENABLE_SHDR:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.EnableSHDR"
+
+.field private static final KEY_ENABLE_SNAPSHOT_ISZ:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.EnableSnapshotOnlyInsensorZoom"
+
+.field private static final KEY_ENABLE_VSR:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.EnableVSR"
+
+.field private static final KEY_ENABLE_XCFA:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.EnableXCFAOptimization"
+
+.field private static final KEY_HDR_MODE:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.HDRMode"
+
+.field private static final KEY_HDR_MODE_PREF:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.HDRModePreference"
+
+.field private static final KEY_SAT_FALLBACK_T2W:Ljava/lang/String; = "com.lenovo.moto.SATFallback.T2W"
+
+.field private static final KEY_SNAPSHOT_HDR_MODE:Ljava/lang/String; = "org.codeaurora.qcamera3.sessionParameters.SnapshotHDRMode"
 
 .field private static final LUT_POOL:Ljava/util/concurrent/ExecutorService;
 
@@ -43,6 +73,30 @@
     .end annotation
 .end field
 
+.field private static final REQ_KEY_CACHE:Ljava/util/Map;
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "Ljava/util/Map<",
+            "Landroid/hardware/camera2/CameraCharacteristics;",
+            "Ljava/util/Set<",
+            "Ljava/lang/String;",
+            ">;>;"
+        }
+    .end annotation
+.end field
+
+.field private static final SES_KEY_CACHE:Ljava/util/Map;
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "Ljava/util/Map<",
+            "Landroid/hardware/camera2/CameraCharacteristics;",
+            "Ljava/util/Set<",
+            "Ljava/lang/String;",
+            ">;>;"
+        }
+    .end annotation
+.end field
+
 .field private static final SHOT_CACHE:Ljava/util/Map;
     .annotation system Ldalvik/annotation/Signature;
         value = {
@@ -63,10 +117,17 @@
 .method static constructor <clinit>()V
     .locals 13
 
-    .line 68
+    .line 70
+    invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->checkAdspRpcReadable()Z
+
+    move-result v0
+
+    sput-boolean v0, Lcom/motorola/camera/custom/CustomImagingBridge;->HTP_RPC_AVAILABLE:Z
+
+    .line 88
     nop
 
-    .line 69
+    .line 89
     invoke-static {}, Ljava/lang/Runtime;->getRuntime()Ljava/lang/Runtime;
 
     move-result-object v0
@@ -95,14 +156,14 @@
 
     invoke-direct {v3, v4}, Lcom/motorola/camera/custom/CustomImagingBridge$DaemonThreadFactory;-><init>(Ljava/lang/String;)V
 
-    .line 68
+    .line 88
     invoke-static {v0, v3}, Ljava/util/concurrent/Executors;->newFixedThreadPool(ILjava/util/concurrent/ThreadFactory;)Ljava/util/concurrent/ExecutorService;
 
     move-result-object v0
 
     sput-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->LUT_POOL:Ljava/util/concurrent/ExecutorService;
 
-    .line 71
+    .line 91
     new-instance v3, Ljava/util/concurrent/ThreadPoolExecutor;
 
     sget-object v8, Ljava/util/concurrent/TimeUnit;->SECONDS:Ljava/util/concurrent/TimeUnit;
@@ -131,21 +192,21 @@
 
     sput-object v3, Lcom/motorola/camera/custom/CustomImagingBridge;->RAW_EXPORT_POOL:Ljava/util/concurrent/ExecutorService;
 
-    .line 76
+    .line 96
     new-instance v0, Ljava/lang/Object;
 
     invoke-direct {v0}, Ljava/lang/Object;-><init>()V
 
     sput-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->RAW_EXPORT_SERIAL_LOCK:Ljava/lang/Object;
 
-    .line 104
+    .line 124
     new-instance v0, Ljava/util/WeakHashMap;
 
     invoke-direct {v0}, Ljava/util/WeakHashMap;-><init>()V
 
     sput-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->RECORD_DECISIONS:Ljava/util/Map;
 
-    .line 105
+    .line 125
     new-instance v0, Lcom/motorola/camera/custom/CustomImagingBridge$1;
 
     const/16 v3, 0x40
@@ -156,7 +217,7 @@
 
     sput-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->SHOT_CACHE:Ljava/util/Map;
 
-    .line 112
+    .line 132
     const/16 v0, 0xa
 
     new-array v3, v0, [Ljava/lang/CharSequence;
@@ -217,7 +278,7 @@
 
     sput-object v3, Lcom/motorola/camera/custom/CustomImagingBridge;->PROFILE_LABELS:[Ljava/lang/CharSequence;
 
-    .line 125
+    .line 145
     new-array v0, v0, [Ljava/lang/CharSequence;
 
     const-string v3, "0"
@@ -262,13 +323,38 @@
 
     sput-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->PROFILE_VALUES:[Ljava/lang/CharSequence;
 
+    .line 381
+    new-instance v0, Ljava/util/WeakHashMap;
+
+    invoke-direct {v0}, Ljava/util/WeakHashMap;-><init>()V
+
+    .line 382
+    invoke-static {v0}, Ljava/util/Collections;->synchronizedMap(Ljava/util/Map;)Ljava/util/Map;
+
+    move-result-object v0
+
+    sput-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->REQ_KEY_CACHE:Ljava/util/Map;
+
+    .line 383
+    new-instance v0, Ljava/util/WeakHashMap;
+
+    invoke-direct {v0}, Ljava/util/WeakHashMap;-><init>()V
+
+    .line 384
+    invoke-static {v0}, Ljava/util/Collections;->synchronizedMap(Ljava/util/Map;)Ljava/util/Map;
+
+    move-result-object v0
+
+    sput-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->SES_KEY_CACHE:Ljava/util/Map;
+
+    .line 383
     return-void
 .end method
 
 .method private constructor <init>()V
     .locals 0
 
-    .line 129
+    .line 149
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     return-void
@@ -277,246 +363,546 @@
 .method public static applyCaptureRequestOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;)V
     .locals 1
 
-    .line 344
+    .line 449
     const/4 v0, 0x0
 
     invoke-static {p0, p1, v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->applyCaptureRequestOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;Lcom/motorola/camera/fsm/camera/record/CaptureRecord;)V
 
-    .line 345
+    .line 450
     return-void
 .end method
 
 .method public static applyCaptureRequestOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;Lcom/motorola/camera/fsm/camera/record/CaptureRecord;)V
-    .locals 5
+    .locals 16
 
-    .line 349
-    if-eqz p1, :cond_8
+    .line 454
+    move-object/from16 v0, p0
 
-    if-nez p0, :cond_0
+    move-object/from16 v1, p1
 
-    goto/16 :goto_3
+    move-object/from16 v2, p2
 
-    .line 351
+    if-eqz v1, :cond_12
+
+    if-nez v0, :cond_0
+
+    goto/16 :goto_6
+
+    .line 456
     :cond_0
     :try_start_0
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isFlashExpectedSafe()Z
 
-    move-result v0
+    move-result v3
 
-    .line 352
-    sget-object v1, Landroid/hardware/camera2/CaptureRequest;->FLASH_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+    .line 457
+    sget-object v4, Landroid/hardware/camera2/CaptureRequest;->FLASH_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
 
-    invoke-virtual {p1, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->get(Landroid/hardware/camera2/CaptureRequest$Key;)Ljava/lang/Object;
+    invoke-virtual {v1, v4}, Landroid/hardware/camera2/CaptureRequest$Builder;->get(Landroid/hardware/camera2/CaptureRequest$Key;)Ljava/lang/Object;
 
-    move-result-object v1
+    move-result-object v4
 
-    check-cast v1, Ljava/lang/Integer;
+    check-cast v4, Ljava/lang/Integer;
 
-    .line 353
-    const/4 v2, 0x3
+    .line 458
+    const/4 v5, 0x3
 
-    const/4 v3, 0x1
+    const/4 v6, 0x1
 
-    if-eqz v1, :cond_1
+    if-eqz v4, :cond_1
 
-    invoke-virtual {v1}, Ljava/lang/Integer;->intValue()I
+    invoke-virtual {v4}, Ljava/lang/Integer;->intValue()I
 
-    move-result v1
+    move-result v4
 
-    if-eqz v1, :cond_1
+    if-eqz v4, :cond_1
 
-    .line 354
-    move v0, v3
+    .line 459
+    move v3, v6
 
     goto :goto_0
 
-    .line 356
+    .line 461
     :cond_1
-    sget-object v1, Landroid/hardware/camera2/CaptureRequest;->CONTROL_AE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+    sget-object v4, Landroid/hardware/camera2/CaptureRequest;->CONTROL_AE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
 
-    invoke-virtual {p1, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->get(Landroid/hardware/camera2/CaptureRequest$Key;)Ljava/lang/Object;
+    invoke-virtual {v1, v4}, Landroid/hardware/camera2/CaptureRequest$Builder;->get(Landroid/hardware/camera2/CaptureRequest$Key;)Ljava/lang/Object;
 
-    move-result-object v1
+    move-result-object v4
 
-    check-cast v1, Ljava/lang/Integer;
+    check-cast v4, Ljava/lang/Integer;
 
-    .line 357
-    if-eqz v1, :cond_2
+    .line 462
+    if-eqz v4, :cond_2
 
-    invoke-virtual {v1}, Ljava/lang/Integer;->intValue()I
+    invoke-virtual {v4}, Ljava/lang/Integer;->intValue()I
 
-    move-result v1
+    move-result v4
 
-    if-ne v1, v2, :cond_2
+    if-ne v4, v5, :cond_2
 
-    .line 358
-    move v0, v3
+    .line 463
+    move v3, v6
 
-    .line 361
+    .line 466
     :cond_2
     :goto_0
     nop
 
-    .line 362
-    instance-of v1, p2, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;
+    .line 467
+    instance-of v4, v2, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;
 
-    if-eqz v1, :cond_3
+    if-eqz v4, :cond_3
 
-    .line 363
-    move-object v1, p2
+    .line 468
+    move-object v4, v2
 
-    check-cast v1, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;
+    check-cast v4, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;
 
-    .line 364
-    iget-object v4, v1, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;->mSceneMode:Lcom/motorola/camera/mcf/Mcf$SceneMode;
+    .line 469
+    iget-object v7, v4, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;->mSceneMode:Lcom/motorola/camera/mcf/Mcf$SceneMode;
 
-    .line 365
-    iget-boolean v1, v1, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;->mIsFlash:Z
+    .line 470
+    iget-boolean v4, v4, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;->mIsFlash:Z
 
-    if-eqz v1, :cond_4
+    if-eqz v4, :cond_4
 
-    .line 366
-    move v0, v3
+    .line 471
+    move v3, v6
 
     goto :goto_1
 
-    .line 362
+    .line 467
     :cond_3
-    const/4 v4, 0x0
+    const/4 v7, 0x0
 
-    .line 370
+    .line 475
     :cond_4
     :goto_1
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isUiSpecialModeSafe()Z
 
-    move-result v1
+    move-result v4
 
-    invoke-static {p2, v4, v0, v1}, Lcom/motorola/camera/custom/CustomImagingBridge;->getOrComputeDecision(Lcom/motorola/camera/fsm/camera/record/CaptureRecord;Lcom/motorola/camera/mcf/Mcf$SceneMode;ZZ)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
-
-    move-result-object p2
-
-    .line 371
-    iget-object v1, p2, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
-
-    aget v1, v1, v3
-
-    .line 372
-    iget-object v3, p2, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
-
-    const/4 v4, 0x2
-
-    aget v3, v3, v4
-
-    .line 373
-    iget-object p2, p2, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
-
-    aget p2, p2, v2
-
-    .line 375
-    invoke-static {p0}, Lcom/motorola/camera/settings/SettingsManager;->getCharacteristics(Ljava/lang/String;)Landroid/hardware/camera2/CameraCharacteristics;
+    invoke-static {v2, v7, v3, v4}, Lcom/motorola/camera/custom/CustomImagingBridge;->getOrComputeDecision(Lcom/motorola/camera/fsm/camera/record/CaptureRecord;Lcom/motorola/camera/mcf/Mcf$SceneMode;ZZ)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
     move-result-object v2
 
-    .line 376
-    if-eqz v2, :cond_6
+    .line 476
+    iget-object v2, v2, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
-    .line 377
-    if-ltz v1, :cond_5
+    .line 477
+    aget v4, v2, v6
 
-    .line 378
-    sget-object v4, Landroid/hardware/camera2/CameraCharacteristics;->NOISE_REDUCTION_AVAILABLE_NOISE_REDUCTION_MODES:Landroid/hardware/camera2/CameraCharacteristics$Key;
+    .line 478
+    const/4 v7, 0x2
 
-    invoke-virtual {v2, v4}, Landroid/hardware/camera2/CameraCharacteristics;->get(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+    aget v8, v2, v7
+
+    .line 479
+    aget v5, v2, v5
+
+    .line 481
+    invoke-static {v0}, Lcom/motorola/camera/settings/SettingsManager;->getCharacteristics(Ljava/lang/String;)Landroid/hardware/camera2/CameraCharacteristics;
+
+    move-result-object v9
+
+    .line 482
+    const/4 v10, 0x0
+
+    if-eqz v9, :cond_10
+
+    .line 483
+    if-ltz v4, :cond_5
+
+    .line 484
+    sget-object v11, Landroid/hardware/camera2/CameraCharacteristics;->NOISE_REDUCTION_AVAILABLE_NOISE_REDUCTION_MODES:Landroid/hardware/camera2/CameraCharacteristics$Key;
+
+    invoke-virtual {v9, v11}, Landroid/hardware/camera2/CameraCharacteristics;->get(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+
+    move-result-object v11
+
+    check-cast v11, [I
+
+    .line 485
+    invoke-static {v11, v4}, Lcom/motorola/camera/settings/SettingsHelper;->isContainedInArray([II)Z
+
+    move-result v11
+
+    if-eqz v11, :cond_5
+
+    .line 486
+    sget-object v11, Landroid/hardware/camera2/CaptureRequest;->NOISE_REDUCTION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-static {v4}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v4
+
+    invoke-virtual {v1, v11, v4}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    .line 489
+    :cond_5
+    if-ltz v8, :cond_6
+
+    .line 490
+    sget-object v4, Landroid/hardware/camera2/CameraCharacteristics;->EDGE_AVAILABLE_EDGE_MODES:Landroid/hardware/camera2/CameraCharacteristics$Key;
+
+    invoke-virtual {v9, v4}, Landroid/hardware/camera2/CameraCharacteristics;->get(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
 
     move-result-object v4
 
     check-cast v4, [I
 
-    .line 379
-    invoke-static {v4, v1}, Lcom/motorola/camera/settings/SettingsHelper;->isContainedInArray([II)Z
+    .line 491
+    invoke-static {v4, v8}, Lcom/motorola/camera/settings/SettingsHelper;->isContainedInArray([II)Z
 
     move-result v4
 
-    if-eqz v4, :cond_5
+    if-eqz v4, :cond_6
 
-    .line 380
-    sget-object v4, Landroid/hardware/camera2/CaptureRequest;->NOISE_REDUCTION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+    .line 492
+    sget-object v4, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
 
-    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
 
-    move-result-object v1
+    move-result-object v8
 
-    invoke-virtual {p1, v4, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+    invoke-virtual {v1, v4, v8}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
 
-    .line 383
-    :cond_5
-    if-ltz v3, :cond_6
+    .line 500
+    :cond_6
+    invoke-static {v9, v10}, Lcom/motorola/camera/custom/CustomImagingBridge;->getKeyNames(Landroid/hardware/camera2/CameraCharacteristics;Z)Ljava/util/Set;
 
-    .line 384
-    sget-object v1, Landroid/hardware/camera2/CameraCharacteristics;->EDGE_AVAILABLE_EDGE_MODES:Landroid/hardware/camera2/CameraCharacteristics$Key;
+    move-result-object v4
 
-    invoke-virtual {v2, v1}, Landroid/hardware/camera2/CameraCharacteristics;->get(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+    .line 501
+    invoke-static {v9, v6}, Lcom/motorola/camera/custom/CustomImagingBridge;->getKeyNames(Landroid/hardware/camera2/CameraCharacteristics;Z)Ljava/util/Set;
 
-    move-result-object v1
+    move-result-object v8
 
-    check-cast v1, [I
+    .line 503
+    invoke-interface {v4}, Ljava/util/Set;->isEmpty()Z
 
-    .line 385
-    invoke-static {v1, v3}, Lcom/motorola/camera/settings/SettingsHelper;->isContainedInArray([II)Z
+    move-result v9
 
-    move-result v1
+    if-eqz v9, :cond_7
 
-    if-eqz v1, :cond_6
+    .line 504
+    invoke-static {}, Ljava/util/Collections;->emptySet()Ljava/util/Set;
 
-    .line 386
-    sget-object v1, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+    move-result-object v4
 
-    invoke-static {v3}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    goto :goto_2
+
+    .line 505
+    :cond_7
+    invoke-interface {v8}, Ljava/util/Set;->isEmpty()Z
+
+    move-result v9
+
+    if-eqz v9, :cond_8
+
+    .line 506
+    goto :goto_2
+
+    .line 508
+    :cond_8
+    new-instance v9, Ljava/util/HashSet;
+
+    invoke-direct {v9, v4}, Ljava/util/HashSet;-><init>(Ljava/util/Collection;)V
+
+    .line 509
+    invoke-interface {v9, v8}, Ljava/util/Set;->removeAll(Ljava/util/Collection;)Z
+
+    move-object v4, v9
+
+    .line 511
+    :goto_2
+    invoke-interface {v4}, Ljava/util/Set;->isEmpty()Z
+
+    move-result v8
+
+    if-nez v8, :cond_10
+
+    array-length v8, v2
+
+    const/16 v9, 0xd
+
+    if-lt v8, v9, :cond_10
+
+    .line 512
+    const/4 v8, 0x7
+
+    aget v8, v2, v8
+
+    .line 513
+    const/16 v9, 0x8
+
+    aget v9, v2, v9
+
+    .line 514
+    const/16 v11, 0x9
+
+    aget v11, v2, v11
+
+    .line 515
+    const/16 v12, 0xa
+
+    aget v12, v2, v12
+
+    .line 516
+    const/16 v13, 0xb
+
+    aget v13, v2, v13
+
+    .line 517
+    const/16 v14, 0xc
+
+    aget v2, v2, v14
+
+    .line 519
+    if-ltz v8, :cond_9
+
+    .line 520
+    const-string v14, "org.codeaurora.qcamera3.sessionParameters.EnableSnapshotOnlyInsensorZoom"
+
+    const-class v15, Ljava/lang/Integer;
+
+    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v7
+
+    invoke-static {v1, v4, v14, v15, v7}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 521
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.EnableXCFAOptimization"
+
+    const-class v14, Ljava/lang/Byte;
+
+    int-to-byte v15, v8
+
+    invoke-static {v15}, Ljava/lang/Byte;->valueOf(B)Ljava/lang/Byte;
+
+    move-result-object v15
+
+    invoke-static {v1, v4, v7, v14, v15}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 522
+    if-nez v8, :cond_9
+
+    .line 523
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.EnableInsensorZoom"
+
+    const-class v8, Ljava/lang/Integer;
+
+    invoke-static {v10}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v14
+
+    invoke-static {v1, v4, v7, v8, v14}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 526
+    :cond_9
+    if-ltz v9, :cond_a
+
+    .line 527
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode"
+
+    const-class v8, Ljava/lang/Byte;
+
+    int-to-byte v9, v9
+
+    invoke-static {v9}, Ljava/lang/Byte;->valueOf(B)Ljava/lang/Byte;
+
+    move-result-object v9
+
+    invoke-static {v1, v4, v7, v8, v9}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 529
+    :cond_a
+    if-ltz v11, :cond_b
+
+    .line 530
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.EnableVSR"
+
+    const-class v8, Ljava/lang/Integer;
+
+    invoke-static {v11}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v9
+
+    invoke-static {v1, v4, v7, v8, v9}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 532
+    :cond_b
+    if-ltz v12, :cond_e
+
+    .line 533
+    if-lez v12, :cond_c
+
+    move v7, v6
+
+    goto :goto_3
+
+    :cond_c
+    move v7, v10
+
+    .line 534
+    :goto_3
+    if-lez v12, :cond_d
+
+    const/4 v8, 0x2
+
+    goto :goto_4
+
+    :cond_d
+    move v8, v10
+
+    .line 535
+    :goto_4
+    const-string v9, "org.codeaurora.qcamera3.sessionParameters.EnableAutoHDR"
+
+    const-class v11, Ljava/lang/Integer;
+
+    invoke-static {v7}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v14
+
+    invoke-static {v1, v4, v9, v11, v14}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 536
+    const-string v9, "org.codeaurora.qcamera3.sessionParameters.EnableMFHDR"
+
+    const-class v11, Ljava/lang/Integer;
+
+    invoke-static {v7}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v7
+
+    invoke-static {v1, v4, v9, v11, v7}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 537
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.HDRMode"
+
+    const-class v9, Ljava/lang/Integer;
+
+    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v11
+
+    invoke-static {v1, v4, v7, v9, v11}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 538
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.SnapshotHDRMode"
+
+    const-class v9, Ljava/lang/Integer;
+
+    invoke-static {v12}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v11
+
+    invoke-static {v1, v4, v7, v9, v11}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 539
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.HDRModePreference"
+
+    const-class v9, Ljava/lang/Integer;
+
+    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v8
+
+    invoke-static {v1, v4, v7, v9, v8}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 540
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.EnableSHDR"
+
+    const-class v8, Ljava/lang/Integer;
+
+    invoke-static {v10}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v9
+
+    invoke-static {v1, v4, v7, v8, v9}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 541
+    const-string v7, "org.codeaurora.qcamera3.sessionParameters.EnableQHDR"
+
+    const-class v8, Ljava/lang/Integer;
+
+    invoke-static {v10}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v9
+
+    invoke-static {v1, v4, v7, v8, v9}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 543
+    :cond_e
+    if-ne v13, v6, :cond_f
+
+    .line 544
+    const-string v6, "com.lenovo.moto.SATFallback.T2W"
+
+    const-class v7, Ljava/lang/Byte;
+
+    invoke-static {v10}, Ljava/lang/Byte;->valueOf(B)Ljava/lang/Byte;
+
+    move-result-object v8
+
+    invoke-static {v1, v4, v6, v7, v8}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 546
+    :cond_f
+    if-ltz v2, :cond_10
+
+    .line 547
+    const-string v6, "org.codeaurora.qcamera3.sessionParameters.enableQLL"
+
+    const-class v7, Ljava/lang/Integer;
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
 
     move-result-object v2
 
-    invoke-virtual {p1, v1, v2}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+    invoke-static {v1, v4, v6, v7, v2}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
 
-    .line 390
-    :cond_6
-    if-nez p2, :cond_7
+    .line 551
+    :cond_10
+    if-nez v5, :cond_11
 
-    .line 391
-    const/4 p2, 0x0
-
-    invoke-static {p0, p1, p2, v0}, Lcom/motorola/camera/fsm/camera/modes/RequestBuilderHelper;->setMfnr(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;ZZ)V
+    .line 552
+    invoke-static {v0, v1, v10, v3}, Lcom/motorola/camera/fsm/camera/modes/RequestBuilderHelper;->setMfnr(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;ZZ)V
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 395
-    :cond_7
-    goto :goto_2
+    .line 556
+    :cond_11
+    goto :goto_5
 
-    .line 393
+    .line 554
     :catchall_0
-    move-exception p0
+    move-exception v0
 
-    .line 394
-    const-string p1, "CustomImagingBridge"
+    .line 555
+    const-string v1, "CustomImagingBridge"
 
-    const-string p2, "applyCaptureRequestOverrides failed"
+    const-string v2, "applyCaptureRequestOverrides failed"
 
-    invoke-static {p1, p2, p0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+    invoke-static {v1, v2, v0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
 
-    .line 396
-    :goto_2
+    .line 557
+    :goto_5
     return-void
 
-    .line 349
-    :cond_8
-    :goto_3
+    .line 454
+    :cond_12
+    :goto_6
     return-void
 .end method
 
 .method public static applyCustomLutIfEnabled(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V
     .locals 13
 
-    .line 410
+    .line 571
     const-string v1, "CustomImagingBridge"
 
     if-eqz p0, :cond_e
@@ -535,43 +921,43 @@
 
     goto/16 :goto_3
 
-    .line 413
+    .line 574
     :cond_0
     invoke-static {p0}, Lcom/motorola/camera/custom/CustomImagingBridge;->getOrResolveForContainer(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
     move-result-object v0
 
-    .line 414
+    .line 575
     iget-object v2, v0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->summary:Ljava/lang/String;
 
-    .line 415
+    .line 576
     iget-object v0, v0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
     const/4 v3, 0x5
 
     aget v9, v0, v3
 
-    .line 416
+    .line 577
     iget-object v0, p0, Lcom/motorola/camera/saving/SaveImageService$ImageContainer;->mMediaData:Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;
 
     invoke-virtual {v0}, Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;->getByteBuffer()Ljava/nio/ByteBuffer;
 
     move-result-object v0
 
-    .line 417
+    .line 578
     if-nez v0, :cond_1
 
-    .line 418
+    .line 579
     return-void
 
-    .line 421
+    .line 582
     :cond_1
     :try_start_0
     invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->toByteArray(Ljava/nio/ByteBuffer;)[B
 
     move-result-object v3
 
-    .line 422
+    .line 583
     array-length v0, v3
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_2
@@ -582,11 +968,11 @@
 
     return-void
 
-    .line 424
+    .line 585
     :cond_2
     nop
 
-    .line 426
+    .line 587
     :try_start_1
     new-instance v0, Lcom/motorola/camera/photometadata/PhotoMetadata;
 
@@ -598,7 +984,7 @@
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 427
+    .line 588
     goto :goto_0
 
     :catchall_0
@@ -606,7 +992,7 @@
 
     const/4 v0, 0x0
 
-    .line 429
+    .line 590
     :goto_0
     const-string v10, "ImageDescription"
 
@@ -614,7 +1000,7 @@
 
     if-gtz v9, :cond_5
 
-    .line 430
+    .line 591
     if-eqz v0, :cond_4
 
     :try_start_2
@@ -632,10 +1018,10 @@
 
     if-nez v4, :cond_4
 
-    .line 431
+    .line 592
     invoke-virtual {v0, v10, v2}, Lcom/motorola/camera/photometadata/PhotoMetadata;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
 
-    .line 432
+    .line 593
     new-instance v4, Ljava/io/ByteArrayOutputStream;
 
     array-length v5, v3
@@ -644,26 +1030,26 @@
 
     invoke-direct {v4, v5}, Ljava/io/ByteArrayOutputStream;-><init>(I)V
 
-    .line 433
+    .line 594
     new-instance v5, Ljava/io/ByteArrayInputStream;
 
     invoke-direct {v5, v3}, Ljava/io/ByteArrayInputStream;-><init>([B)V
 
     invoke-virtual {v0, v5, v4, v11}, Lcom/motorola/camera/photometadata/PhotoMetadata;->saveJpegAttributes(Ljava/io/InputStream;Ljava/io/OutputStream;Z)V
 
-    .line 434
+    .line 595
     invoke-virtual {v4}, Ljava/io/ByteArrayOutputStream;->toByteArray()[B
 
     move-result-object v0
 
-    .line 435
+    .line 596
     array-length v3, v0
 
     const/16 v4, 0x40
 
     if-le v3, v4, :cond_3
 
-    .line 436
+    .line 597
     iget-object p0, p0, Lcom/motorola/camera/saving/SaveImageService$ImageContainer;->mMediaData:Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;
 
     invoke-static {v0}, Ljava/nio/ByteBuffer;->wrap([B)Ljava/nio/ByteBuffer;
@@ -672,7 +1058,7 @@
 
     invoke-virtual {p0, v0}, Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;->setByteBuffer(Ljava/nio/ByteBuffer;)V
 
-    .line 438
+    .line 599
     :cond_3
     new-instance p0, Ljava/lang/StringBuilder;
 
@@ -694,27 +1080,27 @@
 
     invoke-static {v1, p0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
 
-    .line 440
+    .line 601
     :cond_4
     return-void
 
-    .line 443
+    .line 604
     :cond_5
     new-instance v4, Landroid/graphics/BitmapFactory$Options;
 
     invoke-direct {v4}, Landroid/graphics/BitmapFactory$Options;-><init>()V
 
-    .line 444
+    .line 605
     const/4 v5, 0x1
 
     iput-boolean v5, v4, Landroid/graphics/BitmapFactory$Options;->inMutable:Z
 
-    .line 445
+    .line 606
     sget-object v5, Landroid/graphics/Bitmap$Config;->ARGB_8888:Landroid/graphics/Bitmap$Config;
 
     iput-object v5, v4, Landroid/graphics/BitmapFactory$Options;->inPreferredConfig:Landroid/graphics/Bitmap$Config;
 
-    .line 446
+    .line 607
     array-length v5, v3
 
     invoke-static {v3, v11, v5, v4}, Landroid/graphics/BitmapFactory;->decodeByteArray([BIILandroid/graphics/BitmapFactory$Options;)Landroid/graphics/Bitmap;
@@ -723,12 +1109,12 @@
     :try_end_2
     .catchall {:try_start_2 .. :try_end_2} :catchall_2
 
-    .line 447
+    .line 608
     if-nez v12, :cond_6
 
     return-void
 
-    .line 450
+    .line 611
     :cond_6
     :try_start_3
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->isMutable()Z
@@ -739,35 +1125,35 @@
 
     if-nez v4, :cond_7
 
-    .line 484
+    .line 645
     :try_start_4
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->recycle()V
     :try_end_4
     .catchall {:try_start_4 .. :try_end_4} :catchall_2
 
-    .line 450
+    .line 611
     return-void
 
-    .line 451
+    .line 612
     :cond_7
     :try_start_5
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->getWidth()I
 
     move-result v5
 
-    .line 452
+    .line 613
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->getHeight()I
 
     move-result v6
 
-    .line 453
+    .line 614
     if-lez v5, :cond_d
 
     if-gtz v6, :cond_8
 
     goto/16 :goto_1
 
-    .line 455
+    .line 616
     :cond_8
     new-instance v4, Lcom/motorola/camera/custom/CustomImagingBridge$2;
 
@@ -783,19 +1169,19 @@
     :try_end_5
     .catchall {:try_start_5 .. :try_end_5} :catchall_1
 
-    .line 466
+    .line 627
     if-nez v4, :cond_9
 
-    .line 484
+    .line 645
     :try_start_6
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->recycle()V
     :try_end_6
     .catchall {:try_start_6 .. :try_end_6} :catchall_2
 
-    .line 466
+    .line 627
     return-void
 
-    .line 468
+    .line 629
     :cond_9
     :try_start_7
     new-instance v4, Ljava/io/ByteArrayOutputStream;
@@ -804,7 +1190,7 @@
 
     invoke-direct {v4, v3}, Ljava/io/ByteArrayOutputStream;-><init>(I)V
 
-    .line 469
+    .line 630
     sget-object v3, Landroid/graphics/Bitmap$CompressFormat;->JPEG:Landroid/graphics/Bitmap$CompressFormat;
 
     const/16 v5, 0x62
@@ -817,26 +1203,26 @@
 
     if-nez v3, :cond_a
 
-    .line 484
+    .line 645
     :try_start_8
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->recycle()V
     :try_end_8
     .catchall {:try_start_8 .. :try_end_8} :catchall_2
 
-    .line 470
+    .line 631
     return-void
 
-    .line 472
+    .line 633
     :cond_a
     :try_start_9
     invoke-virtual {v4}, Ljava/io/ByteArrayOutputStream;->toByteArray()[B
 
     move-result-object v3
 
-    .line 473
+    .line 634
     if-eqz v0, :cond_c
 
-    .line 474
+    .line 635
     if-eqz v2, :cond_b
 
     invoke-virtual {v2}, Ljava/lang/String;->isEmpty()Z
@@ -845,10 +1231,10 @@
 
     if-nez v4, :cond_b
 
-    .line 475
+    .line 636
     invoke-virtual {v0, v10, v2}, Lcom/motorola/camera/photometadata/PhotoMetadata;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
 
-    .line 477
+    .line 638
     :cond_b
     new-instance v4, Ljava/io/ByteArrayOutputStream;
 
@@ -860,19 +1246,19 @@
 
     invoke-direct {v4, v5}, Ljava/io/ByteArrayOutputStream;-><init>(I)V
 
-    .line 478
+    .line 639
     new-instance v5, Ljava/io/ByteArrayInputStream;
 
     invoke-direct {v5, v3}, Ljava/io/ByteArrayInputStream;-><init>([B)V
 
     invoke-virtual {v0, v5, v4, v11}, Lcom/motorola/camera/photometadata/PhotoMetadata;->saveJpegAttributes(Ljava/io/InputStream;Ljava/io/OutputStream;Z)V
 
-    .line 479
+    .line 640
     invoke-virtual {v4}, Ljava/io/ByteArrayOutputStream;->toByteArray()[B
 
     move-result-object v3
 
-    .line 481
+    .line 642
     :cond_c
     iget-object p0, p0, Lcom/motorola/camera/saving/SaveImageService$ImageContainer;->mMediaData:Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;
 
@@ -882,7 +1268,7 @@
 
     invoke-virtual {p0, v0}, Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;->setByteBuffer(Ljava/nio/ByteBuffer;)V
 
-    .line 482
+    .line 643
     array-length p0, v3
 
     new-instance v0, Ljava/lang/StringBuilder;
@@ -927,25 +1313,25 @@
     :try_end_9
     .catchall {:try_start_9 .. :try_end_9} :catchall_1
 
-    .line 484
+    .line 645
     :try_start_a
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->recycle()V
 
-    .line 485
+    .line 646
     nop
 
-    .line 488
+    .line 649
     goto :goto_2
 
-    .line 484
+    .line 645
     :cond_d
     :goto_1
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->recycle()V
 
-    .line 453
+    .line 614
     return-void
 
-    .line 484
+    .line 645
     :catchall_1
     move-exception v0
 
@@ -953,43 +1339,184 @@
 
     invoke-virtual {v12}, Landroid/graphics/Bitmap;->recycle()V
 
-    .line 485
+    .line 646
     throw p0
     :try_end_a
     .catchall {:try_start_a .. :try_end_a} :catchall_2
 
-    .line 486
+    .line 647
     :catchall_2
     move-exception v0
 
     move-object p0, v0
 
-    .line 487
+    .line 648
     const-string v0, "applyCustomLutIfEnabled failed, keeping original JPEG"
 
     invoke-static {v1, v0, p0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
 
-    .line 489
+    .line 650
     :goto_2
     return-void
 
-    .line 411
+    .line 572
     :cond_e
     :goto_3
+    return-void
+.end method
+
+.method public static applySessionParameterOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;)V
+    .locals 4
+
+    .line 426
+    if-eqz p1, :cond_4
+
+    if-nez p0, :cond_0
+
+    goto :goto_1
+
+    .line 428
+    :cond_0
+    :try_start_0
+    invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->getSelectedProfile()I
+
+    move-result v0
+
+    .line 429
+    const/16 v1, 0x9
+
+    if-eq v0, v1, :cond_1
+
+    const/4 v1, 0x4
+
+    if-eq v0, v1, :cond_1
+
+    .line 431
+    return-void
+
+    .line 433
+    :cond_1
+    invoke-static {p0}, Lcom/motorola/camera/settings/SettingsManager;->getCharacteristics(Ljava/lang/String;)Landroid/hardware/camera2/CameraCharacteristics;
+
+    move-result-object p0
+
+    .line 434
+    if-nez p0, :cond_2
+
+    return-void
+
+    .line 435
+    :cond_2
+    const/4 v0, 0x1
+
+    invoke-static {p0, v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->getKeyNames(Landroid/hardware/camera2/CameraCharacteristics;Z)Ljava/util/Set;
+
+    move-result-object p0
+
+    .line 436
+    invoke-interface {p0}, Ljava/util/Set;->isEmpty()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_3
+
+    return-void
+
+    .line 438
+    :cond_3
+    const-string v0, "org.codeaurora.qcamera3.sessionParameters.EnableAutoHDR"
+
+    const-class v1, Ljava/lang/Integer;
+
+    const/4 v2, 0x0
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v3
+
+    invoke-static {p1, p0, v0, v1, v3}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 439
+    const-string v0, "org.codeaurora.qcamera3.sessionParameters.EnableMFHDR"
+
+    const-class v1, Ljava/lang/Integer;
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v3
+
+    invoke-static {p1, p0, v0, v1, v3}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 440
+    const-string v0, "org.codeaurora.qcamera3.sessionParameters.EnableVSR"
+
+    const-class v1, Ljava/lang/Integer;
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v3
+
+    invoke-static {p1, p0, v0, v1, v3}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 441
+    const-string v0, "org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode"
+
+    const-class v1, Ljava/lang/Byte;
+
+    invoke-static {v2}, Ljava/lang/Byte;->valueOf(B)Ljava/lang/Byte;
+
+    move-result-object v3
+
+    invoke-static {p1, p0, v0, v1, v3}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+
+    .line 442
+    const-string v0, "org.codeaurora.qcamera3.sessionParameters.enableQLL"
+
+    const-class v1, Ljava/lang/Integer;
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v2
+
+    invoke-static {p1, p0, v0, v1, v2}, Lcom/motorola/camera/custom/CustomImagingBridge;->setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    .line 445
+    goto :goto_0
+
+    .line 443
+    :catchall_0
+    move-exception p0
+
+    .line 444
+    const-string p1, "CustomImagingBridge"
+
+    const-string v0, "applySessionParameterOverrides failed"
+
+    invoke-static {p1, v0, p0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
+    .line 446
+    :goto_0
+    return-void
+
+    .line 426
+    :cond_4
+    :goto_1
     return-void
 .end method
 
 .method private static captureKey(Lcom/motorola/camera/fsm/camera/record/CaptureRecord;)J
     .locals 10
 
-    .line 171
+    .line 191
     const-wide/16 v0, 0x0
 
     if-nez p0, :cond_0
 
     return-wide v0
 
-    .line 172
+    .line 192
     :cond_0
     iget-object v2, p0, Lcom/motorola/camera/fsm/camera/record/CaptureRecord;->mSeqId:Lcom/motorola/camera/fsm/camera/record/SequenceIdentifier;
 
@@ -1001,7 +1528,7 @@
 
     if-eqz v2, :cond_2
 
-    .line 173
+    .line 193
     iget-object v2, p0, Lcom/motorola/camera/fsm/camera/record/CaptureRecord;->mSeqId:Lcom/motorola/camera/fsm/camera/record/SequenceIdentifier;
 
     iget v2, v2, Lcom/motorola/camera/fsm/camera/record/SequenceIdentifier;->mSeqId:I
@@ -1010,17 +1537,17 @@
 
     and-long/2addr v6, v8
 
-    .line 174
+    .line 194
     iget-wide v8, p0, Lcom/motorola/camera/fsm/camera/record/CaptureRecord;->mUUID:J
 
     and-long/2addr v4, v8
 
     shl-long v2, v4, v3
 
-    .line 175
+    .line 195
     or-long/2addr v2, v6
 
-    .line 176
+    .line 196
     cmp-long p0, v2, v0
 
     if-eqz p0, :cond_1
@@ -1033,7 +1560,7 @@
     :goto_0
     return-wide v2
 
-    .line 178
+    .line 198
     :cond_2
     invoke-static {p0}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
 
@@ -1043,7 +1570,7 @@
 
     and-long/2addr v6, v8
 
-    .line 179
+    .line 199
     iget-wide v8, p0, Lcom/motorola/camera/fsm/camera/record/CaptureRecord;->mUUID:J
 
     and-long/2addr v4, v8
@@ -1056,7 +1583,7 @@
 
     or-long/2addr v2, v4
 
-    .line 180
+    .line 200
     cmp-long p0, v2, v0
 
     if-eqz p0, :cond_3
@@ -1070,10 +1597,70 @@
     return-wide v2
 .end method
 
+.method private static checkAdspRpcReadable()Z
+    .locals 3
+
+    .line 74
+    const/4 v0, 0x1
+
+    :try_start_0
+    new-instance v1, Ljava/io/File;
+
+    const-string v2, "/dev/adsprpc-smd"
+
+    invoke-direct {v1, v2}, Ljava/io/File;-><init>(Ljava/lang/String;)V
+
+    .line 75
+    invoke-virtual {v1}, Ljava/io/File;->exists()Z
+
+    move-result v2
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_1
+
+    if-nez v2, :cond_0
+
+    .line 76
+    return v0
+
+    .line 78
+    :cond_0
+    :try_start_1
+    new-instance v2, Ljava/io/FileInputStream;
+
+    invoke-direct {v2, v1}, Ljava/io/FileInputStream;-><init>(Ljava/io/File;)V
+
+    .line 79
+    nop
+
+    .line 80
+    invoke-virtual {v2}, Ljava/io/FileInputStream;->close()V
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    .line 79
+    return v0
+
+    .line 80
+    :catchall_0
+    move-exception v0
+
+    .line 81
+    const/4 v0, 0x0
+
+    return v0
+
+    .line 83
+    :catchall_1
+    move-exception v1
+
+    .line 84
+    return v0
+.end method
+
 .method public static exportCleanBayerJpeg(Ljava/nio/ByteBuffer;Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V
     .locals 10
 
-    .line 595
+    .line 757
     if-eqz p0, :cond_b
 
     if-eqz p1, :cond_b
@@ -1084,19 +1671,19 @@
 
     goto/16 :goto_6
 
-    .line 596
+    .line 758
     :cond_0
     iget v2, p3, Lcom/motorola/camera/saving/SaveImageService$ImageContainer;->mWidth:I
 
-    .line 597
+    .line 759
     iget v3, p3, Lcom/motorola/camera/saving/SaveImageService$ImageContainer;->mHeight:I
 
-    .line 598
+    .line 760
     invoke-static {p3}, Lcom/motorola/camera/custom/CustomImagingBridge;->getOrResolveForContainer(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
     move-result-object v6
 
-    .line 599
+    .line 761
     iget-object v0, v6, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
     const/4 v1, 0x6
@@ -1107,7 +1694,7 @@
 
     return-void
 
-    .line 600
+    .line 762
     :cond_1
     const-string v9, "CustomImagingBridge"
 
@@ -1129,7 +1716,7 @@
 
     goto/16 :goto_5
 
-    .line 605
+    .line 767
     :cond_2
     const-wide/16 v4, 0x5
 
@@ -1140,7 +1727,7 @@
     :try_start_0
     div-long/2addr v0, v4
 
-    .line 606
+    .line 768
     invoke-virtual {p0}, Ljava/nio/ByteBuffer;->remaining()I
 
     move-result v4
@@ -1161,7 +1748,7 @@
 
     if-gez v0, :cond_3
 
-    .line 607
+    .line 769
     invoke-virtual {p0}, Ljava/nio/ByteBuffer;->remaining()I
 
     move-result p0
@@ -1186,14 +1773,14 @@
 
     invoke-static {v9, p0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I
 
-    .line 608
+    .line 770
     return-void
 
-    .line 610
+    .line 772
     :cond_3
     iget-object v0, p3, Lcom/motorola/camera/saving/SaveImageService$ImageContainer;->mMediaData:Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;
 
-    .line 611
+    .line 773
     if-eqz v0, :cond_9
 
     iget-object v1, v0, Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;->mCaptureRecord:Lcom/motorola/camera/fsm/camera/record/CaptureRecord;
@@ -1208,7 +1795,7 @@
 
     goto/16 :goto_3
 
-    .line 612
+    .line 774
     :cond_4
     iget-object v0, v0, Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;->mCaptureRecord:Lcom/motorola/camera/fsm/camera/record/CaptureRecord;
 
@@ -1218,7 +1805,7 @@
 
     move-result-object v0
 
-    .line 613
+    .line 775
     if-eqz v0, :cond_8
 
     iget-object v1, v0, Lcom/motorola/camera/storage/backend/MediaStoreFile;->mediaFilePath:Lcom/motorola/camera/storage/MediaFilePath;
@@ -1227,7 +1814,7 @@
 
     goto :goto_2
 
-    .line 615
+    .line 777
     :cond_5
     iget-object v1, p3, Lcom/motorola/camera/saving/SaveImageService$ImageContainer;->mFileName:Lcom/motorola/camera/saving/FileName;
 
@@ -1244,7 +1831,7 @@
     :cond_6
     const-string p3, "IMG_CLEAN"
 
-    .line 616
+    .line 778
     :goto_0
     const-string v1, ".dng"
 
@@ -1258,7 +1845,7 @@
 
     if-eqz v1, :cond_7
 
-    .line 617
+    .line 779
     :try_start_1
     invoke-virtual {p3}, Ljava/lang/String;->length()I
 
@@ -1292,7 +1879,7 @@
 
     goto :goto_1
 
-    .line 618
+    .line 780
     :cond_7
     new-instance v1, Ljava/lang/StringBuilder;
 
@@ -1312,7 +1899,7 @@
 
     move-object v7, p3
 
-    .line 619
+    .line 781
     :goto_1
     iget-object p3, v0, Lcom/motorola/camera/storage/backend/MediaStoreFile;->mediaFilePath:Lcom/motorola/camera/storage/MediaFilePath;
 
@@ -1320,12 +1907,12 @@
 
     move-result-object v8
 
-    .line 620
+    .line 782
     invoke-static {p0}, Lcom/motorola/camera/custom/CustomImagingBridge;->toByteArray(Ljava/nio/ByteBuffer;)[B
 
     move-result-object v1
 
-    .line 622
+    .line 784
     sget-object p0, Lcom/motorola/camera/custom/CustomImagingBridge;->RAW_EXPORT_POOL:Ljava/util/concurrent/ExecutorService;
 
     new-instance v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda0;
@@ -1340,35 +1927,35 @@
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 626
+    .line 788
     goto :goto_4
 
-    .line 613
+    .line 775
     :cond_8
     :goto_2
     return-void
 
-    .line 611
+    .line 773
     :cond_9
     :goto_3
     return-void
 
-    .line 624
+    .line 786
     :catchall_0
     move-exception v0
 
     move-object p0, v0
 
-    .line 625
+    .line 787
     const-string p1, "exportCleanBayerJpeg dispatch failed (DNG unaffected)"
 
     invoke-static {v9, p1, p0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
 
-    .line 627
+    .line 789
     :goto_4
     return-void
 
-    .line 601
+    .line 763
     :cond_a
     :goto_5
     new-instance p0, Ljava/lang/StringBuilder;
@@ -1401,10 +1988,10 @@
 
     invoke-static {v9, p0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I
 
-    .line 602
+    .line 764
     return-void
 
-    .line 595
+    .line 757
     :cond_b
     :goto_6
     return-void
@@ -1413,34 +2000,34 @@
 .method private static extractCcm(Landroid/hardware/camera2/params/ColorSpaceTransform;)[F
     .locals 4
 
-    .line 788
+    .line 950
     if-nez p0, :cond_0
 
     const/4 p0, 0x0
 
     return-object p0
 
-    .line 789
+    .line 951
     :cond_0
     const/16 v0, 0x9
 
     new-array v1, v0, [Landroid/util/Rational;
 
-    .line 790
+    .line 952
     const/4 v2, 0x0
 
     invoke-virtual {p0, v1, v2}, Landroid/hardware/camera2/params/ColorSpaceTransform;->copyElements([Landroid/util/Rational;I)V
 
-    .line 791
+    .line 953
     new-array p0, v0, [F
 
-    .line 792
+    .line 954
     nop
 
     :goto_0
     if-ge v2, v0, :cond_3
 
-    .line 793
+    .line 955
     aget-object v3, v1, v2
 
     if-eqz v3, :cond_1
@@ -1468,29 +2055,161 @@
     :goto_1
     aput v3, p0, v2
 
-    .line 792
+    .line 954
     add-int/lit8 v2, v2, 0x1
 
     goto :goto_0
 
-    .line 795
+    .line 957
     :cond_3
     return-object p0
+.end method
+
+.method private static getKeyNames(Landroid/hardware/camera2/CameraCharacteristics;Z)Ljava/util/Set;
+    .locals 4
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Landroid/hardware/camera2/CameraCharacteristics;",
+            "Z)",
+            "Ljava/util/Set<",
+            "Ljava/lang/String;",
+            ">;"
+        }
+    .end annotation
+
+    .line 387
+    if-nez p0, :cond_0
+
+    invoke-static {}, Ljava/util/Collections;->emptySet()Ljava/util/Set;
+
+    move-result-object p0
+
+    return-object p0
+
+    .line 388
+    :cond_0
+    if-eqz p1, :cond_1
+
+    sget-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->SES_KEY_CACHE:Ljava/util/Map;
+
+    goto :goto_0
+
+    :cond_1
+    sget-object v0, Lcom/motorola/camera/custom/CustomImagingBridge;->REQ_KEY_CACHE:Ljava/util/Map;
+
+    .line 389
+    :goto_0
+    invoke-interface {v0, p0}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    check-cast v1, Ljava/util/Set;
+
+    .line 390
+    if-eqz v1, :cond_2
+
+    return-object v1
+
+    .line 391
+    :cond_2
+    new-instance v1, Ljava/util/HashSet;
+
+    invoke-direct {v1}, Ljava/util/HashSet;-><init>()V
+
+    .line 393
+    if-eqz p1, :cond_3
+
+    .line 394
+    :try_start_0
+    invoke-virtual {p0}, Landroid/hardware/camera2/CameraCharacteristics;->getAvailableSessionKeys()Ljava/util/List;
+
+    move-result-object p1
+
+    goto :goto_1
+
+    .line 395
+    :cond_3
+    invoke-virtual {p0}, Landroid/hardware/camera2/CameraCharacteristics;->getAvailableCaptureRequestKeys()Ljava/util/List;
+
+    move-result-object p1
+
+    .line 396
+    :goto_1
+    if-eqz p1, :cond_5
+
+    .line 397
+    invoke-interface {p1}, Ljava/util/List;->iterator()Ljava/util/Iterator;
+
+    move-result-object p1
+
+    :goto_2
+    invoke-interface {p1}, Ljava/util/Iterator;->hasNext()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_5
+
+    invoke-interface {p1}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+
+    move-result-object v2
+
+    check-cast v2, Landroid/hardware/camera2/CaptureRequest$Key;
+
+    .line 398
+    if-eqz v2, :cond_4
+
+    invoke-virtual {v2}, Landroid/hardware/camera2/CaptureRequest$Key;->getName()Ljava/lang/String;
+
+    move-result-object v3
+
+    if-eqz v3, :cond_4
+
+    .line 399
+    invoke-virtual {v2}, Landroid/hardware/camera2/CaptureRequest$Key;->getName()Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-interface {v1, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    .line 401
+    :cond_4
+    goto :goto_2
+
+    .line 403
+    :catchall_0
+    move-exception p1
+
+    :cond_5
+    nop
+
+    .line 404
+    invoke-static {v1}, Ljava/util/Collections;->unmodifiableSet(Ljava/util/Set;)Ljava/util/Set;
+
+    move-result-object p1
+
+    .line 405
+    invoke-interface {v0, p0, p1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 406
+    return-object p1
 .end method
 
 .method private static getOrComputeDecision(Lcom/motorola/camera/fsm/camera/record/CaptureRecord;Lcom/motorola/camera/mcf/Mcf$SceneMode;ZZ)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
     .locals 5
 
-    .line 244
+    .line 271
     if-nez p0, :cond_1
 
-    .line 245
+    .line 272
     nop
 
-    .line 246
+    .line 273
     if-nez p1, :cond_0
 
-    .line 248
+    .line 275
     :try_start_0
     invoke-static {}, Lcom/motorola/camera/mcfmanagers/SceneModeManager;->getCurrentScene()Lcom/motorola/camera/mcf/Mcf$SceneMode;
 
@@ -1498,7 +2217,7 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 249
+    .line 276
     :goto_0
     goto :goto_1
 
@@ -1507,7 +2226,7 @@
 
     goto :goto_0
 
-    .line 251
+    .line 278
     :cond_0
     :goto_1
     invoke-static {p1, p2, p3}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveDecision(Lcom/motorola/camera/mcf/Mcf$SceneMode;ZZ)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
@@ -1516,18 +2235,18 @@
 
     return-object p0
 
-    .line 253
+    .line 280
     :cond_1
     invoke-static {p0}, Lcom/motorola/camera/custom/CustomImagingBridge;->captureKey(Lcom/motorola/camera/fsm/camera/record/CaptureRecord;)J
 
     move-result-wide v0
 
-    .line 254
+    .line 281
     sget-object v2, Lcom/motorola/camera/custom/CustomImagingBridge;->SHOT_CACHE:Ljava/util/Map;
 
     monitor-enter v2
 
-    .line 255
+    .line 282
     :try_start_1
     sget-object v3, Lcom/motorola/camera/custom/CustomImagingBridge;->RECORD_DECISIONS:Ljava/util/Map;
 
@@ -1537,15 +2256,15 @@
 
     check-cast v3, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
-    .line 256
+    .line 283
     if-eqz v3, :cond_2
 
-    .line 257
+    .line 284
     monitor-exit v2
 
     return-object v3
 
-    .line 259
+    .line 286
     :cond_2
     sget-object v3, Lcom/motorola/camera/custom/CustomImagingBridge;->SHOT_CACHE:Ljava/util/Map;
 
@@ -1559,42 +2278,42 @@
 
     check-cast v3, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
-    .line 260
+    .line 287
     if-eqz v3, :cond_3
 
-    .line 261
+    .line 288
     sget-object p1, Lcom/motorola/camera/custom/CustomImagingBridge;->RECORD_DECISIONS:Ljava/util/Map;
 
     invoke-interface {p1, p0, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 262
+    .line 289
     monitor-exit v2
 
     return-object v3
 
-    .line 264
+    .line 291
     :cond_3
     nop
 
-    .line 265
+    .line 292
     nop
 
-    .line 266
+    .line 293
     instance-of v3, p0, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;
 
     if-eqz v3, :cond_5
 
-    .line 267
+    .line 294
     move-object v3, p0
 
     check-cast v3, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;
 
-    .line 268
+    .line 295
     if-nez p1, :cond_4
 
     iget-object p1, v3, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;->mSceneMode:Lcom/motorola/camera/mcf/Mcf$SceneMode;
 
-    .line 269
+    .line 296
     :cond_4
     iget-boolean v3, v3, Lcom/motorola/camera/fsm/camera/record/ImageCaptureRecord;->mIsFlash:Z
     :try_end_1
@@ -1604,11 +2323,11 @@
 
     const/4 p2, 0x1
 
-    .line 271
+    .line 298
     :cond_5
     if-nez p1, :cond_6
 
-    .line 273
+    .line 300
     :try_start_2
     invoke-static {}, Lcom/motorola/camera/mcfmanagers/SceneModeManager;->getCurrentScene()Lcom/motorola/camera/mcf/Mcf$SceneMode;
 
@@ -1616,7 +2335,7 @@
     :try_end_2
     .catchall {:try_start_2 .. :try_end_2} :catchall_1
 
-    .line 274
+    .line 301
     :goto_2
     goto :goto_3
 
@@ -1625,7 +2344,7 @@
 
     goto :goto_2
 
-    .line 276
+    .line 303
     :cond_6
     :goto_3
     :try_start_3
@@ -1633,12 +2352,12 @@
 
     move-result-object p1
 
-    .line 277
+    .line 304
     sget-object p2, Lcom/motorola/camera/custom/CustomImagingBridge;->RECORD_DECISIONS:Ljava/util/Map;
 
     invoke-interface {p2, p0, p1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 278
+    .line 305
     sget-object p0, Lcom/motorola/camera/custom/CustomImagingBridge;->SHOT_CACHE:Ljava/util/Map;
 
     invoke-static {v0, v1}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
@@ -1647,12 +2366,12 @@
 
     invoke-interface {p0, p2, p1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 279
+    .line 306
     monitor-exit v2
 
     return-object p1
 
-    .line 280
+    .line 307
     :catchall_2
     move-exception p0
 
@@ -1666,7 +2385,7 @@
 .method private static getOrResolveForContainer(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
     .locals 3
 
-    .line 284
+    .line 311
     const/4 v0, 0x0
 
     if-eqz p0, :cond_0
@@ -1675,18 +2394,18 @@
 
     if-eqz v1, :cond_0
 
-    .line 285
+    .line 312
     iget-object p0, p0, Lcom/motorola/camera/saving/SaveImageService$ImageContainer;->mMediaData:Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;
 
     iget-object p0, p0, Lcom/motorola/camera/capturedmediadata/CapturedImageMediaData;->mCaptureRecord:Lcom/motorola/camera/fsm/camera/record/CaptureRecord;
 
     goto :goto_0
 
-    .line 286
+    .line 313
     :cond_0
     move-object p0, v0
 
-    .line 287
+    .line 314
     :goto_0
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isFlashExpectedSafe()Z
 
@@ -1706,7 +2425,7 @@
 .method public static getSelectedProfile()I
     .locals 4
 
-    .line 151
+    .line 171
     const/4 v0, 0x0
 
     :try_start_0
@@ -1714,12 +2433,12 @@
 
     move-result-object v1
 
-    .line 152
+    .line 172
     if-nez v1, :cond_0
 
     return v0
 
-    .line 153
+    .line 173
     :cond_0
     const-string v2, "com.motorola.camera.post_processing_profile"
 
@@ -1729,12 +2448,12 @@
 
     move-result-object v1
 
-    .line 154
+    .line 174
     if-nez v1, :cond_1
 
     return v0
 
-    .line 155
+    .line 175
     :cond_1
     invoke-static {v1}, Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I
 
@@ -1742,7 +2461,7 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 156
+    .line 176
     if-ltz v1, :cond_2
 
     const/16 v2, 0x9
@@ -1754,18 +2473,18 @@
     :cond_2
     return v0
 
-    .line 157
+    .line 177
     :catchall_0
     move-exception v1
 
-    .line 158
+    .line 178
     return v0
 .end method
 
 .method public static gradePixelBufferStrips([IIIIII)Z
     .locals 6
 
-    .line 578
+    .line 740
     if-eqz p0, :cond_2
 
     if-lez p1, :cond_2
@@ -1778,7 +2497,7 @@
 
     goto :goto_0
 
-    .line 579
+    .line 741
     :cond_0
     array-length v0, p0
 
@@ -1790,7 +2509,7 @@
 
     return p0
 
-    .line 580
+    .line 742
     :cond_1
     new-instance v0, Lcom/motorola/camera/custom/CustomImagingBridge$3;
 
@@ -1812,7 +2531,7 @@
 
     return p0
 
-    .line 578
+    .line 740
     :cond_2
     :goto_0
     const/4 p0, 0x1
@@ -1823,345 +2542,355 @@
 .method private static gradeSurfaceInBatches(Lcom/motorola/camera/custom/CustomImagingBridge$PixelSurface;IIIII)Z
     .locals 23
 
-    .line 502
+    .line 663
     move-object/from16 v0, p0
 
-    move/from16 v1, p1
+    move/from16 v6, p2
 
-    move/from16 v2, p2
+    move/from16 v8, p3
 
-    move/from16 v3, p3
+    if-eqz v0, :cond_a
 
-    move/from16 v4, p5
+    if-lez p1, :cond_a
 
-    if-eqz v0, :cond_9
+    if-lez v6, :cond_a
 
-    if-lez v1, :cond_9
+    if-lez v8, :cond_a
 
-    if-lez v2, :cond_9
+    if-gtz p5, :cond_0
 
-    if-lez v3, :cond_9
+    const/16 v18, 0x1
 
-    if-gtz v4, :cond_0
+    goto/16 :goto_8
 
-    const/16 v17, 0x1
-
-    goto/16 :goto_7
-
-    .line 503
+    .line 664
     :cond_0
-    const/4 v6, 0x0
+    const/4 v10, 0x0
 
-    move/from16 v7, p4
+    move/from16 v1, p4
 
-    invoke-static {v6, v7}, Ljava/lang/Math;->max(II)I
+    invoke-static {v10, v1}, Ljava/lang/Math;->max(II)I
+
+    move-result v11
+
+    .line 666
+    new-instance v12, Ljava/util/ArrayList;
+
+    const/4 v13, 0x4
+
+    invoke-direct {v12, v13}, Ljava/util/ArrayList;-><init>(I)V
+
+    .line 667
+    new-instance v14, Ljava/util/ArrayList;
+
+    invoke-direct {v14, v13}, Ljava/util/ArrayList;-><init>(I)V
+
+    .line 668
+    new-instance v15, Ljava/util/ArrayList;
+
+    invoke-direct {v15, v13}, Ljava/util/ArrayList;-><init>(I)V
+
+    .line 669
+    nop
+
+    .line 670
+    nop
+
+    .line 671
+    nop
+
+    .line 673
+    const/16 v16, 0x0
+
+    move v3, v6
+
+    move v1, v10
+
+    move/from16 v17, v1
+
+    move-object/from16 v2, v16
+
+    :goto_0
+    if-ge v1, v6, :cond_9
+
+    .line 674
+    sub-int v4, v6, v1
+
+    invoke-static {v8, v4}, Ljava/lang/Math;->min(II)I
+
+    move-result v4
+
+    .line 675
+    sub-int v5, v1, v11
+
+    invoke-static {v10, v5}, Ljava/lang/Math;->max(II)I
 
     move-result v7
 
-    .line 505
-    new-instance v8, Ljava/util/ArrayList;
+    .line 676
+    add-int v5, v1, v4
 
-    const/4 v9, 0x4
+    const/16 v18, 0x1
 
-    invoke-direct {v8, v9}, Ljava/util/ArrayList;-><init>(I)V
+    add-int v9, v5, v11
 
-    .line 506
-    new-instance v10, Ljava/util/ArrayList;
-
-    invoke-direct {v10, v9}, Ljava/util/ArrayList;-><init>(I)V
-
-    .line 507
-    new-instance v11, Ljava/util/ArrayList;
-
-    invoke-direct {v11, v9}, Ljava/util/ArrayList;-><init>(I)V
-
-    .line 508
-    nop
-
-    .line 509
-    nop
-
-    .line 510
-    nop
-
-    .line 512
-    move v15, v2
-
-    move v13, v6
-
-    move/from16 v16, v13
-
-    const/4 v14, 0x0
-
-    :goto_0
-    if-ge v13, v2, :cond_8
-
-    .line 513
-    sub-int v12, v2, v13
-
-    invoke-static {v3, v12}, Ljava/lang/Math;->min(II)I
-
-    move-result v12
-
-    .line 514
-    const/16 v17, 0x1
-
-    sub-int v5, v13, v7
-
-    invoke-static {v6, v5}, Ljava/lang/Math;->max(II)I
-
-    move-result v5
-
-    .line 515
-    add-int v9, v13, v12
-
-    add-int v6, v9, v7
-
-    invoke-static {v2, v6}, Ljava/lang/Math;->min(II)I
-
-    move-result v6
-
-    .line 516
-    sub-int v3, v6, v5
-
-    .line 517
-    sub-int v20, v13, v5
-
-    move/from16 v21, v7
-
-    mul-int v7, v20, v1
-
-    .line 518
-    mul-int v2, v1, v3
-
-    new-array v2, v2, [I
-
-    .line 519
-    move/from16 v20, v9
-
-    const/4 v9, 0x0
-
-    invoke-interface {v0, v5, v3, v2, v9}, Lcom/motorola/camera/custom/CustomImagingBridge$PixelSurface;->readRows(II[II)V
-
-    .line 521
-    if-eqz v14, :cond_1
-
-    add-int v9, v15, v16
-
-    if-ge v5, v9, :cond_1
-
-    .line 522
-    invoke-static {v5, v15}, Ljava/lang/Math;->max(II)I
-
-    move-result v22
-
-    .line 523
     invoke-static {v6, v9}, Ljava/lang/Math;->min(II)I
 
+    move-result v9
+
+    .line 677
+    sub-int v13, v9, v7
+
+    .line 678
+    sub-int v19, v1, v7
+
+    mul-int v10, v19, p1
+
+    .line 679
+    move/from16 v19, v5
+
+    mul-int v5, p1, v13
+
+    new-array v5, v5, [I
+
+    .line 680
+    const/4 v6, 0x0
+
+    invoke-interface {v0, v7, v13, v5, v6}, Lcom/motorola/camera/custom/CustomImagingBridge$PixelSurface;->readRows(II[II)V
+
+    .line 682
+    if-eqz v2, :cond_2
+
+    add-int v6, v3, v17
+
+    if-ge v7, v6, :cond_2
+
+    .line 683
+    invoke-static {v7, v3}, Ljava/lang/Math;->max(II)I
+
+    move-result v21
+
+    .line 684
+    invoke-static {v9, v6}, Ljava/lang/Math;->min(II)I
+
     move-result v6
 
-    .line 524
-    sub-int v6, v6, v22
+    .line 685
+    sub-int v6, v6, v21
 
-    .line 525
+    .line 686
     if-lez v6, :cond_1
 
-    .line 526
-    sub-int v9, v22, v15
+    .line 687
+    sub-int v9, v21, v3
 
-    mul-int/2addr v9, v1
+    mul-int v9, v9, p1
 
-    sub-int v22, v22, v5
+    sub-int v21, v21, v7
 
-    mul-int v5, v22, v1
+    move/from16 v22, v3
 
-    mul-int/2addr v6, v1
+    mul-int v3, v21, p1
 
-    invoke-static {v14, v9, v2, v5, v6}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
+    mul-int v6, v6, p1
 
-    .line 532
-    :cond_1
-    invoke-interface {v8, v2}, Ljava/util/List;->add(Ljava/lang/Object;)Z
-
-    .line 533
-    filled-new-array {v13, v12, v7}, [I
-
-    move-result-object v5
-
-    invoke-interface {v10, v5}, Ljava/util/List;->add(Ljava/lang/Object;)Z
-
-    .line 534
-    nop
-
-    .line 535
-    sget-object v5, Lcom/motorola/camera/custom/CustomImagingBridge;->LUT_POOL:Ljava/util/concurrent/ExecutorService;
-
-    new-instance v6, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;
-
-    invoke-direct {v6, v2, v1, v3, v4}, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;-><init>([IIII)V
-
-    invoke-interface {v5, v6}, Ljava/util/concurrent/ExecutorService;->submit(Ljava/lang/Runnable;)Ljava/util/concurrent/Future;
-
-    move-result-object v2
-
-    invoke-interface {v11, v2}, Ljava/util/List;->add(Ljava/lang/Object;)Z
-
-    .line 538
-    invoke-interface {v8}, Ljava/util/List;->size()I
-
-    move-result v2
-
-    const/4 v3, 0x4
-
-    if-eq v2, v3, :cond_3
-
-    move/from16 v2, p2
-
-    move/from16 v12, v20
-
-    if-lt v12, v2, :cond_2
+    invoke-static {v2, v9, v5, v3, v6}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 
     goto :goto_1
 
+    .line 686
+    :cond_1
+    move/from16 v22, v3
+
+    goto :goto_1
+
+    .line 682
     :cond_2
-    const/4 v5, 0x0
+    move/from16 v22, v3
+
+    .line 693
+    :goto_1
+    invoke-interface {v12, v5}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+
+    .line 694
+    filled-new-array {v1, v4, v10}, [I
+
+    move-result-object v3
+
+    invoke-interface {v14, v3}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+
+    .line 695
+    nop
+
+    .line 696
+    nop
+
+    .line 697
+    sget-object v9, Lcom/motorola/camera/custom/CustomImagingBridge;->LUT_POOL:Ljava/util/concurrent/ExecutorService;
+
+    move v10, v1
+
+    new-instance v1, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;
+
+    move/from16 v3, p1
+
+    move/from16 v6, p2
+
+    move v4, v13
+
+    move/from16 v13, v19
+
+    move/from16 v19, v10
+
+    move-object v10, v2
+
+    move-object v2, v5
+
+    move/from16 v5, p5
+
+    invoke-direct/range {v1 .. v7}, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;-><init>([IIIIII)V
+
+    invoke-interface {v9, v1}, Ljava/util/concurrent/ExecutorService;->submit(Ljava/lang/Runnable;)Ljava/util/concurrent/Future;
+
+    move-result-object v1
+
+    invoke-interface {v15, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+
+    .line 700
+    invoke-interface {v12}, Ljava/util/List;->size()I
+
+    move-result v1
+
+    const/4 v2, 0x4
+
+    if-eq v1, v2, :cond_4
+
+    if-lt v13, v6, :cond_3
 
     goto :goto_2
 
     :cond_3
-    move/from16 v2, p2
-
-    move/from16 v12, v20
-
-    :goto_1
-    move/from16 v5, v17
-
-    .line 539
-    :goto_2
-    if-eqz v5, :cond_7
-
-    .line 540
-    nop
-
-    .line 541
-    nop
-
-    .line 542
-    nop
-
-    .line 543
-    nop
-
-    .line 544
-    if-ge v12, v2, :cond_4
-
-    if-lez v21, :cond_4
-
-    .line 545
-    move/from16 v5, v21
-
-    invoke-static {v5, v12}, Ljava/lang/Math;->min(II)I
-
-    move-result v6
-
-    .line 546
-    sub-int v9, v12, v6
-
-    .line 547
-    mul-int v7, v1, v6
-
-    new-array v7, v7, [I
-
-    .line 548
-    const/4 v12, 0x0
-
-    invoke-interface {v0, v9, v6, v7, v12}, Lcom/motorola/camera/custom/CustomImagingBridge$PixelSurface;->readRows(II[II)V
-
-    move/from16 v16, v6
-
-    move-object v14, v7
-
-    move v15, v9
+    const/4 v1, 0x0
 
     goto :goto_3
 
-    .line 544
     :cond_4
-    move/from16 v5, v21
+    :goto_2
+    move/from16 v1, v18
 
-    .line 550
-    move v15, v12
-
-    const/4 v14, 0x0
-
-    const/16 v16, 0x0
-
+    .line 701
     :goto_3
-    const/4 v9, 0x0
+    if-eqz v1, :cond_8
+
+    .line 702
+    nop
+
+    .line 703
+    nop
+
+    .line 704
+    nop
+
+    .line 705
+    nop
+
+    .line 706
+    if-ge v13, v6, :cond_5
+
+    if-lez v11, :cond_5
+
+    .line 707
+    invoke-static {v11, v13}, Ljava/lang/Math;->min(II)I
+
+    move-result v1
+
+    .line 708
+    sub-int v5, v13, v1
+
+    .line 709
+    mul-int v3, p1, v1
+
+    new-array v3, v3, [I
+
+    .line 710
+    const/4 v4, 0x0
+
+    invoke-interface {v0, v5, v1, v3, v4}, Lcom/motorola/camera/custom/CustomImagingBridge$PixelSurface;->readRows(II[II)V
+
+    move/from16 v17, v1
+
+    goto :goto_4
+
+    .line 712
+    :cond_5
+    move v5, v13
+
+    move-object/from16 v3, v16
+
+    const/16 v17, 0x0
 
     :goto_4
-    invoke-interface {v11}, Ljava/util/List;->size()I
+    const/4 v1, 0x0
 
-    move-result v6
+    :goto_5
+    invoke-interface {v15}, Ljava/util/List;->size()I
 
-    if-ge v9, v6, :cond_6
+    move-result v4
 
-    .line 552
+    if-ge v1, v4, :cond_7
+
+    .line 714
     :try_start_0
-    invoke-interface {v11, v9}, Ljava/util/List;->get(I)Ljava/lang/Object;
+    invoke-interface {v15, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;
 
-    move-result-object v6
+    move-result-object v4
 
-    check-cast v6, Ljava/util/concurrent/Future;
+    check-cast v4, Ljava/util/concurrent/Future;
 
-    invoke-interface {v6}, Ljava/util/concurrent/Future;->get()Ljava/lang/Object;
+    invoke-interface {v4}, Ljava/util/concurrent/Future;->get()Ljava/lang/Object;
     :try_end_0
     .catch Ljava/lang/InterruptedException; {:try_start_0 .. :try_end_0} :catch_1
     .catch Ljava/util/concurrent/ExecutionException; {:try_start_0 .. :try_end_0} :catch_0
 
-    .line 561
+    .line 723
     nop
 
-    .line 562
-    invoke-interface {v10, v9}, Ljava/util/List;->get(I)Ljava/lang/Object;
+    .line 724
+    invoke-interface {v14, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;
 
-    move-result-object v6
+    move-result-object v4
 
-    check-cast v6, [I
+    check-cast v4, [I
 
-    .line 563
-    const/16 v19, 0x0
+    .line 725
+    const/16 v20, 0x0
 
-    aget v7, v6, v19
+    aget v7, v4, v20
 
-    aget v12, v6, v17
+    aget v9, v4, v18
 
-    invoke-interface {v8, v9}, Ljava/util/List;->get(I)Ljava/lang/Object;
+    invoke-interface {v12, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;
 
-    move-result-object v18
+    move-result-object v10
 
-    move-object/from16 v3, v18
+    check-cast v10, [I
 
-    check-cast v3, [I
+    const/4 v13, 0x2
 
-    const/16 v18, 0x2
+    aget v4, v4, v13
 
-    aget v6, v6, v18
+    invoke-interface {v0, v7, v9, v10, v4}, Lcom/motorola/camera/custom/CustomImagingBridge$PixelSurface;->writeRows(II[II)V
 
-    invoke-interface {v0, v7, v12, v3, v6}, Lcom/motorola/camera/custom/CustomImagingBridge$PixelSurface;->writeRows(II[II)V
+    .line 712
+    add-int/lit8 v1, v1, 0x1
 
-    .line 550
-    add-int/lit8 v9, v9, 0x1
+    goto :goto_5
 
-    const/4 v3, 0x4
-
-    goto :goto_4
-
-    .line 559
+    .line 721
     :catch_0
     move-exception v0
 
-    .line 560
+    .line 722
     new-instance v1, Ljava/lang/RuntimeException;
 
     invoke-virtual {v0}, Ljava/util/concurrent/ExecutionException;->getCause()Ljava/lang/Throwable;
@@ -2172,117 +2901,119 @@
 
     throw v1
 
-    .line 553
+    .line 715
     :catch_1
     move-exception v0
 
-    .line 554
-    add-int/lit8 v9, v9, 0x1
+    .line 716
+    add-int/lit8 v1, v1, 0x1
 
-    :goto_5
-    invoke-interface {v11}, Ljava/util/List;->size()I
+    :goto_6
+    invoke-interface {v15}, Ljava/util/List;->size()I
 
     move-result v0
 
-    if-ge v9, v0, :cond_5
+    if-ge v1, v0, :cond_6
 
-    .line 555
-    invoke-interface {v11, v9}, Ljava/util/List;->get(I)Ljava/lang/Object;
+    .line 717
+    invoke-interface {v15, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;
 
     move-result-object v0
 
     check-cast v0, Ljava/util/concurrent/Future;
 
-    move/from16 v1, v17
+    move/from16 v2, v18
 
-    invoke-interface {v0, v1}, Ljava/util/concurrent/Future;->cancel(Z)Z
+    invoke-interface {v0, v2}, Ljava/util/concurrent/Future;->cancel(Z)Z
 
-    .line 554
-    add-int/lit8 v9, v9, 0x1
+    .line 716
+    add-int/lit8 v1, v1, 0x1
 
-    const/16 v17, 0x1
+    const/16 v18, 0x1
 
-    goto :goto_5
+    goto :goto_6
 
-    .line 557
-    :cond_5
+    .line 719
+    :cond_6
     invoke-static {}, Ljava/lang/Thread;->currentThread()Ljava/lang/Thread;
 
     move-result-object v0
 
     invoke-virtual {v0}, Ljava/lang/Thread;->interrupt()V
 
-    .line 558
-    const/16 v19, 0x0
+    .line 720
+    const/16 v20, 0x0
 
-    return v19
+    return v20
 
-    .line 565
-    :cond_6
-    const/16 v19, 0x0
-
-    .line 566
-    nop
-
-    .line 567
-    nop
-
-    .line 568
-    invoke-interface {v8}, Ljava/util/List;->clear()V
-
-    .line 569
-    invoke-interface {v10}, Ljava/util/List;->clear()V
-
-    .line 570
-    invoke-interface {v11}, Ljava/util/List;->clear()V
-
-    goto :goto_6
-
-    .line 539
+    .line 727
     :cond_7
-    move/from16 v5, v21
+    const/16 v20, 0x0
 
-    const/16 v19, 0x0
+    .line 728
+    nop
 
-    .line 512
-    :goto_6
-    add-int v13, v13, p3
+    .line 729
+    nop
 
-    move/from16 v3, p3
+    .line 730
+    invoke-interface {v12}, Ljava/util/List;->clear()V
 
-    move v7, v5
+    .line 731
+    invoke-interface {v14}, Ljava/util/List;->clear()V
 
-    move/from16 v6, v19
+    .line 732
+    invoke-interface {v15}, Ljava/util/List;->clear()V
 
-    const/4 v9, 0x4
+    move-object v10, v3
+
+    move v3, v5
+
+    goto :goto_7
+
+    .line 701
+    :cond_8
+    const/16 v20, 0x0
+
+    move/from16 v3, v22
+
+    .line 673
+    :goto_7
+    add-int v1, v19, v8
+
+    move v13, v2
+
+    move-object v2, v10
+
+    move/from16 v10, v20
 
     goto/16 :goto_0
 
-    .line 573
-    :cond_8
-    const/16 v17, 0x1
-
-    return v17
-
-    .line 502
+    .line 735
     :cond_9
-    const/16 v17, 0x1
+    const/16 v18, 0x1
 
-    :goto_7
-    return v17
+    return v18
+
+    .line 663
+    :cond_a
+    const/16 v18, 0x1
+
+    :goto_8
+    return v18
 .end method
 
 .method public static initPostProcPreference(Landroidx/preference/PreferenceFragmentCompat;)V
     .locals 5
 
-    .line 132
+    .line 152
     const-string v0, "com.motorola.camera.post_processing_profile"
 
     if-nez p0, :cond_0
 
     return-void
 
-    .line 134
+    .line 154
     :cond_0
     :try_start_0
     invoke-virtual {p0, v0}, Landroidx/preference/PreferenceFragmentCompat;->findPreference(Ljava/lang/CharSequence;)Landroidx/preference/Preference;
@@ -2291,30 +3022,30 @@
 
     check-cast p0, Landroidx/preference/ListPreference;
 
-    .line 135
+    .line 155
     if-nez p0, :cond_1
 
     return-void
 
-    .line 136
+    .line 156
     :cond_1
     sget-object v1, Lcom/motorola/camera/custom/CustomImagingBridge;->PROFILE_LABELS:[Ljava/lang/CharSequence;
 
     invoke-virtual {p0, v1}, Landroidx/preference/ListPreference;->setEntries([Ljava/lang/CharSequence;)V
 
-    .line 137
+    .line 157
     sget-object v1, Lcom/motorola/camera/custom/CustomImagingBridge;->PROFILE_VALUES:[Ljava/lang/CharSequence;
 
     iput-object v1, p0, Landroidx/preference/ListPreference;->mEntryValues:[Ljava/lang/CharSequence;
 
-    .line 138
+    .line 158
     invoke-static {}, Lcom/motorola/camera/settings/PersistBehavior;->getPreferences()Landroid/content/SharedPreferences;
 
     move-result-object v1
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 139
+    .line 159
     const-string v2, "0"
 
     if-eqz v1, :cond_2
@@ -2329,7 +3060,7 @@
     :cond_2
     move-object v0, v2
 
-    .line 140
+    .line 160
     :goto_0
     if-eqz v0, :cond_4
 
@@ -2366,32 +3097,32 @@
 
     goto :goto_2
 
-    .line 141
+    .line 161
     :cond_4
     :goto_1
     nop
 
-    .line 143
+    .line 163
     :goto_2
     invoke-virtual {p0, v2}, Landroidx/preference/ListPreference;->setValue(Ljava/lang/String;)V
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 146
+    .line 166
     goto :goto_3
 
-    .line 144
+    .line 164
     :catchall_0
     move-exception p0
 
-    .line 145
+    .line 165
     const-string v0, "CustomImagingBridge"
 
     const-string v1, "initPostProcPreference failed"
 
     invoke-static {v0, v1, p0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
 
-    .line 147
+    .line 167
     :goto_3
     return-void
 .end method
@@ -2399,7 +3130,7 @@
 .method public static isCustomLutActive()Z
     .locals 3
 
-    .line 399
+    .line 560
     const/4 v0, 0x0
 
     invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveActiveScene(Z)[I
@@ -2421,7 +3152,7 @@
 .method public static isCustomLutActive(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)Z
     .locals 2
 
-    .line 403
+    .line 564
     const/4 v0, 0x0
 
     if-eqz p0, :cond_0
@@ -2438,10 +3169,10 @@
 
     if-eqz v1, :cond_0
 
-    .line 404
+    .line 565
     return v0
 
-    .line 406
+    .line 567
     :cond_0
     invoke-static {p0}, Lcom/motorola/camera/custom/CustomImagingBridge;->getOrResolveForContainer(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
@@ -2464,7 +3195,7 @@
 .method private static isFlashExpectedSafe()Z
     .locals 1
 
-    .line 185
+    .line 205
     :try_start_0
     invoke-static {}, Lcom/motorola/camera/mcfmanagers/SceneModeManager;->isFlashExpected()Z
 
@@ -2474,11 +3205,11 @@
 
     return v0
 
-    .line 186
+    .line 206
     :catchall_0
     move-exception v0
 
-    .line 187
+    .line 207
     const/4 v0, 0x0
 
     return v0
@@ -2487,7 +3218,7 @@
 .method private static isUiSpecialModeSafe()Z
     .locals 2
 
-    .line 193
+    .line 213
     const/4 v0, 0x0
 
     :try_start_0
@@ -2511,36 +3242,50 @@
     :cond_1
     return v0
 
-    .line 194
+    .line 214
     :catchall_0
     move-exception v1
 
-    .line 195
+    .line 215
     return v0
 .end method
 
 .method static synthetic lambda$exportCleanBayerJpeg$1([BIILandroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;Ljava/lang/String;Lcom/motorola/camera/storage/MediaFilePath;)V
     .locals 0
 
-    .line 623
+    .line 785
     invoke-static/range {p0 .. p7}, Lcom/motorola/camera/custom/CustomImagingBridge;->runCleanBayerExport([BIILandroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;Ljava/lang/String;Lcom/motorola/camera/storage/MediaFilePath;)V
 
     return-void
 .end method
 
-.method static synthetic lambda$gradeSurfaceInBatches$0([IIII)V
-    .locals 0
+.method static synthetic lambda$gradeSurfaceInBatches$0([IIIIII)V
+    .locals 7
 
-    .line 536
-    invoke-static {p0, p1, p2, p3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->applyToArgbPixels([IIII)V
+    .line 698
+    move v4, p1
+
+    move-object v0, p0
+
+    move v1, p1
+
+    move v2, p2
+
+    move v3, p3
+
+    move v5, p4
+
+    move v6, p5
+
+    invoke-static/range {v0 .. v6}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->applyToArgbPixels([IIIIIII)V
 
     return-void
 .end method
 
 .method public static overrideSceneMode(Lcom/motorola/camera/mcf/Mcf$SceneMode;Z)Lcom/motorola/camera/mcf/Mcf$SceneMode;
-    .locals 4
+    .locals 3
 
-    .line 292
+    .line 319
     :try_start_0
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->getSelectedProfile()I
 
@@ -2550,130 +3295,98 @@
 
     if-ne v0, v1, :cond_0
 
-    .line 293
+    .line 320
     return-object p0
 
-    .line 295
+    .line 322
     :cond_0
-    if-eqz p0, :cond_1
+    const/4 v0, 0x1
 
-    invoke-virtual {p0}, Lcom/motorola/camera/mcf/Mcf$SceneMode;->name()Ljava/lang/String;
+    const/4 v1, 0x0
 
-    move-result-object v0
-
-    goto :goto_0
-
-    :cond_1
-    const-string v0, ""
-
-    .line 296
-    :goto_0
-    const/4 v1, 0x1
-
-    const/4 v2, 0x0
-
-    if-nez p1, :cond_3
+    if-nez p1, :cond_2
 
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isFlashExpectedSafe()Z
 
     move-result p1
 
-    if-eqz p1, :cond_2
+    if-eqz p1, :cond_1
+
+    goto :goto_0
+
+    :cond_1
+    move p1, v1
 
     goto :goto_1
 
     :cond_2
-    move p1, v2
+    :goto_0
+    move p1, v0
 
-    goto :goto_2
-
-    :cond_3
+    .line 323
     :goto_1
-    move p1, v1
-
-    .line 297
-    :goto_2
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isUiSpecialModeSafe()Z
 
-    move-result v3
+    move-result v2
 
-    .line 298
-    if-nez p1, :cond_7
-
-    if-nez v3, :cond_7
-
-    invoke-static {v0}, Lcom/motorola/camera/custom/ScenePostProcSelector;->isPreservedSceneName(Ljava/lang/String;)Z
-
-    move-result v0
-
-    if-eqz v0, :cond_4
-
-    goto :goto_3
-
-    .line 301
-    :cond_4
-    invoke-static {p0, p1, v3}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveDecision(Lcom/motorola/camera/mcf/Mcf$SceneMode;ZZ)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
+    .line 324
+    invoke-static {p0, p1, v2}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveDecision(Lcom/motorola/camera/mcf/Mcf$SceneMode;ZZ)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
     move-result-object p1
 
-    .line 302
-    iget-object v0, p1, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
+    .line 325
+    iget-object v2, p1, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
-    aget v0, v0, v2
+    aget v2, v2, v1
 
-    if-ne v0, v1, :cond_5
+    if-ne v2, v0, :cond_3
 
-    .line 303
+    .line 326
     sget-object p0, Lcom/motorola/camera/mcf/Mcf$SceneMode;->HAL_FRAME_STACK:Lcom/motorola/camera/mcf/Mcf$SceneMode;
 
     return-object p0
 
-    .line 305
-    :cond_5
+    .line 328
+    :cond_3
     iget-object p1, p1, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
-    aget p1, p1, v2
+    aget p1, p1, v1
 
     const/4 v0, 0x2
 
-    if-ne p1, v0, :cond_6
+    if-ne p1, v0, :cond_4
 
-    .line 306
+    .line 329
     sget-object p0, Lcom/motorola/camera/mcf/Mcf$SceneMode;->RAW_HDR:Lcom/motorola/camera/mcf/Mcf$SceneMode;
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
     return-object p0
 
-    .line 310
-    :cond_6
-    goto :goto_4
+    .line 333
+    :cond_4
+    goto :goto_2
 
-    .line 299
-    :cond_7
-    :goto_3
-    return-object p0
-
-    .line 308
+    .line 331
     :catchall_0
     move-exception p1
 
-    .line 309
+    .line 332
     const-string v0, "CustomImagingBridge"
 
     const-string v1, "overrideSceneMode fallback"
 
     invoke-static {v0, v1, p1}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
 
-    .line 311
-    :goto_4
+    .line 334
+    :goto_2
     return-object p0
 .end method
 
 .method private static resolveActiveScene(Z)[I
     .locals 2
 
-    .line 233
+    .line 260
     if-nez p0, :cond_1
 
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isFlashExpectedSafe()Z
@@ -2693,16 +3406,16 @@
     :goto_0
     const/4 p0, 0x1
 
-    .line 234
+    .line 261
     :goto_1
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isUiSpecialModeSafe()Z
 
     move-result v0
 
-    .line 235
+    .line 262
     nop
 
-    .line 237
+    .line 264
     :try_start_0
     invoke-static {}, Lcom/motorola/camera/mcfmanagers/SceneModeManager;->getCurrentScene()Lcom/motorola/camera/mcf/Mcf$SceneMode;
 
@@ -2710,7 +3423,7 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 238
+    .line 265
     goto :goto_2
 
     :catchall_0
@@ -2718,7 +3431,7 @@
 
     const/4 v1, 0x0
 
-    .line 239
+    .line 266
     :goto_2
     invoke-static {v1, p0, v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveDecision(Lcom/motorola/camera/mcf/Mcf$SceneMode;ZZ)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
@@ -2730,15 +3443,15 @@
 .end method
 
 .method private static resolveDecision(Lcom/motorola/camera/mcf/Mcf$SceneMode;ZZ)Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
-    .locals 16
+    .locals 21
 
-    .line 200
+    .line 220
     nop
 
-    .line 201
+    .line 221
     nop
 
-    .line 203
+    .line 223
     const/high16 v1, 0x3f800000    # 1.0f
 
     :try_start_0
@@ -2746,15 +3459,15 @@
 
     move-result-object v0
 
-    .line 204
+    .line 224
     if-eqz v0, :cond_0
 
-    .line 205
+    .line 225
     invoke-static {v0}, Lcom/motorola/camera/settings/SettingsManager;->getZoomValue(Lcom/motorola/camera/settings/CameraType;)F
 
     move-result v0
 
-    .line 207
+    .line 227
     invoke-static {v0}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v2
@@ -2773,7 +3486,7 @@
 
     goto :goto_0
 
-    .line 209
+    .line 229
     :catchall_0
     move-exception v0
 
@@ -2781,7 +3494,7 @@
     :goto_0
     move v3, v1
 
-    .line 211
+    .line 231
     const/high16 v1, 0x42480000    # 50.0f
 
     :try_start_1
@@ -2789,7 +3502,7 @@
 
     move-result-object v0
 
-    .line 213
+    .line 233
     if-eqz v0, :cond_1
 
     iget v2, v0, Lcom/motorola/camera/IqConfigManager;->mLastLuxIdx:F
@@ -2808,7 +3521,7 @@
 
     if-lez v2, :cond_1
 
-    .line 214
+    .line 234
     iget v0, v0, Lcom/motorola/camera/IqConfigManager;->mLastLuxIdx:F
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_1
@@ -2817,7 +3530,7 @@
 
     goto :goto_1
 
-    .line 216
+    .line 236
     :catchall_1
     move-exception v0
 
@@ -2825,7 +3538,7 @@
     :goto_1
     move v4, v1
 
-    .line 218
+    .line 238
     const-string v0, ""
 
     if-eqz p0, :cond_2
@@ -2841,27 +3554,29 @@
     :cond_2
     move-object v5, v0
 
-    .line 219
+    .line 239
     :goto_2
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->getSelectedProfile()I
 
     move-result v2
 
-    .line 220
+    .line 240
+    sget-boolean v8, Lcom/motorola/camera/custom/CustomImagingBridge;->HTP_RPC_AVAILABLE:Z
+
     move/from16 v6, p1
 
     move/from16 v7, p2
 
-    invoke-static/range {v2 .. v7}, Lcom/motorola/camera/custom/ScenePostProcSelector;->resolve(IFFLjava/lang/String;ZZ)[I
+    invoke-static/range {v2 .. v8}, Lcom/motorola/camera/custom/ScenePostProcSelector;->resolveExtended(IFFLjava/lang/String;ZZZ)[I
 
     move-result-object v1
 
-    .line 221
+    .line 241
     const/high16 v6, 0x41200000    # 10.0f
 
     mul-float/2addr v3, v6
 
-    .line 222
+    .line 242
     invoke-static {v3}, Ljava/lang/Math;->round(F)I
 
     move-result v3
@@ -2870,7 +3585,7 @@
 
     div-float/2addr v3, v6
 
-    .line 223
+    .line 243
     invoke-static {v4}, Ljava/lang/Math;->round(F)I
 
     move-result v4
@@ -2881,60 +3596,259 @@
 
     const/4 v7, 0x1
 
-    aget v7, v1, v7
+    aget v8, v1, v7
 
-    const/4 v8, 0x2
-
-    aget v8, v1, v8
-
-    const/4 v9, 0x3
+    const/4 v9, 0x2
 
     aget v9, v1, v9
 
-    const/4 v10, 0x4
+    const/4 v10, 0x3
 
     aget v10, v1, v10
 
-    const/4 v11, 0x5
+    const/4 v11, 0x4
 
     aget v11, v1, v11
 
-    const/4 v12, 0x6
+    const/4 v12, 0x5
 
     aget v12, v1, v12
 
-    .line 226
-    const/16 v13, 0x9
+    const/4 v13, 0x6
 
-    if-ne v2, v13, :cond_3
+    aget v13, v1, v13
 
-    const-string v13, " mcf=0"
+    .line 246
+    const/4 v14, 0x7
+
+    aget v15, v1, v14
+
+    if-ltz v15, :cond_3
+
+    aget v14, v1, v14
+
+    new-instance v15, Ljava/lang/StringBuilder;
+
+    invoke-direct {v15}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v7, " isz="
+
+    invoke-virtual {v15, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v7
+
+    invoke-virtual {v7, v14}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object v7
+
+    invoke-virtual {v7}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v7
 
     goto :goto_3
 
     :cond_3
-    move-object v13, v0
+    move-object v7, v0
 
-    .line 227
+    .line 247
     :goto_3
-    invoke-virtual {v5}, Ljava/lang/String;->isEmpty()Z
+    const/16 v14, 0x8
 
-    move-result v14
+    aget v15, v1, v14
 
-    if-eqz v14, :cond_4
+    if-ltz v15, :cond_4
 
-    move-object v5, v0
+    aget v14, v1, v14
+
+    new-instance v15, Ljava/lang/StringBuilder;
+
+    invoke-direct {v15}, Ljava/lang/StringBuilder;-><init>()V
+
+    move-object/from16 v16, v0
+
+    const-string v0, " aide="
+
+    invoke-virtual {v15, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, v14}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v0
 
     goto :goto_4
 
     :cond_4
+    move-object/from16 v16, v0
+
+    .line 248
+    :goto_4
+    const/16 v14, 0x9
+
+    aget v15, v1, v14
+
+    if-lez v15, :cond_5
+
+    aget v15, v1, v14
+
     new-instance v14, Ljava/lang/StringBuilder;
 
     invoke-direct {v14}, Ljava/lang/StringBuilder;-><init>()V
 
-    const-string v15, " in="
+    move-object/from16 v17, v1
 
-    invoke-virtual {v14, v15}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v1, " vsr="
+
+    invoke-virtual {v14, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    invoke-virtual {v1, v15}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    goto :goto_5
+
+    :cond_5
+    move-object/from16 v17, v1
+
+    move-object/from16 v1, v16
+
+    .line 249
+    :goto_5
+    const/16 v14, 0xa
+
+    aget v15, v17, v14
+
+    if-ltz v15, :cond_6
+
+    aget v14, v17, v14
+
+    new-instance v15, Ljava/lang/StringBuilder;
+
+    invoke-direct {v15}, Ljava/lang/StringBuilder;-><init>()V
+
+    move-object/from16 v18, v1
+
+    const-string v1, " hdr="
+
+    invoke-virtual {v15, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    invoke-virtual {v1, v14}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    goto :goto_6
+
+    :cond_6
+    move-object/from16 v18, v1
+
+    move-object/from16 v1, v16
+
+    .line 250
+    :goto_6
+    const/16 v14, 0xb
+
+    aget v14, v17, v14
+
+    const/4 v15, 0x1
+
+    if-ne v14, v15, :cond_7
+
+    const-string v14, " t2w=0"
+
+    goto :goto_7
+
+    :cond_7
+    move-object/from16 v14, v16
+
+    .line 251
+    :goto_7
+    const/16 v19, 0xc
+
+    move-object/from16 p0, v14
+
+    aget v14, v17, v19
+
+    if-ne v14, v15, :cond_8
+
+    const-string v14, " qll=1"
+
+    goto :goto_8
+
+    :cond_8
+    move-object/from16 v14, v16
+
+    .line 252
+    :goto_8
+    const/16 v15, 0x9
+
+    if-ne v2, v15, :cond_9
+
+    const-string v15, " mcf=0"
+
+    goto :goto_9
+
+    :cond_9
+    move-object/from16 v15, v16
+
+    .line 253
+    :goto_9
+    sget-boolean v19, Lcom/motorola/camera/custom/CustomImagingBridge;->HTP_RPC_AVAILABLE:Z
+
+    if-nez v19, :cond_a
+
+    const-string v19, " htp=0"
+
+    move-object/from16 v20, v19
+
+    goto :goto_a
+
+    :cond_a
+    move-object/from16 v20, v16
+
+    .line 254
+    :goto_a
+    invoke-virtual {v5}, Ljava/lang/String;->isEmpty()Z
+
+    move-result v19
+
+    if-eqz v19, :cond_b
+
+    move-object/from16 p2, v14
+
+    move-object/from16 v19, v15
+
+    move-object/from16 v5, v16
+
+    goto :goto_b
+
+    :cond_b
+    move-object/from16 v19, v15
+
+    new-instance v15, Ljava/lang/StringBuilder;
+
+    invoke-direct {v15}, Ljava/lang/StringBuilder;-><init>()V
+
+    move-object/from16 p2, v14
+
+    const-string v14, " in="
+
+    invoke-virtual {v15, v14}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v14
 
@@ -2946,20 +3860,27 @@
 
     move-result-object v5
 
-    .line 228
-    :goto_4
-    if-eqz p1, :cond_5
+    .line 255
+    :goto_b
+    if-eqz p1, :cond_c
 
-    const-string v0, " flash=1"
+    const-string v14, " flash=1"
 
-    :cond_5
-    new-instance v14, Ljava/lang/StringBuilder;
+    goto :goto_c
 
-    invoke-direct {v14}, Ljava/lang/StringBuilder;-><init>()V
+    :cond_c
+    move-object/from16 v14, v16
 
-    const-string v15, "Edge50Port v1.3 p="
+    :goto_c
+    new-instance v15, Ljava/lang/StringBuilder;
 
-    invoke-virtual {v14, v15}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-direct {v15}, Ljava/lang/StringBuilder;-><init>()V
+
+    move-object/from16 v16, v14
+
+    const-string v14, "Edge50Port v1.4.0 p="
+
+    invoke-virtual {v15, v14}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v14
 
@@ -3003,7 +3924,7 @@
 
     move-result-object v2
 
-    invoke-virtual {v2, v7}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    invoke-virtual {v2, v8}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
@@ -3013,7 +3934,7 @@
 
     move-result-object v2
 
-    invoke-virtual {v2, v8}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    invoke-virtual {v2, v9}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
@@ -3023,7 +3944,7 @@
 
     move-result-object v2
 
-    invoke-virtual {v2, v9}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    invoke-virtual {v2, v10}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
@@ -3033,7 +3954,7 @@
 
     move-result-object v2
 
-    invoke-virtual {v2, v10}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    invoke-virtual {v2, v11}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
@@ -3043,7 +3964,7 @@
 
     move-result-object v2
 
-    invoke-virtual {v2, v11}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    invoke-virtual {v2, v12}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
@@ -3053,15 +3974,11 @@
 
     move-result-object v2
 
-    invoke-virtual {v2, v12}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    invoke-virtual {v2, v13}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
-    invoke-virtual {v2, v13}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
-    move-result-object v2
-
-    invoke-virtual {v2, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v2, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
@@ -3069,22 +3986,68 @@
 
     move-result-object v0
 
+    move-object/from16 v2, v18
+
+    invoke-virtual {v0, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    move-object/from16 v14, p0
+
+    invoke-virtual {v0, v14}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    move-object/from16 v14, p2
+
+    invoke-virtual {v0, v14}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    move-object/from16 v15, v19
+
+    invoke-virtual {v0, v15}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    move-object/from16 v1, v20
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    move-object/from16 v14, v16
+
+    invoke-virtual {v0, v14}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
     invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
     move-result-object v0
 
-    .line 229
-    new-instance v2, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
+    .line 256
+    new-instance v1, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;
 
-    invoke-direct {v2, v1, v0}, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;-><init>([ILjava/lang/String;)V
+    move-object/from16 v2, v17
 
-    return-object v2
+    invoke-direct {v1, v2, v0}, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;-><init>([ILjava/lang/String;)V
+
+    return-object v1
 .end method
 
 .method public static resolveEdgeMode(I)I
     .locals 2
 
-    .line 320
+    .line 343
     const/4 v0, 0x0
 
     invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveActiveScene(Z)[I
@@ -3095,7 +4058,7 @@
 
     aget v0, v0, v1
 
-    .line 321
+    .line 344
     if-ltz v0, :cond_0
 
     move p0, v0
@@ -3107,7 +4070,7 @@
 .method public static resolveEnableMfnr(Z)Z
     .locals 1
 
-    .line 330
+    .line 353
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isFlashExpectedSafe()Z
 
     move-result v0
@@ -3122,7 +4085,7 @@
 .method public static resolveEnableMfnr(ZZ)Z
     .locals 1
 
-    .line 334
+    .line 357
     invoke-static {p1}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveActiveScene(Z)[I
 
     move-result-object p1
@@ -3131,7 +4094,7 @@
 
     aget p1, p1, v0
 
-    .line 335
+    .line 358
     if-ltz p1, :cond_1
 
     if-eqz p1, :cond_0
@@ -3151,7 +4114,7 @@
 .method public static resolveJpegQuality(I)I
     .locals 1
 
-    .line 167
+    .line 187
     const/16 v0, 0x5f
 
     if-ne p0, v0, :cond_0
@@ -3165,7 +4128,7 @@
 .method public static resolveNoiseReduction(I)I
     .locals 2
 
-    .line 315
+    .line 338
     const/4 v0, 0x0
 
     invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveActiveScene(Z)[I
@@ -3176,7 +4139,7 @@
 
     aget v0, v0, v1
 
-    .line 316
+    .line 339
     if-ltz v0, :cond_0
 
     move p0, v0
@@ -3188,7 +4151,7 @@
 .method public static resolveSuperZoom(B)B
     .locals 2
 
-    .line 325
+    .line 348
     const/4 v0, 0x0
 
     invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveActiveScene(Z)[I
@@ -3199,7 +4162,7 @@
 
     aget v0, v0, v1
 
-    .line 326
+    .line 349
     if-ltz v0, :cond_0
 
     int-to-byte p0, v0
@@ -3211,22 +4174,22 @@
 .method private static runCleanBayerExport([BIILandroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;Ljava/lang/String;Lcom/motorola/camera/storage/MediaFilePath;)V
     .locals 2
 
-    .line 634
+    .line 796
     sget-object v1, Lcom/motorola/camera/custom/CustomImagingBridge;->RAW_EXPORT_SERIAL_LOCK:Ljava/lang/Object;
 
     monitor-enter v1
 
-    .line 635
+    .line 797
     :try_start_0
     invoke-static/range {p0 .. p7}, Lcom/motorola/camera/custom/CustomImagingBridge;->runCleanBayerExportLocked([BIILandroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;Ljava/lang/String;Lcom/motorola/camera/storage/MediaFilePath;)V
 
-    .line 636
+    .line 798
     monitor-exit v1
 
-    .line 637
+    .line 799
     return-void
 
-    .line 636
+    .line 798
     :catchall_0
     move-exception v0
 
@@ -3242,7 +4205,7 @@
 .method private static runCleanBayerExportLocked([BIILandroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;Ljava/lang/String;Lcom/motorola/camera/storage/MediaFilePath;)V
     .locals 26
 
-    .line 644
+    .line 806
     move-object/from16 v0, p0
 
     move/from16 v1, p1
@@ -3262,7 +4225,7 @@
 
     move-result-wide v16
 
-    .line 645
+    .line 807
     int-to-long v5, v1
 
     int-to-long v7, v2
@@ -3277,12 +4240,12 @@
 
     div-long/2addr v7, v9
 
-    .line 646
+    .line 808
     const-wide/16 v9, 0x2
 
     mul-long/2addr v5, v9
 
-    .line 648
+    .line 810
     array-length v9, v0
 
     int-to-long v9, v9
@@ -3293,7 +4256,7 @@
 
     if-ltz v5, :cond_0
 
-    .line 649
+    .line 811
     array-length v5, v0
 
     div-int/2addr v5, v2
@@ -3306,7 +4269,7 @@
 
     goto :goto_0
 
-    .line 650
+    .line 812
     :cond_0
     array-length v5, v0
 
@@ -3316,7 +4279,7 @@
 
     if-ltz v5, :cond_15
 
-    .line 651
+    .line 813
     array-length v5, v0
 
     div-int/2addr v5, v2
@@ -3327,16 +4290,16 @@
 
     move-object v5, v0
 
-    .line 657
+    .line 819
     :goto_0
     invoke-static/range {p4 .. p4}, Lcom/motorola/camera/settings/SettingsManager;->getCharacteristics(Ljava/lang/String;)Landroid/hardware/camera2/CameraCharacteristics;
 
     move-result-object v7
 
-    .line 658
+    .line 820
     nop
 
-    .line 659
+    .line 821
     const/4 v8, 0x4
 
     move-object v1, v5
@@ -3359,16 +4322,16 @@
 
     aput v0, v5, v11
 
-    .line 660
+    .line 822
     nop
 
-    .line 661
+    .line 823
     nop
 
-    .line 663
+    .line 825
     if-eqz v7, :cond_4
 
-    .line 664
+    .line 826
     sget-object v13, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_INFO_COLOR_FILTER_ARRANGEMENT:Landroid/hardware/camera2/CameraCharacteristics$Key;
 
     invoke-virtual {v7, v13}, Landroid/hardware/camera2/CameraCharacteristics;->get(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
@@ -3377,7 +4340,7 @@
 
     check-cast v13, Ljava/lang/Integer;
 
-    .line 665
+    .line 827
     if-eqz v13, :cond_1
 
     invoke-virtual {v13}, Ljava/lang/Integer;->intValue()I
@@ -3389,7 +4352,7 @@
     :cond_1
     move v13, v9
 
-    .line 666
+    .line 828
     :goto_1
     sget-object v0, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_BLACK_LEVEL_PATTERN:Landroid/hardware/camera2/CameraCharacteristics$Key;
 
@@ -3399,10 +4362,10 @@
 
     check-cast v0, Landroid/hardware/camera2/params/BlackLevelPattern;
 
-    .line 667
+    .line 829
     if-eqz v0, :cond_2
 
-    .line 668
+    .line 830
     invoke-virtual {v0, v9, v9}, Landroid/hardware/camera2/params/BlackLevelPattern;->getOffsetForIndex(II)I
 
     move-result v8
@@ -3411,7 +4374,7 @@
 
     aput v8, v5, v9
 
-    .line 669
+    .line 831
     invoke-virtual {v0, v6, v9}, Landroid/hardware/camera2/params/BlackLevelPattern;->getOffsetForIndex(II)I
 
     move-result v8
@@ -3420,7 +4383,7 @@
 
     aput v8, v5, v6
 
-    .line 670
+    .line 832
     invoke-virtual {v0, v9, v6}, Landroid/hardware/camera2/params/BlackLevelPattern;->getOffsetForIndex(II)I
 
     move-result v8
@@ -3429,7 +4392,7 @@
 
     aput v8, v5, v10
 
-    .line 671
+    .line 833
     invoke-virtual {v0, v6, v6}, Landroid/hardware/camera2/params/BlackLevelPattern;->getOffsetForIndex(II)I
 
     move-result v0
@@ -3438,7 +4401,7 @@
 
     aput v0, v5, v11
 
-    .line 673
+    .line 835
     :cond_2
     sget-object v0, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_INFO_WHITE_LEVEL:Landroid/hardware/camera2/CameraCharacteristics$Key;
 
@@ -3448,7 +4411,7 @@
 
     check-cast v0, Ljava/lang/Integer;
 
-    .line 674
+    .line 836
     if-eqz v0, :cond_3
 
     invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
@@ -3457,14 +4420,14 @@
 
     if-lez v8, :cond_3
 
-    .line 675
+    .line 837
     invoke-virtual {v0}, Ljava/lang/Integer;->floatValue()F
 
     move-result v0
 
     goto :goto_2
 
-    .line 677
+    .line 839
     :cond_3
     const v0, 0x447fc000    # 1023.0f
 
@@ -3493,7 +4456,7 @@
 
     goto :goto_3
 
-    .line 663
+    .line 825
     :cond_4
     move v13, v9
 
@@ -3501,7 +4464,7 @@
 
     const v8, 0x447fc000    # 1023.0f
 
-    .line 680
+    .line 842
     :goto_3
     move/from16 v19, v6
 
@@ -3513,20 +4476,20 @@
 
     check-cast v6, Landroid/hardware/camera2/params/ColorSpaceTransform;
 
-    .line 681
+    .line 843
     if-eqz v6, :cond_5
 
-    .line 682
+    .line 844
     invoke-static {v6}, Lcom/motorola/camera/custom/CustomImagingBridge;->extractCcm(Landroid/hardware/camera2/params/ColorSpaceTransform;)[F
 
     move-result-object v6
 
-    .line 683
+    .line 845
     if-eqz v6, :cond_5
 
     goto :goto_4
 
-    .line 686
+    .line 848
     :cond_5
     move-object v6, v0
 
@@ -3545,7 +4508,7 @@
 
     aput v0, v11, v10
 
-    .line 687
+    .line 849
     sget-object v0, Landroid/hardware/camera2/CaptureResult;->COLOR_CORRECTION_GAINS:Landroid/hardware/camera2/CaptureResult$Key;
 
     invoke-virtual {v14, v0}, Landroid/hardware/camera2/TotalCaptureResult;->get(Landroid/hardware/camera2/CaptureResult$Key;)Ljava/lang/Object;
@@ -3554,17 +4517,17 @@
 
     check-cast v0, Landroid/hardware/camera2/params/RggbChannelVector;
 
-    .line 688
+    .line 850
     if-eqz v0, :cond_6
 
-    .line 689
+    .line 851
     invoke-virtual {v0}, Landroid/hardware/camera2/params/RggbChannelVector;->getRed()F
 
     move-result v20
 
     aput v20, v11, v9
 
-    .line 690
+    .line 852
     invoke-virtual {v0}, Landroid/hardware/camera2/params/RggbChannelVector;->getGreenEven()F
 
     move-result v20
@@ -3581,7 +4544,7 @@
 
     aput v20, v11, v19
 
-    .line 691
+    .line 853
     invoke-virtual {v0}, Landroid/hardware/camera2/params/RggbChannelVector;->getBlue()F
 
     move-result v0
@@ -3590,17 +4553,17 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_a
 
-    .line 694
+    .line 856
     :cond_6
     nop
 
-    .line 695
+    .line 857
     nop
 
-    .line 696
+    .line 858
     nop
 
-    .line 698
+    .line 860
     :try_start_1
     sget-object v0, Landroid/hardware/camera2/CaptureResult;->STATISTICS_LENS_SHADING_CORRECTION_MAP:Landroid/hardware/camera2/CaptureResult$Key;
 
@@ -3610,7 +4573,7 @@
 
     check-cast v0, Landroid/hardware/camera2/params/LensShadingMap;
 
-    .line 699
+    .line 861
     if-eqz v0, :cond_7
 
     invoke-virtual {v0}, Landroid/hardware/camera2/params/LensShadingMap;->getColumnCount()I
@@ -3631,14 +4594,14 @@
 
     if-lez v10, :cond_7
 
-    .line 700
+    .line 862
     invoke-virtual {v0}, Landroid/hardware/camera2/params/LensShadingMap;->getColumnCount()I
 
     move-result v10
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_3
 
-    .line 701
+    .line 863
     :try_start_2
     invoke-virtual {v0}, Landroid/hardware/camera2/params/LensShadingMap;->getRowCount()I
 
@@ -3646,7 +4609,7 @@
     :try_end_2
     .catchall {:try_start_2 .. :try_end_2} :catchall_2
 
-    .line 702
+    .line 864
     :try_start_3
     invoke-virtual {v0}, Landroid/hardware/camera2/params/LensShadingMap;->getGainFactorCount()I
 
@@ -3656,7 +4619,7 @@
     :try_end_3
     .catchall {:try_start_3 .. :try_end_3} :catchall_1
 
-    .line 703
+    .line 865
     move-object/from16 v21, v1
 
     const/4 v1, 0x0
@@ -3668,7 +4631,7 @@
 
     goto :goto_6
 
-    .line 705
+    .line 867
     :catchall_0
     move-exception v0
 
@@ -3694,13 +4657,13 @@
 
     goto :goto_5
 
-    .line 699
+    .line 861
     :cond_7
     move-object/from16 v21, v1
 
     move v1, v9
 
-    .line 705
+    .line 867
     move v10, v1
 
     move v12, v10
@@ -3732,10 +4695,10 @@
 
     move-object/from16 v10, v25
 
-    .line 707
+    .line 869
     nop
 
-    .line 709
+    .line 871
     const/16 v20, 0x64
 
     :try_start_5
@@ -3747,7 +4710,7 @@
 
     check-cast v0, Ljava/lang/Integer;
 
-    .line 710
+    .line 872
     if-eqz v0, :cond_8
 
     invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
@@ -3756,7 +4719,7 @@
 
     if-lez v22, :cond_8
 
-    .line 711
+    .line 873
     invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
 
     move-result v0
@@ -3767,7 +4730,7 @@
 
     goto :goto_7
 
-    .line 713
+    .line 875
     :catchall_4
     move-exception v0
 
@@ -3775,7 +4738,7 @@
     :goto_7
     nop
 
-    .line 715
+    .line 877
     move-object/from16 v22, v9
 
     const/high16 v9, 0x3e800000    # 0.25f
@@ -3809,17 +4772,17 @@
 
     move-result-object v0
 
-    .line 718
+    .line 880
     iget-object v1, v15, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
     const/4 v2, 0x5
 
     aget v5, v1, v2
 
-    .line 719
+    .line 881
     if-lez v5, :cond_9
 
-    .line 720
+    .line 882
     const/16 v3, 0x200
 
     const/16 v4, 0x18
@@ -3834,21 +4797,21 @@
 
     if-nez v3, :cond_a
 
-    .line 721
+    .line 883
     const-string v0, "Abort CleanBayerRaw export because strip grading was interrupted"
 
     invoke-static {v14, v0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I
 
-    .line 722
+    .line 884
     return-void
 
-    .line 719
+    .line 881
     :cond_9
     move/from16 v1, p1
 
     move/from16 v2, p2
 
-    .line 726
+    .line 888
     :cond_a
     sget-object v3, Landroid/graphics/Bitmap$Config;->ARGB_8888:Landroid/graphics/Bitmap$Config;
 
@@ -3858,12 +4821,12 @@
     :try_end_6
     .catchall {:try_start_6 .. :try_end_6} :catchall_9
 
-    .line 727
+    .line 889
     if-nez v3, :cond_b
 
     return-void
 
-    .line 730
+    .line 892
     :cond_b
     :try_start_7
     new-instance v0, Ljava/io/ByteArrayOutputStream;
@@ -3874,7 +4837,7 @@
 
     invoke-direct {v0, v1}, Ljava/io/ByteArrayOutputStream;-><init>(I)V
 
-    .line 731
+    .line 893
     sget-object v1, Landroid/graphics/Bitmap$CompressFormat;->JPEG:Landroid/graphics/Bitmap$CompressFormat;
 
     const/16 v2, 0x62
@@ -3887,16 +4850,16 @@
 
     if-nez v1, :cond_c
 
-    .line 734
+    .line 896
     :try_start_8
     invoke-virtual {v3}, Landroid/graphics/Bitmap;->recycle()V
     :try_end_8
     .catchall {:try_start_8 .. :try_end_8} :catchall_9
 
-    .line 731
+    .line 893
     return-void
 
-    .line 732
+    .line 894
     :cond_c
     :try_start_9
     invoke-virtual {v0}, Ljava/io/ByteArrayOutputStream;->toByteArray()[B
@@ -3905,14 +4868,14 @@
     :try_end_9
     .catchall {:try_start_9 .. :try_end_9} :catchall_8
 
-    .line 734
+    .line 896
     :try_start_a
     invoke-virtual {v3}, Landroid/graphics/Bitmap;->recycle()V
 
-    .line 735
+    .line 897
     nop
 
-    .line 737
+    .line 899
     move-object/from16 v1, p3
 
     move-object/from16 v2, p4
@@ -3925,14 +4888,14 @@
     :try_end_a
     .catchall {:try_start_a .. :try_end_a} :catchall_9
 
-    .line 739
+    .line 901
     :try_start_b
     iget-object v0, v15, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->summary:Ljava/lang/String;
 
-    .line 740
+    .line 902
     if-eqz v2, :cond_12
 
-    .line 741
+    .line 903
     new-instance v3, Lcom/motorola/camera/photometadata/PhotoMetadata;
 
     new-instance v4, Ljava/io/ByteArrayInputStream;
@@ -3941,10 +4904,10 @@
 
     invoke-direct {v3, v4}, Lcom/motorola/camera/photometadata/PhotoMetadata;-><init>(Ljava/io/InputStream;)V
 
-    .line 742
+    .line 904
     nop
 
-    .line 743
+    .line 905
     if-eqz v0, :cond_d
 
     invoke-virtual {v0}, Ljava/lang/String;->isEmpty()Z
@@ -3953,7 +4916,7 @@
 
     if-nez v4, :cond_d
 
-    .line 744
+    .line 906
     const-string v4, "ImageDescription"
 
     new-instance v5, Ljava/lang/StringBuilder;
@@ -3976,12 +4939,12 @@
 
     invoke-virtual {v3, v4, v0}, Lcom/motorola/camera/photometadata/PhotoMetadata;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
 
-    .line 745
+    .line 907
     move/from16 v6, v19
 
     goto :goto_8
 
-    .line 747
+    .line 909
     :cond_d
     const/4 v6, 0x0
 
@@ -3994,7 +4957,7 @@
 
     if-nez v0, :cond_10
 
-    .line 748
+    .line 910
     sget-object v0, Landroid/hardware/camera2/CaptureResult;->LENS_FOCAL_LENGTH:Landroid/hardware/camera2/CaptureResult$Key;
 
     invoke-virtual {v1, v0}, Landroid/hardware/camera2/TotalCaptureResult;->get(Landroid/hardware/camera2/CaptureResult$Key;)Ljava/lang/Object;
@@ -4003,14 +4966,14 @@
 
     check-cast v0, Ljava/lang/Float;
 
-    .line 749
+    .line 911
     if-nez v0, :cond_f
 
     move-object/from16 v9, v23
 
     if-eqz v9, :cond_f
 
-    .line 750
+    .line 912
     sget-object v1, Landroid/hardware/camera2/CameraCharacteristics;->LENS_INFO_AVAILABLE_FOCAL_LENGTHS:Landroid/hardware/camera2/CameraCharacteristics$Key;
 
     invoke-virtual {v9, v1}, Landroid/hardware/camera2/CameraCharacteristics;->get(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
@@ -4019,14 +4982,14 @@
 
     check-cast v1, [F
 
-    .line 751
+    .line 913
     if-eqz v1, :cond_e
 
     array-length v5, v1
 
     if-lez v5, :cond_e
 
-    .line 752
+    .line 914
     const/4 v5, 0x0
 
     aget v0, v1, v5
@@ -4037,17 +5000,17 @@
 
     goto :goto_9
 
-    .line 751
+    .line 913
     :cond_e
     const/4 v5, 0x0
 
     goto :goto_9
 
-    .line 749
+    .line 911
     :cond_f
     const/4 v5, 0x0
 
-    .line 755
+    .line 917
     :goto_9
     if-eqz v0, :cond_11
 
@@ -4071,7 +5034,7 @@
 
     if-lez v1, :cond_11
 
-    .line 756
+    .line 918
     invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
 
     move-result v0
@@ -4104,21 +5067,21 @@
 
     invoke-virtual {v3, v4, v0}, Lcom/motorola/camera/photometadata/PhotoMetadata;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
 
-    .line 757
+    .line 919
     move/from16 v6, v19
 
     goto :goto_a
 
-    .line 747
+    .line 909
     :cond_10
     const/4 v5, 0x0
 
-    .line 760
+    .line 922
     :cond_11
     :goto_a
     if-eqz v6, :cond_12
 
-    .line 761
+    .line 923
     new-instance v0, Ljava/io/ByteArrayOutputStream;
 
     array-length v1, v2
@@ -4127,19 +5090,19 @@
 
     invoke-direct {v0, v1}, Ljava/io/ByteArrayOutputStream;-><init>(I)V
 
-    .line 762
+    .line 924
     new-instance v1, Ljava/io/ByteArrayInputStream;
 
     invoke-direct {v1, v2}, Ljava/io/ByteArrayInputStream;-><init>([B)V
 
     invoke-virtual {v3, v1, v0, v5}, Lcom/motorola/camera/photometadata/PhotoMetadata;->saveJpegAttributes(Ljava/io/InputStream;Ljava/io/OutputStream;Z)V
 
-    .line 763
+    .line 925
     invoke-virtual {v0}, Ljava/io/ByteArrayOutputStream;->toByteArray()[B
 
     move-result-object v0
 
-    .line 764
+    .line 926
     array-length v1, v0
     :try_end_b
     .catchall {:try_start_b .. :try_end_b} :catchall_5
@@ -4148,12 +5111,12 @@
 
     if-le v1, v3, :cond_12
 
-    .line 765
+    .line 927
     move-object v2, v0
 
     goto :goto_b
 
-    .line 769
+    .line 931
     :catchall_5
     move-exception v0
 
@@ -4161,7 +5124,7 @@
     :goto_b
     nop
 
-    .line 771
+    .line 933
     :try_start_c
     invoke-static/range {p7 .. p7}, Lcom/motorola/camera/storage/MediaFile;->fromMediaFilePath(Lcom/motorola/camera/storage/MediaFilePath;)Lcom/motorola/camera/storage/backend/MediaStoreMediaFile;
 
@@ -4171,23 +5134,23 @@
 
     move-result-object v0
 
-    .line 772
+    .line 934
     if-nez v0, :cond_13
 
     return-void
 
-    .line 773
+    .line 935
     :cond_13
     invoke-interface {v0}, Lcom/motorola/camera/storage/MediaFile;->getWriteFileDescriptor()Ljava/io/FileDescriptor;
 
     move-result-object v1
 
-    .line 774
+    .line 936
     if-nez v1, :cond_14
 
     return-void
 
-    .line 775
+    .line 937
     :cond_14
     new-instance v3, Ljava/io/FileOutputStream;
 
@@ -4195,23 +5158,23 @@
     :try_end_c
     .catchall {:try_start_c .. :try_end_c} :catchall_9
 
-    .line 776
+    .line 938
     :try_start_d
     invoke-virtual {v3, v2}, Ljava/io/FileOutputStream;->write([B)V
 
-    .line 777
+    .line 939
     invoke-virtual {v3}, Ljava/io/FileOutputStream;->flush()V
     :try_end_d
     .catchall {:try_start_d .. :try_end_d} :catchall_6
 
-    .line 778
+    .line 940
     :try_start_e
     invoke-virtual {v3}, Ljava/io/FileOutputStream;->close()V
 
-    .line 779
+    .line 941
     invoke-interface {v0}, Lcom/motorola/camera/storage/MediaFile;->finish()V
 
-    .line 780
+    .line 942
     invoke-static {}, Ljava/lang/System;->nanoTime()J
 
     move-result-wide v0
@@ -4222,7 +5185,7 @@
 
     div-long/2addr v0, v3
 
-    .line 781
+    .line 943
     array-length v2, v2
 
     new-instance v3, Ljava/lang/StringBuilder;
@@ -4275,10 +5238,10 @@
     :try_end_e
     .catchall {:try_start_e .. :try_end_e} :catchall_9
 
-    .line 784
+    .line 946
     goto :goto_e
 
-    .line 775
+    .line 937
     :catchall_6
     move-exception v0
 
@@ -4300,16 +5263,16 @@
     :goto_c
     throw v1
 
-    .line 734
+    .line 896
     :catchall_8
     move-exception v0
 
     invoke-virtual {v3}, Landroid/graphics/Bitmap;->recycle()V
 
-    .line 735
+    .line 897
     throw v0
 
-    .line 653
+    .line 815
     :cond_15
     move-object v14, v4
 
@@ -4337,10 +5300,10 @@
     :try_end_10
     .catchall {:try_start_10 .. :try_end_10} :catchall_9
 
-    .line 654
+    .line 816
     return-void
 
-    .line 782
+    .line 944
     :catchall_9
     move-exception v0
 
@@ -4351,13 +5314,13 @@
 
     move-object v14, v4
 
-    .line 783
+    .line 945
     :goto_d
     const-string v1, "runCleanBayerExport failed cleanly (DNG unaffected)"
 
     invoke-static {v14, v1, v0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
 
-    .line 785
+    .line 947
     :goto_e
     return-void
 .end method
@@ -4365,7 +5328,7 @@
 .method private static sensorTransformToSrgbCcm([F)[F
     .locals 26
 
-    .line 800
+    .line 962
     move-object/from16 v0, p0
 
     if-eqz v0, :cond_5
@@ -4380,7 +5343,7 @@
 
     goto/16 :goto_3
 
-    .line 801
+    .line 963
     :cond_0
     const/4 v2, 0x0
 
@@ -4394,7 +5357,7 @@
 
     aget v8, v0, v7
 
-    .line 802
+    .line 964
     const/4 v9, 0x3
 
     aget v10, v0, v9
@@ -4407,7 +5370,7 @@
 
     aget v14, v0, v13
 
-    .line 803
+    .line 965
     const/4 v15, 0x6
 
     aget v16, v0, v15
@@ -4420,7 +5383,7 @@
 
     aget v0, v0, v19
 
-    .line 804
+    .line 966
     mul-float v20, v12, v0
 
     mul-float v21, v14, v18
@@ -4443,7 +5406,7 @@
 
     sub-float v21, v21, v22
 
-    .line 805
+    .line 967
     mul-float v22, v6, v0
 
     mul-float v24, v8, v18
@@ -4470,7 +5433,7 @@
 
     neg-float v5, v5
 
-    .line 806
+    .line 968
     mul-float v16, v6, v14
 
     mul-float v18, v8, v12
@@ -4491,7 +5454,7 @@
 
     sub-float/2addr v12, v10
 
-    .line 807
+    .line 969
     mul-float v4, v4, v20
 
     mul-float/2addr v6, v1
@@ -4502,7 +5465,7 @@
 
     add-float/2addr v4, v8
 
-    .line 808
+    .line 970
     invoke-static {v4}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v6
@@ -4521,13 +5484,13 @@
 
     goto :goto_2
 
-    .line 809
+    .line 971
     :cond_1
     const/high16 v6, 0x3f800000    # 1.0f
 
     div-float/2addr v6, v4
 
-    .line 811
+    .line 973
     mul-float v20, v20, v6
 
     mul-float/2addr v2, v6
@@ -4566,27 +5529,27 @@
 
     aput v12, v4, v19
 
-    .line 816
+    .line 978
     new-array v0, v3, [F
 
     fill-array-data v0, :array_0
 
-    .line 821
+    .line 983
     new-array v1, v3, [F
 
-    .line 822
+    .line 984
     move/from16 v2, v25
 
     :goto_0
     if-ge v2, v9, :cond_3
 
-    .line 823
+    .line 985
     move/from16 v3, v25
 
     :goto_1
     if-ge v3, v9, :cond_2
 
-    .line 824
+    .line 986
     mul-int/lit8 v5, v2, 0x3
 
     add-int v6, v5, v3
@@ -4623,27 +5586,27 @@
 
     aput v8, v1, v6
 
-    .line 823
+    .line 985
     add-int/lit8 v3, v3, 0x1
 
     goto :goto_1
 
-    .line 822
+    .line 984
     :cond_2
     add-int/lit8 v2, v2, 0x1
 
     goto :goto_0
 
-    .line 829
+    .line 991
     :cond_3
     return-object v1
 
-    .line 808
+    .line 970
     :cond_4
     :goto_2
     return-object v23
 
-    .line 800
+    .line 962
     :cond_5
     const/16 v23, 0x0
 
@@ -4666,10 +5629,70 @@
     .end array-data
 .end method
 
+.method private static setVendorKeyIfSupported(Landroid/hardware/camera2/CaptureRequest$Builder;Ljava/util/Set;Ljava/lang/String;Ljava/lang/Class;Ljava/lang/Object;)V
+    .locals 0
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "<T:",
+            "Ljava/lang/Object;",
+            ">(",
+            "Landroid/hardware/camera2/CaptureRequest$Builder;",
+            "Ljava/util/Set<",
+            "Ljava/lang/String;",
+            ">;",
+            "Ljava/lang/String;",
+            "Ljava/lang/Class<",
+            "TT;>;TT;)V"
+        }
+    .end annotation
+
+    .line 411
+    if-eqz p0, :cond_1
+
+    if-eqz p1, :cond_1
+
+    invoke-interface {p1, p2}, Ljava/util/Set;->contains(Ljava/lang/Object;)Z
+
+    move-result p1
+
+    if-nez p1, :cond_0
+
+    goto :goto_1
+
+    .line 415
+    :cond_0
+    :try_start_0
+    new-instance p1, Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-direct {p1, p2, p3}, Landroid/hardware/camera2/CaptureRequest$Key;-><init>(Ljava/lang/String;Ljava/lang/Class;)V
+
+    .line 416
+    invoke-virtual {p0, p1, p4}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    goto :goto_0
+
+    .line 417
+    :catchall_0
+    move-exception p0
+
+    :goto_0
+    nop
+
+    .line 418
+    return-void
+
+    .line 412
+    :cond_1
+    :goto_1
+    return-void
+.end method
+
 .method public static shouldAllowInSensorCrop()Z
     .locals 3
 
-    .line 339
+    .line 362
     const/4 v0, 0x0
 
     invoke-static {v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveActiveScene(Z)[I
@@ -4680,7 +5703,7 @@
 
     aget v1, v1, v2
 
-    .line 340
+    .line 363
     if-eqz v1, :cond_0
 
     const/4 v0, 0x1
@@ -4692,7 +5715,7 @@
 .method public static shouldAllowMcf(Z)Z
     .locals 1
 
-    .line 163
+    .line 183
     if-eqz p0, :cond_0
 
     invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->getSelectedProfile()I
@@ -4717,24 +5740,24 @@
 .method private static toByteArray(Ljava/nio/ByteBuffer;)[B
     .locals 1
 
-    .line 833
+    .line 995
     invoke-virtual {p0}, Ljava/nio/ByteBuffer;->duplicate()Ljava/nio/ByteBuffer;
 
     move-result-object p0
 
-    .line 834
+    .line 996
     invoke-virtual {p0}, Ljava/nio/ByteBuffer;->clear()Ljava/nio/ByteBuffer;
 
-    .line 835
+    .line 997
     invoke-virtual {p0}, Ljava/nio/ByteBuffer;->remaining()I
 
     move-result v0
 
     new-array v0, v0, [B
 
-    .line 836
+    .line 998
     invoke-virtual {p0, v0}, Ljava/nio/ByteBuffer;->get([B)Ljava/nio/ByteBuffer;
 
-    .line 837
+    .line 999
     return-object v0
 .end method

@@ -14,7 +14,7 @@ test('smali_patches_cam5.json loads cleanly and defines valid unique patch entri
   const data = JSON.parse(fs.readFileSync(PATCHES_PATH, 'utf8'));
   assert.equal(data.targetPackage, 'com.motorola.camera5');
   assert.equal(data.targetVersion, '10.0.44.42');
-  assert.ok(Array.isArray(data.patches) && data.patches.length === 23);
+  assert.ok(Array.isArray(data.patches) && data.patches.length === 25);
 
   for (const name of ['CustomImagingBridge', 'ScenePostProcSelector', 'AppleStyleToneEngine', 'CleanBayerRawProcessor']) {
     const sp = path.join(REPO_ROOT, 'patches', 'custom_imaging_smali', 'com', 'motorola', 'camera', 'custom', `${name}.smali`);
@@ -63,7 +63,11 @@ test(
     }
     assert.deepEqual(
       dev.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']?.['in-sensor-crop-lux-idx-threshold'],
-      [200, 230],
+      [290, 320],
+    );
+    assert.deepEqual(
+      dev.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-tele-overrides']?.['in-sensor-crop-lux-idx-threshold'],
+      [250, 280],
     );
     assert.ok((dev.ctwo['remosaic-config']?.['to-high-res-rg-threshold']?.[0] ?? 9) <= 0.1);
 
@@ -80,5 +84,24 @@ test(
     assert.ok(mcf.ctwo['scene-classifer']?.['super-resolution']?.enable.every((v) => v === false));
     const srThresh = mcf.ctwo['arcsoft-tf-drsd']?.['custom-thresh']?.find((t) => t?.variant === 'super-resolution');
     assert.ok(srThresh && srThresh['zoom-thresh-in'].every((v) => v >= 999));
+    assert.equal(mcf.ctwo['arcsoft-tf-drsd']?.['ev-lib-api-version'], 1);
+
+    for (const sec of [
+      'arcsoft-turbo-fusion-raw-nv',
+      'arcsoft-turbo-fusion-raw-hdr',
+      'arcsoft-turbo-fusion-motion-capture',
+    ]) {
+      const cfg = mcf.ctwo[sec];
+      assert.ok(cfg, `Missing ${sec}`);
+      assert.ok(
+        Array.isArray(cfg['api-version']) && cfg['api-version'].every((v) => v === 1),
+        `${sec}.api-version must pin SM8635 V1 instead of roadstr V3`,
+      );
+      assert.equal(
+        cfg['grf-lib-api-version'],
+        1,
+        `${sec}.grf-lib-api-version must pin SM8635 V1 instead of roadstr V3`,
+      );
+    }
   },
 );

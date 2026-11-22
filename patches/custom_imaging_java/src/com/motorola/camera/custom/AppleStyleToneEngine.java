@@ -35,6 +35,15 @@ public final class AppleStyleToneEngine {
     private AppleStyleToneEngine() {}
 
     public static void applyToArgbPixels(int[] argb, int width, int height, int styleId) {
+        applyToArgbPixels(argb, width, height, styleId, width, height, 0);
+    }
+
+    /**
+     * Grades an ARGB buffer or horizontal strip using full-frame geometry for seamless
+     * highlight-protected luma-only optical vignette and deterministic film micro-grain.
+     */
+    public static void applyToArgbPixels(int[] argb, int width, int height, int styleId,
+                                         int fullWidth, int fullHeight, int stripTopY) {
         if (argb == null || width <= 0 || height <= 0) {
             return;
         }
@@ -47,6 +56,11 @@ public final class AppleStyleToneEngine {
         if (effHeight <= 0) {
             return;
         }
+        boolean enableSpatialOptics = fullWidth >= 64 && fullHeight >= 64;
+        float invHalfW = enableSpatialOptics ? (2.0f / (float) fullWidth) : 0f;
+        float invHalfH = enableSpatialOptics ? (2.0f / (float) fullHeight) : 0f;
+        float vigStrength = styleId == STYLE_IPHONE_AMBER ? 0.16f
+                : (styleId == STYLE_IPHONE_RICH_CONTRAST ? 0.12f : 0.05f);
 
         float[] baseGrid = null;
         int gw = 0;
@@ -63,6 +77,9 @@ public final class AppleStyleToneEngine {
             int y1 = Math.min(y0 + 1, Math.max(0, gh - 1));
             float ty = fy - y0;
             int rowBase = y * width;
+            int globalY = stripTopY + y;
+            float ny = enableSpatialOptics ? ((globalY + 0.5f) * invHalfH - 1.0f) : 0f;
+            float ny2 = ny * ny;
 
             for (int x = 0; x < width; x++) {
                 int i = rowBase + x;
@@ -92,7 +109,15 @@ public final class AppleStyleToneEngine {
                     localBase = top + (bot - top) * ty;
                 }
 
-                argb[i] = gradePixel(alpha, r, g, b, isGray, localBase, styleId);
+                float radialEdge = 0f;
+                if (enableSpatialOptics) {
+                    float nx = (x + 0.5f) * invHalfW - 1.0f;
+                    // Elliptical aspect weighting (~0.82x on long side, matching cv_style.c optics).
+                    float r2 = nx * nx * 0.82f + ny2;
+                    radialEdge = vigStrength * smoothstep(0.28f, 1.38f, r2);
+                }
+
+                argb[i] = gradePixel(alpha, r, g, b, isGray, localBase, styleId, radialEdge, enableSpatialOptics, x, globalY);
             }
         }
     }
@@ -168,7 +193,8 @@ public final class AppleStyleToneEngine {
     }
 
     private static int gradePixel(int alpha, float r, float g, float b, boolean isGray,
-                                  float baseLogY, int style) {
+                                  float baseLogY, int style, float radialEdge,
+                                  boolean enableSpatialOptics, int gx, int gy) {
         if (r <= 0f && g <= 0f && b <= 0f) {
             return alpha;
         }
@@ -224,6 +250,21 @@ public final class AppleStyleToneEngine {
 
         // 3. Tone curve in perceptual lightness L (guarantees smooth shadow/mid contrast without hue shift).
         float newL = applyLightnessCurve(okL, style);
+
+        if (enableSpatialOptics) {
+            // OPPO/Xiaomi-style luma-only highlight-protected vignette: shapes corner falloff in Oklab L.
+            if (radialEdge > 0f) {
+                float hlProtect = 1f - smoothstep(0.58f, 0.92f, newL);
+                newL = clamp01(newL * (1f - radialEdge * hlProtect));
+            }
+            // Xiaomi frag_madrid-inspired 6-tap triangular micro-grain strictly on midtones of Amber.
+            if (style == STYLE_IPHONE_AMBER) {
+                float midMask = smoothstep(0.06f, 0.20f, newL) * (1f - smoothstep(0.75f, 0.96f, newL));
+                if (midMask > 0f) {
+                    newL = clamp01(newL + deterministicGrain6(gx, gy) * 0.0032f * midMask);
+                }
+            }
+        }
 
         if (isGray) {
             float outLin = newL * newL * newL;
@@ -409,6 +450,18 @@ public final class AppleStyleToneEngine {
     private static float smoothstep(float e0, float e1, float x) {
         float t = clamp01((x - e0) / (e1 - e0));
         return t * t * (3f - 2f * t);
+    }
+
+    /** Zero-mean quasi-Gaussian deterministic film grain [-1, +1] from 4 spatial taps (irwin-hall). */
+    private static float deterministicGrain6(int x, int y) {
+        int h = (x * 0x9E3779B1) ^ (y * 0x85EBCA77);
+        h ^= (h >>> 15);
+        h *= 0x2C1B3C6D;
+        h ^= (h >>> 12);
+        // Split 32-bit whitened integer into four 8-bit uniform taps in [0, 255].
+        int t0 = (h & 255) + ((h >>> 8) & 255);
+        int t1 = ((h >>> 16) & 255) + ((h >>> 24) & 255);
+        return ((t0 + t1) - 510.0f) * (1.0f / 510.0f);
     }
 
     private static int toSrgbByte(float lin) {

@@ -135,7 +135,10 @@ for (const cam of ['BACK_MAIN', 'BACK_TELE', 'ZOOM_BLENDING']) {
   }
 }
 if (dev4.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']) {
-  dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-main-overrides']['in-sensor-crop-lux-idx-threshold'] ??= [200, 230];
+  dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-main-overrides']['in-sensor-crop-lux-idx-threshold'] = [290, 320];
+}
+if (dev4.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-tele-overrides']) {
+  dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-tele-overrides']['in-sensor-crop-lux-idx-threshold'] = [250, 280];
 }
 if (dev4.ctwo['remosaic-config']) {
   dev4.ctwo['remosaic-config']['to-high-res-rg-threshold'] = [0.05];
@@ -267,6 +270,22 @@ if (mcf4.ctwo['scene-classifer']?.['moon-detect']) {
 }
 if (mcf4.ctwo['arcsoft-turbo-fusion-motion-capture']) {
   mcf4.ctwo['arcsoft-turbo-fusion-motion-capture']['grf-lib-name'] = 'libarcsoft_turbo_raw_grf_8635.so';
+}
+for (const sec of [
+  'arcsoft-turbo-fusion-raw-nv',
+  'arcsoft-turbo-fusion-raw-hdr',
+  'arcsoft-turbo-fusion-motion-capture',
+]) {
+  if (mcf4.ctwo[sec]) {
+    // SM8635 vendor/APK ArcSoft libs export V1 symbols (ARC_TFRSN_*, ARC_Turbo_HDR_*,
+    // ARC_Turbo_Motion_Capture_*, ARC_TFR_GRF_*), whereas roadstr injects api-version=3.
+    mcf4.ctwo[sec]['api-version'] = rep(1);
+    mcf4.ctwo[sec]['grf-lib-api-version'] = 1;
+  }
+}
+if (mcf4.ctwo['arcsoft-tf-drsd']) {
+  // libarcsoft_turbo_hdr_detection_simple_8635.so lacks V2 ARC_HDRD_SetSensorData.
+  mcf4.ctwo['arcsoft-tf-drsd']['ev-lib-api-version'] = 1;
 }
 for (const sec of ['arcsoft-turbo-fusion-raw-hdr', 'arcsoft-turbo-fusion-raw-nv']) {
   if (mcf4.ctwo[sec]) {

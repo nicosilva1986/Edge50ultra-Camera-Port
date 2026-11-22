@@ -157,6 +157,9 @@ public final class CleanBayerRawProcessor {
         if (isoSensitivity > 150 && width >= 4 && height >= 4) {
             smoothChromaByIso(linR, linG, linB, width, height, isoSensitivity);
         }
+        if (width >= 6 && height >= 6) {
+            suppressDemosaicFringes(linR, linG, linB, width, height);
+        }
 
         int[] argb = new int[count];
         float[] sRed = sharpenAmount > 0 ? new float[count] : null;
@@ -187,7 +190,7 @@ public final class CleanBayerRawProcessor {
             }
         }
         if (luma != null) {
-            sharpenHeadroomDamped(argb, width, height, sRed, sGreen, sBlue, luma, sharpenAmount);
+            sharpenHeadroomDamped(argb, width, height, sRed, sGreen, sBlue, luma, sharpenAmount, isoSensitivity);
         }
         return argb;
     }
@@ -300,16 +303,110 @@ public final class CleanBayerRawProcessor {
         }
     }
 
-    /** Symmetric nearest-neighbor headroom-damped sharpening: eliminates white halos on dark wires. */
+    /**
+     * Suppresses 1-pixel chromatic demosaic fringes along high-contrast edges by pulling
+     * anomalous color-difference spikes (R-G, B-G) toward the calmest same-brightness neighbor
+     * while strictly conserving pixel luminance and preserving solid saturated edges.
+     */
+    private static void suppressDemosaicFringes(float[] rArr, float[] gArr, float[] bArr,
+                                                int width, int height) {
+        int count = width * height;
+        float[] origRG = new float[count];
+        float[] origBG = new float[count];
+        for (int i = 0; i < count; i++) {
+            origRG[i] = rArr[i] - gArr[i];
+            origBG[i] = bArr[i] - gArr[i];
+        }
+        for (int y = 1; y < height - 1; y++) {
+            int row = y * width;
+            for (int x = 1; x < width - 1; x++) {
+                int i = row + x;
+                float gc = gArr[i];
+                float gu = gArr[i - width], gd = gArr[i + width];
+                float gl = gArr[i - 1], gr = gArr[i + 1];
+                float gSpan = Math.max(Math.max(gc, gu), Math.max(gd, Math.max(gl, gr)))
+                            - Math.min(Math.min(gc, gu), Math.min(gd, Math.min(gl, gr)));
+                if (gSpan < 0.14f) {
+                    continue;
+                }
+                float rg = origRG[i];
+                float bg = origBG[i];
+                float bestRG = rg;
+                float bestBG = bg;
+                float origMag = rg * rg + bg * bg;
+                float bestChromaMag = origMag;
+                boolean foundSameSide = false;
+                for (int dy = -1; dy <= 1; dy++) {
+                    int nRow = (y + dy) * width;
+                    for (int dx = -1; dx <= 1; dx++) {
+                        if (dx == 0 && dy == 0) continue;
+                        int ni = nRow + x + dx;
+                        if (Math.abs(gArr[ni] - gc) < 0.08f) {
+                            float nrg = origRG[ni];
+                            float nbg = origBG[ni];
+                            float mag = nrg * nrg + nbg * nbg;
+                            if (mag < bestChromaMag) {
+                                bestChromaMag = mag;
+                                bestRG = nrg;
+                                bestBG = nbg;
+                                foundSameSide = true;
+                            }
+                        }
+                    }
+                }
+                // Check 2-pixel cardinal steps outside the 5x5 Malvar second-shell fringe zone.
+                for (int s = 0; s < 4; s++) {
+                    int nx = x + (s == 0 ? -2 : (s == 1 ? 2 : 0));
+                    int ny = y + (s == 2 ? -2 : (s == 3 ? 2 : 0));
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                        int ni = ny * width + nx;
+                        if (Math.abs(gArr[ni] - gc) < 0.08f) {
+                            float nrg = origRG[ni];
+                            float nbg = origBG[ni];
+                            float mag = nrg * nrg + nbg * nbg;
+                            if (mag < bestChromaMag) {
+                                bestChromaMag = mag;
+                                bestRG = nrg;
+                                bestBG = nbg;
+                                foundSameSide = true;
+                            }
+                        }
+                    }
+                }
+                if (!foundSameSide || bestChromaMag >= origMag) {
+                    continue;
+                }
+                float crg = rg + (bestRG - rg) * 0.85f;
+                float cbg = bg + (bestBG - bg) * 0.85f;
+                if (crg != rg || cbg != bg) {
+                    float yLum = 0.2126f * rArr[i] + 0.7152f * gArr[i] + 0.0722f * bArr[i];
+                    float gNew = yLum - 0.2126f * crg - 0.0722f * cbg;
+                    rArr[i] = Math.max(0f, gNew + crg);
+                    gArr[i] = Math.max(0f, gNew);
+                    bArr[i] = Math.max(0f, gNew + cbg);
+                }
+            }
+        }
+    }
+
+    /**
+     * Directional gradient-weighted + noise-floor-gated symmetric sharpening:
+     * keeps smooth ISO-grainy areas untouched and eliminates white halos on dark wires.
+     */
     private static void sharpenHeadroomDamped(int[] argb, int width, int height, float[] red,
-                                              float[] green, float[] blue, float[] luma, float amount) {
+                                              float[] green, float[] blue, float[] luma,
+                                              float amount, int iso) {
         final int[] oppX = {-1, 0, -1, 1};
         final int[] oppY = {0, -1, -1, -1};
+        float isoDamp = 1.0f / (1.0f + Math.max(0, iso - 200) / 1400.0f);
+        float effAmount = amount * isoDamp;
         for (int y = 0; y < height; y++) {
             for (int x = 0, i = y * width; x < width; x++, i++) {
                 float yc = luma[i];
                 float minY = yc, maxY = yc;
-                float sumSym = 0f;
+                float wNum = 0f;
+                float wDen = 0f;
+                float maxGrad = 0f;
                 for (int k = 0; k < 4; k++) {
                     int x1 = Math.max(0, Math.min(width - 1, x + oppX[k]));
                     int y1 = Math.max(0, Math.min(height - 1, y + oppY[k]));
@@ -321,10 +418,18 @@ public final class CleanBayerRawProcessor {
                     if (b < minY) minY = b;
                     if (a > maxY) maxY = a;
                     if (b > maxY) maxY = b;
-                    sumSym += (Math.abs(a - yc) <= Math.abs(b - yc)) ? a : b;
+                    float gAxis = Math.abs(a - b);
+                    if (gAxis > maxGrad) maxGrad = gAxis;
+                    // Focus sharpening weight across strong local edge axes (reduces diagonal zipper).
+                    float axisW = 0.02f + gAxis;
+                    float symSample = (Math.abs(a - yc) <= Math.abs(b - yc)) ? a : b;
+                    wNum += symSample * axisW;
+                    wDen += axisW;
                 }
-                float meanSym = (sumSym + yc) / 5f;
-                float delta = (yc - meanSym) * amount;
+                float tGate = clamp01((maxGrad - 0.012f) / 0.033f);
+                float flatGate = tGate * tGate * (3f - 2f * tGate);
+                float meanSym = wDen > 0f ? (wNum / wDen) : yc;
+                float delta = (yc - meanSym) * effAmount * flatGate;
                 float dMax = Math.max(0f, maxY - yc);
                 float dMin = Math.max(0f, yc - minY);
                 float headroom = delta > 0f

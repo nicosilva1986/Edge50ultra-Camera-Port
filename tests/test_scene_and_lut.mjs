@@ -70,6 +70,18 @@ public final class SceneLutProbe {
                 System.out.print("R " + part[1]);
                 for (int value : out) System.out.print(" " + value);
                 System.out.println();
+            } else if (op.equals("X")) {
+                int[] out = com.motorola.camera.custom.ScenePostProcSelector.resolveExtended(
+                        Integer.parseInt(part[2]),
+                        Float.parseFloat(part[3]),
+                        Float.parseFloat(part[4]),
+                        part[5],
+                        part[6].equals("1"),
+                        part[7].equals("1"),
+                        part[8].equals("1"));
+                System.out.print("X " + part[1]);
+                for (int value : out) System.out.print(" " + value);
+                System.out.println();
             } else if (op.equals("E")) {
                 float zoom = part[2].equals("nextDown12") ? Math.nextDown(12f)
                         : part[2].equals("nextDown295") ? Math.nextDown(2.95f)
@@ -265,6 +277,16 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   jobs.push('G ramp-3 3');
   jobs.push('K ids');
 
+  jobs.push('X uw-day 0 0.5 100 NORMAL 0 0 0');
+  jobs.push('X uw-dusk 0 0.5 200 NORMAL 0 0 0');
+  jobs.push('X isz2x-dusk 0 2.0 257 NORMAL 0 0 0');
+  jobs.push('X isz2x-night 0 2.0 340 NORMAL 0 0 0');
+  jobs.push('X tele3x-day 0 3.0 120 NORMAL 0 0 0');
+  jobs.push('X tele6x-day 0 6.0 150 NORMAL 0 0 0');
+  jobs.push('X tele6x-dusk 0 6.0 290 NORMAL 0 0 0');
+  jobs.push('X detail-hdr 3 1.0 100 NORMAL 0 0 0');
+  jobs.push('X p9-direct 9 2.0 250 NORMAL 0 0 0');
+
   const validCube = join(work, 'valid.cube');
   const malformed = {
     empty: '',
@@ -396,6 +418,24 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   const graded = channels(bench[3]);
   assert.equal(graded.a, 0xA5);
   console.log(`1920x1080 AppleStyleToneEngine benchmark: ${elapsed} ms`);
+
+  const extChecks = {
+    // [sceneAction, nr, edge, mfnr, sz, lut, raw, isz, aide, vsr, hdr, t2wLock, qll]
+    'uw-day': [1, 3, 0, 1, 0, 0, 0, -1, 0, -1, -1, -1, -1],
+    'uw-dusk': [1, 1, 0, 1, 0, 0, 0, -1, 1, -1, 1, -1, -1],
+    'isz2x-dusk': [1, 3, 0, 1, 0, 0, 0, 1, 0, -1, 1, -1, -1],
+    'isz2x-night': [1, 3, 0, 1, 0, 0, 0, 0, 1, -1, 1, -1, -1],
+    'tele3x-day': [1, 3, 0, 1, 0, 0, 0, -1, 0, -1, -1, 1, -1],
+    'tele6x-day': [1, 3, 0, 1, 0, 0, 0, 1, 0, 2, 1, 1, -1],
+    'tele6x-dusk': [1, 3, 0, 1, 0, 0, 0, 0, 1, 2, 1, 1, -1],
+    'detail-hdr': [1, 3, 0, 1, 0, 0, 0, -1, 0, -1, 2, -1, -1],
+    'p9-direct': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0],
+  };
+  for (const [name, expected] of Object.entries(extChecks)) {
+    const parts = lines.get(`X ${name}`);
+    assert.ok(parts, `Missing extended check ${name}`);
+    assert.deepEqual(parts.slice(2).map(Number), expected, `Extended mismatch for ${name}`);
+  }
 });
 
 test('specialized scenes, per-capture bridge isolation, and strip overlap parity', () => {
@@ -420,7 +460,7 @@ test('specialized scenes, per-capture bridge isolation, and strip overlap parity
     mkdirSync(bridgeClasses, { recursive: true });
     mkdirSync(join(overrideSrc, 'com', 'motorola', 'camera', 'settings'), { recursive: true });
 
-    // Controllable PersistBehavior test double inside temp dir (keeps repo stubs unchanged).
+    // Controllable PersistBehavior + SettingsManager test doubles inside temp dir (keeps repo stubs unchanged).
     const testPersist = join(overrideSrc, 'com', 'motorola', 'camera', 'settings', 'PersistBehavior.java');
     writeFileSync(testPersist, `package com.motorola.camera.settings;
 import android.content.SharedPreferences;
@@ -431,8 +471,22 @@ public final class PersistBehavior {
     }
 }
 `);
-    const filteredStubs = stubFiles.filter((f) => !f.endsWith('PersistBehavior.java'));
-    run(javac, ['--release', '11', '-d', bridgeClasses, ...filteredStubs, testPersist]);
+    const testSettingsMgr = join(overrideSrc, 'com', 'motorola', 'camera', 'settings', 'SettingsManager.java');
+    writeFileSync(testSettingsMgr, `package com.motorola.camera.settings;
+import android.hardware.camera2.CameraCharacteristics;
+public final class SettingsManager {
+    public static CameraType mockCamType = null;
+    public static float mockZoomInv = 1f;
+    public static CameraCharacteristics mockChars = null;
+    public static CameraType getCurrentCameraType() { return mockCamType; }
+    public static float getZoomValue(CameraType type) { return mockZoomInv; }
+    public static CameraCharacteristics getCharacteristics(String cameraId) { return mockChars; }
+}
+`);
+    const filteredStubs = stubFiles.filter(
+      (f) => !f.endsWith('PersistBehavior.java') && !f.endsWith('SettingsManager.java'),
+    );
+    run(javac, ['--release', '11', '-d', bridgeClasses, ...filteredStubs, testPersist, testSettingsMgr]);
 
     const customFiles = [
       selectorSource,
@@ -443,6 +497,7 @@ public final class PersistBehavior {
     run(javac, ['--release', '11', '-cp', bridgeClasses, '-d', bridgeClasses, ...customFiles]);
 
     writeFileSync(harnessSrc, `
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CaptureRequest;
 import com.motorola.camera.capturedmediadata.CapturedImageMediaData;
 import com.motorola.camera.custom.AppleStyleToneEngine;
@@ -451,8 +506,12 @@ import com.motorola.camera.custom.ScenePostProcSelector;
 import com.motorola.camera.fsm.camera.record.ImageCaptureRecord;
 import com.motorola.camera.fsm.camera.record.SequenceIdentifier;
 import com.motorola.camera.saving.SaveImageService;
+import com.motorola.camera.settings.CameraType;
 import com.motorola.camera.settings.PersistBehavior;
+import com.motorola.camera.settings.SettingsManager;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public final class BridgeChecks {
     public static void main(String[] args) {
@@ -540,6 +599,29 @@ public final class BridgeChecks {
             throw new AssertionError("Expected JPEG quality bump 95 -> 98");
         }
 
+        // 2c. Non-root (!htpAvailable) rescue for HTP-blocked RAW_SUPER_NIGHT / RAW_HDR / MOTION_CAPTURE.
+        for (String s : new String[] {"RAW_SUPER_NIGHT", "RAW_SUPER_NIGHT_DEDICATED", "RAW_HDR", "MOTION_CAPTURE"}) {
+            int[] rescued = ScenePostProcSelector.resolve(0, 1.0f, 500.0f, s, false, "RAW_SUPER_NIGHT_DEDICATED".equals(s), false);
+            if (rescued[0] != ScenePostProcSelector.SCENE_HAL_FRAME_STACK
+                    || rescued[1] != ScenePostProcSelector.NR_HIGH_QUALITY
+                    || rescued[2] != ScenePostProcSelector.EDGE_FAST
+                    || rescued[3] != 1) {
+                throw new AssertionError("Expected !htpAvailable dark rescue to HAL_FRAME_STACK+HQ_NR+MFNR=1 for " + s + ", got " + Arrays.toString(rescued));
+            }
+        }
+        int[] rawHdrBrightNoHtp = ScenePostProcSelector.resolve(0, 1.0f, 80.0f, "RAW_HDR", false, false, false);
+        if (rawHdrBrightNoHtp[0] != ScenePostProcSelector.SCENE_HAL_FRAME_STACK || rawHdrBrightNoHtp[3] != 1) {
+            throw new AssertionError("Expected bright RAW_HDR -> HAL_FRAME_STACK when !htpAvailable: " + Arrays.toString(rawHdrBrightNoHtp));
+        }
+        int[] portraitNoHtp = ScenePostProcSelector.resolve(0, 1.0f, 80.0f, "RAW_HDR_PORTRAIT", false, true, false);
+        if (portraitNoHtp[0] != ScenePostProcSelector.SCENE_KEEP || portraitNoHtp[1] != -1) {
+            throw new AssertionError("Portrait must stay preserved even when !htpAvailable: " + Arrays.toString(portraitNoHtp));
+        }
+        int[] p9NoHtp = ScenePostProcSelector.resolve(9, 1.0f, 500.0f, "RAW_SUPER_NIGHT", false, false, false);
+        if (p9NoHtp[0] != ScenePostProcSelector.SCENE_KEEP || p9NoHtp[3] != 0) {
+            throw new AssertionError("Profile 9 must stay direct HAL / MFNR=0 even when !htpAvailable: " + Arrays.toString(p9NoHtp));
+        }
+
         // 3. Real parallel strip runner parity across BOTH strip seam (512) and batch-4 boundary (2048).
         int w = 64, h = 2160;
         int[] full = new int[w * h];
@@ -571,6 +653,121 @@ public final class BridgeChecks {
                 }
             }
         }
+
+        // 4. Amber spatial optics (vignette + 6-tap deterministic grain) full-frame vs strip parity & gray corner balance.
+        int w2 = 128, h2 = 640;
+        int[] amberFull = new int[w2 * h2];
+        Arrays.fill(amberFull, 0xFF888888);
+        int[] amberExp = amberFull.clone();
+        AppleStyleToneEngine.applyToArgbPixels(amberExp, w2, h2, AppleStyleToneEngine.STYLE_IPHONE_AMBER);
+        int[] amberStrip = amberFull.clone();
+        if (!CustomImagingBridge.gradePixelBufferStrips(amberStrip, w2, h2, 256, 24, AppleStyleToneEngine.STYLE_IPHONE_AMBER)) {
+            throw new AssertionError("gradePixelBufferStrips Amber failed");
+        }
+        int corner = amberExp[0];
+        int center = amberExp[(h2 / 2) * w2 + (w2 / 2)];
+        if (((corner >> 8) & 0xFF) >= ((center >> 8) & 0xFF)) {
+            throw new AssertionError("Expected Amber vignette darker corner than center");
+        }
+        for (int y = 0; y < h2; y += 37) {
+            for (int x = 0; x < w2; x += 17) {
+                if (amberExp[y * w2 + x] != amberStrip[y * w2 + x]) {
+                    throw new AssertionError("Amber strip vs full pixel mismatch at (" + x + "," + y + ")");
+                }
+            }
+        }
+
+        // 5. Verified CamX vendor key injection: request-only keys vs session keys guard.
+        List<CaptureRequest.Key<?>> ctwoVendorKeys = new ArrayList<>();
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableAutoHDR", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableMFHDR", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.HDRMode", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.SnapshotHDRMode", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.HDRModePreference", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableSHDR", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableQHDR", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableSnapshotOnlyInsensorZoom", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableXCFAOptimization", Byte.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode", Byte.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableVSR", Integer.class));
+        ctwoVendorKeys.add(new CaptureRequest.Key<>("com.lenovo.moto.SATFallback.T2W", Byte.class));
+
+        // 5a. When HAL exposes vendor keys purely as per-request keys (absent from SessionKeys), they are injected.
+        SettingsManager.mockChars = new CameraCharacteristics() {
+            @Override
+            public List<CaptureRequest.Key<?>> getAvailableCaptureRequestKeys() {
+                return ctwoVendorKeys;
+            }
+            @Override
+            public List<CaptureRequest.Key<?>> getAvailableSessionKeys() {
+                return java.util.Collections.emptyList();
+            }
+        };
+        PersistBehavior.mockProfile = "0";
+        SettingsManager.mockCamType = new CameraType();
+        SettingsManager.mockZoomInv = 1f / 6.0f; // 6x tele -> triggers ISZ=1, VSR=2, t2wLock=1
+        CaptureRequest.Builder req6x = new CaptureRequest.Builder();
+        CustomImagingBridge.applyCaptureRequestOverrides("0", req6x, null);
+        if (!Integer.valueOf(1).equals(req6x.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableSnapshotOnlyInsensorZoom", Integer.class)))) {
+            throw new AssertionError("Expected EnableSnapshotOnlyInsensorZoom=1 at 6x daylight when request-only");
+        }
+        if (!Integer.valueOf(2).equals(req6x.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableVSR", Integer.class)))) {
+            throw new AssertionError("Expected EnableVSR=2 at 6x when request-only");
+        }
+        if (!Byte.valueOf((byte) 0).equals(req6x.get(new CaptureRequest.Key<>("com.lenovo.moto.SATFallback.T2W", Byte.class)))) {
+            throw new AssertionError("Expected SATFallback.T2W=0 lock at 6x daylight when request-only");
+        }
+        if (!Byte.valueOf((byte) 0).equals(req6x.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode", Byte.class)))) {
+            throw new AssertionError("Expected enableMFNRAIDEMode=0 at 6x bright lux=50 when request-only");
+        }
+
+        // 5b. On real SM8635 ctwo HAL, keys present in availableSessionKeys MUST NOT be mutated per-shot
+        // (avoids Camera3Device::isReconfigurationRequired -> mid-shot reconfigureCamera -> MCXSuperFG -38 teardown).
+        SettingsManager.mockChars = new CameraCharacteristics() {
+            @Override
+            public List<CaptureRequest.Key<?>> getAvailableCaptureRequestKeys() {
+                return ctwoVendorKeys;
+            }
+            @Override
+            public List<CaptureRequest.Key<?>> getAvailableSessionKeys() {
+                return ctwoVendorKeys;
+            }
+        };
+        CaptureRequest.Builder reqCtwoSessionGuarded = new CaptureRequest.Builder();
+        CustomImagingBridge.applyCaptureRequestOverrides("0", reqCtwoSessionGuarded, null);
+        if (reqCtwoSessionGuarded.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableMFHDR", Integer.class)) != null
+                || reqCtwoSessionGuarded.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableVSR", Integer.class)) != null
+                || reqCtwoSessionGuarded.get(new CaptureRequest.Key<>("com.lenovo.moto.SATFallback.T2W", Byte.class)) != null) {
+            throw new AssertionError("Session keys must NEVER be mutated per-shot in applyCaptureRequestOverrides");
+        }
+
+        // Session setup must NOT force EnableMFHDR=1 on non-pure sessions (prevents Chi MCXSuperFG sink failure);
+        // Pure ISP / Disable PostProc still clears session HDR/VSR flags safely.
+        PersistBehavior.mockProfile = "3";
+        CaptureRequest.Builder sesHdr = new CaptureRequest.Builder();
+        CustomImagingBridge.applySessionParameterOverrides("0", sesHdr);
+        if (sesHdr.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableMFHDR", Integer.class)) != null) {
+            throw new AssertionError("Non-pure session setup must leave EnableMFHDR unset to avoid streaming graph failure");
+        }
+        PersistBehavior.mockProfile = "4";
+        CaptureRequest.Builder sesPure = new CaptureRequest.Builder();
+        CustomImagingBridge.applySessionParameterOverrides("0", sesPure);
+        if (!Integer.valueOf(0).equals(sesPure.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableMFHDR", Integer.class)))
+                || !Integer.valueOf(0).equals(sesPure.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableVSR", Integer.class)))) {
+            throw new AssertionError("Pure ISP session setup should explicitly clear EnableMFHDR=0 and EnableVSR=0");
+        }
+
+        // Empty characteristics must skip vendor keys safely without throwing or polluting builder.
+        SettingsManager.mockChars = new CameraCharacteristics();
+        CaptureRequest.Builder noSupport = new CaptureRequest.Builder();
+        CustomImagingBridge.applyCaptureRequestOverrides("1", noSupport, null);
+        if (noSupport.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableMFHDR", Integer.class)) != null) {
+            throw new AssertionError("Unsupported key should not be set when CameraCharacteristics omits it");
+        }
+        SettingsManager.mockChars = null;
+        SettingsManager.mockCamType = null;
+        SettingsManager.mockZoomInv = 1f;
+        PersistBehavior.mockProfile = "0";
     }
 }
 `);

@@ -24,15 +24,15 @@
 .method constructor <init>([ILjava/lang/String;)V
     .locals 0
 
-    .line 98
+    .line 118
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 99
+    .line 119
     iput-object p1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
-    .line 100
+    .line 120
     iput-object p2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->summary:Ljava/lang/String;
 
-    .line 101
+    .line 121
     return-void
 .end method

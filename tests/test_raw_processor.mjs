@@ -43,6 +43,7 @@ public final class RawChecks {
             case "tone": tone(); break;
             case "lsc_and_halo": lscAndHalo(); break;
             case "lsc_high_gain": lscHighGain(); break;
+            case "ov64b_fringe": ov64bFringeAndDirectional(); break;
             case "invalid": invalid(); break;
             default: throw new AssertionError(args[0]);
         }
@@ -319,6 +320,30 @@ public final class RawChecks {
         check(rightG - leftG >= 60, "corner vs center delta too small: " + (rightG - leftG));
     }
 
+    private static void ov64bFringeAndDirectional() {
+        // High-contrast dark wire against bright overcast sky on OV64B CFA_GBRG at low & high ISO.
+        int w = 24, h = 16;
+        int[] raw = new int[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                boolean wire = (x == 11 || x == 12);
+                raw[y * w + x] = wire ? 80 : 940;
+            }
+        }
+        int[] lowIso = processRawToArgb(raw, w, h, CFA_GBRG, ZERO, 1023f, UNITY, null, 0.30f, null, 0, 0, 100);
+        int[] highIso = processRawToArgb(raw, w, h, CFA_GBRG, ZERO, 1023f, UNITY, null, 0.30f, null, 0, 0, 3200);
+        int farSky = channel(at(lowIso, w, 3, 8), 8);
+        int edgeSky = channel(at(lowIso, w, 10, 8), 8);
+        check(edgeSky <= farSky + 2, "expected zero white halo on GBRG wire, edge=" + edgeSky + " far=" + farSky);
+        // Verify fringe clamp prevents strong magenta/green color cast right along the edge.
+        int edgePx = at(lowIso, w, 10, 8);
+        int maxDiff = Math.max(Math.abs(channel(edgePx, 16) - channel(edgePx, 8)),
+                               Math.abs(channel(edgePx, 0) - channel(edgePx, 8)));
+        check(maxDiff <= 8, "expected low chromatic demosaic fringe on neutral edge, maxDiff=" + maxDiff);
+        // Flat sky on high ISO stays neutral gray without spurious sharpen overshoot.
+        rgb(at(highIso, w, 3, 8), farSky, farSky, farSky, 2);
+    }
+
     private static void check(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
     }
@@ -349,6 +374,7 @@ for (const [name, check] of [
   ['highlight shoulder and bounded luminance sharpening', 'tone'],
   ['LensShadingMap flat-field and zero white cable halo in 13-arg pipeline', 'lsc_and_halo'],
   ['LensShadingMap preserves continuous corner gains above 4.0x', 'lsc_high_gain'],
+  ['OV64B GBRG fringe clamp and ISO-damped directional sharpening', 'ov64b_fringe'],
   ['invalid buffers, geometry, and calibration are rejected', 'invalid'],
 ]) {
   test(name, () => run(java, ['-cp', classes, 'RawChecks', check]));

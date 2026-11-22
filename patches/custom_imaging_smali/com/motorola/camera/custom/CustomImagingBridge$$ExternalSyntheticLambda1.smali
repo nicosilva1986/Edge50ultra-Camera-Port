@@ -15,9 +15,13 @@
 
 .field public final synthetic f$3:I
 
+.field public final synthetic f$4:I
+
+.field public final synthetic f$5:I
+
 
 # direct methods
-.method public synthetic constructor <init>([IIII)V
+.method public synthetic constructor <init>([IIIIII)V
     .locals 0
 
     .line 0
@@ -31,13 +35,17 @@
 
     iput p4, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;->f$3:I
 
+    iput p5, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;->f$4:I
+
+    iput p6, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;->f$5:I
+
     return-void
 .end method
 
 
 # virtual methods
 .method public final run()V
-    .locals 4
+    .locals 6
 
     .line 0
     iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;->f$0:[I
@@ -48,7 +56,11 @@
 
     iget v3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;->f$3:I
 
-    invoke-static {v0, v1, v2, v3}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$gradeSurfaceInBatches$0([IIII)V
+    iget v4, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;->f$4:I
+
+    iget v5, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;->f$5:I
+
+    invoke-static/range {v0 .. v5}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$gradeSurfaceInBatches$0([IIIIII)V
 
     return-void
 .end method
