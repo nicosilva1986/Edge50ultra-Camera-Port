@@ -18,6 +18,7 @@ public final class ScenePostProcSelector {
     public static final int PROFILE_IPHONE_AMBER = 7;
     public static final int PROFILE_CLEAN_RAW_BAYER = 8;
     public static final int PROFILE_DISABLE_POST_PROCESSING = 9;
+    public static final int PROFILE_AUTO_STOCK = 10;
 
     public static final int SCENE_KEEP = 0;
     public static final int SCENE_HAL_FRAME_STACK = 1;
@@ -62,21 +63,31 @@ public final class ScenePostProcSelector {
                 || "RAW_HDR".equals(sceneName)
                 || "RAW_SN_AUTO".equals(sceneName)
                 || "RAW_SN_DEDICATED".equals(sceneName)
+                || "RAW_SUPER_RESOLUTION".equals(sceneName)
+                || "SUPER_RESOLUTION_HDR".equals(sceneName)
                 || "MOTION_CAPTURE".equals(sceneName);
     }
 
     public static boolean isPreservedSceneName(String sceneName) {
-        return isPreservedSceneName(sceneName, true);
+        return isPreservedSceneName(sceneName, true, PROFILE_AUTO_STOCK);
     }
 
     public static boolean isPreservedSceneName(String sceneName, boolean htpAvailable) {
+        return isPreservedSceneName(sceneName, htpAvailable, PROFILE_AUTO_STOCK);
+    }
+
+    public static boolean isPreservedSceneName(String sceneName, boolean htpAvailable, int profile) {
         if (sceneName == null || sceneName.isEmpty()) {
             return false;
         }
         if (!htpAvailable && isRawHtpSceneName(sceneName)) {
             return false;
         }
-        return sceneName.contains("FLASH")
+        boolean preserveSuperRes = (profile == PROFILE_AUTO_STOCK)
+                ? sceneName.contains("SUPER_RESOLUTION")
+                : "RAW_SUPER_RESOLUTION".equals(sceneName);
+        return preserveSuperRes
+                || sceneName.contains("FLASH")
                 || sceneName.contains("PORTRAIT")
                 || sceneName.contains("BOKEH")
                 || sceneName.contains("DEPTH")
@@ -85,7 +96,6 @@ public final class ScenePostProcSelector {
                 || sceneName.contains("LRNV")
                 || sceneName.contains("DEDICATED")
                 || sceneName.contains("REMOSAIC")
-                || sceneName.contains("SUPER_RESOLUTION")
                 || sceneName.contains("MOTION");
     }
 
@@ -120,7 +130,19 @@ public final class ScenePostProcSelector {
                     0, 0, 0, 0, -1, 0);
         }
         boolean rescueHtpRaw = !htpAvailable && isRawHtpSceneName(origSceneName);
-        if (isFlash || (isUiSpecialMode && !rescueHtpRaw) || isPreservedSceneName(origSceneName, htpAvailable)) {
+        if (profile == PROFILE_AUTO_STOCK) {
+            if (isFlash || (isUiSpecialMode && !rescueHtpRaw)
+                    || isPreservedSceneName(origSceneName, htpAvailable, profile)) {
+                return holdExtended();
+            }
+            if (rescueHtpRaw) {
+                return packExtended(SCENE_HAL_FRAME_STACK, -1, -1, 1, -1, 0, 0,
+                        -1, -1, -1, -1, -1, -1);
+            }
+            return holdExtended();
+        }
+        if (isFlash || (isUiSpecialMode && !rescueHtpRaw)
+                || isPreservedSceneName(origSceneName, htpAvailable, profile)) {
             return holdExtended();
         }
         float z = sanitizeZoom(zoomRatio);
@@ -159,15 +181,13 @@ public final class ScenePostProcSelector {
         if (profile == PROFILE_PURE_ISP || profile == PROFILE_MINIMAL_ISP) {
             aide = 0;
         } else if (profile == PROFILE_AUTO_SCENE_ADAPTIVE) {
-            boolean needAide = (rescueHtpRaw && lux >= LOW_LIGHT_LUX)
-                    || lux >= LOW_LIGHT_LUX
-                    || (z < UW_ZOOM_MAX && lux >= UW_LOW_LIGHT_LUX)
+            boolean needAide = lux >= LOW_LIGHT_LUX
                     || (z >= TELE_ISZ_MIN && z < EXTREME_ZOOM && lux >= TELE_ISZ_MAX_LUX)
                     || (z >= EXTREME_ZOOM && lux >= 240.0f);
             aide = needAide ? 1 : 0;
         } else if (profile == PROFILE_DETAIL_HDR
                 || (profile >= PROFILE_IPHONE_NATURAL && profile <= PROFILE_IPHONE_AMBER)) {
-            aide = (lux >= LOW_LIGHT_LUX || (z < UW_ZOOM_MAX && lux >= UW_LOW_LIGHT_LUX)) ? 1 : 0;
+            aide = (lux >= LOW_LIGHT_LUX) ? 1 : 0;
         }
 
         int vsr = -1;
@@ -187,11 +207,11 @@ public final class ScenePostProcSelector {
         } else if (profile == PROFILE_AUTO_SCENE_ADAPTIVE) {
             if (rescueHtpRaw && "RAW_HDR".equals(origSceneName)) {
                 hdr = 2;
-            } else if (isHdrScene || (lux >= DUSK_HDR_MIN_LUX && lux < TELE_FALLBACK_MAX_LUX && z < EXTREME_ZOOM)) {
+            } else if (base[0] == SCENE_RAW_HDR) {
                 hdr = 1;
             }
         } else if (profile >= PROFILE_IPHONE_NATURAL && profile <= PROFILE_IPHONE_AMBER) {
-            if (isHdrScene || (lux >= DUSK_HDR_MIN_LUX && lux < TELE_FALLBACK_MAX_LUX && z < EXTREME_ZOOM)) {
+            if (base[0] == SCENE_RAW_HDR) {
                 hdr = 1;
             }
         }
@@ -254,26 +274,31 @@ public final class ScenePostProcSelector {
     private static int[] resolveAuto(float zoomRatio, float luxIdx, boolean isHdrScene) {
         zoomRatio = sanitizeZoom(zoomRatio);
         luxIdx = sanitizeLux(luxIdx);
+        if (zoomRatio >= 30.0f) {
+            return pack(SCENE_HAL_FRAME_STACK, NR_FAST, EDGE_OFF, 1, 0, 0, 0);
+        }
         if (zoomRatio >= EXTREME_ZOOM) {
             return pack(SCENE_HAL_FRAME_STACK, NR_MINIMAL, EDGE_FAST, 1, 0, 0, 0);
         }
-        // S5KJN1 ultrawide needs multi-frame NR earlier than OV50H to suppress dusk chroma grain.
-        if (zoomRatio < UW_ZOOM_MAX && luxIdx >= UW_LOW_LIGHT_LUX) {
-            return pack(SCENE_HAL_FRAME_STACK, NR_FAST, EDGE_OFF, 1, 0, 0, 0);
+        // S5KJN1 ultrawide needs still HQ NR + gentle Fast Edge in bright/dusk bands to preserve
+        // fine detail without chroma noise; drop Edge at >= 280 lux to avoid dark-frame halos.
+        if (zoomRatio < UW_ZOOM_MAX) {
+            int uwEdge = luxIdx < LOW_LIGHT_LUX ? EDGE_FAST : EDGE_OFF;
+            return pack(SCENE_HAL_FRAME_STACK, NR_HIGH_QUALITY, uwEdge, 1, 0, 0, 0);
         }
-        // Keep optical/daylight 1x and 3x–11.9x on EDGE_OFF + NR_MINIMAL to avoid CamX +31 luma
-        // edge halos on wires/horizon trees while keeping multi-frame HAL_FRAME_STACK stability.
+        // Keep optical/daylight 1x and 3x–11.9x on EDGE_OFF + NR_HIGH_QUALITY so hardware still MFNR
+        // cleans chroma/luma grain without CamX +31 luma edge halos or Tetras watercolor.
         if (zoomRatio >= TELE_ZOOM && luxIdx < LOW_LIGHT_LUX) {
-            return pack(SCENE_HAL_FRAME_STACK, NR_MINIMAL, EDGE_OFF, 1, 0, 0, 0);
+            return pack(SCENE_HAL_FRAME_STACK, NR_HIGH_QUALITY, EDGE_OFF, 1, 0, 0, 0);
         }
         if (luxIdx >= LOW_LIGHT_LUX) {
             int scene = isHdrScene ? SCENE_KEEP : SCENE_HAL_FRAME_STACK;
-            return pack(scene, NR_MINIMAL, EDGE_OFF, 1, 0, 0, 0);
+            return pack(scene, NR_HIGH_QUALITY, EDGE_OFF, 1, 0, 0, 0);
         }
         if (isHdrScene) {
-            return pack(SCENE_RAW_HDR, NR_MINIMAL, EDGE_OFF, 1, 0, 0, 0);
+            return pack(SCENE_RAW_HDR, NR_HIGH_QUALITY, EDGE_OFF, 1, 0, 0, 0);
         }
-        return pack(SCENE_HAL_FRAME_STACK, NR_MINIMAL, EDGE_OFF, 1, 0, 0, 0);
+        return pack(SCENE_HAL_FRAME_STACK, NR_HIGH_QUALITY, EDGE_OFF, 1, 0, 0, 0);
     }
 
     private static int[] hold() {

@@ -72,7 +72,7 @@
 
     iget-object v7, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda0;->f$7:Lcom/motorola/camera/storage/MediaFilePath;
 
-    invoke-static/range {v0 .. v7}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$exportCleanBayerJpeg$1([BIILandroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;Ljava/lang/String;Lcom/motorola/camera/storage/MediaFilePath;)V
+    invoke-static/range {v0 .. v7}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$exportCleanBayerJpeg$4([BIILandroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;Ljava/lang/String;Lcom/motorola/camera/storage/MediaFilePath;)V
 
     return-void
 .end method

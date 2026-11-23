@@ -202,6 +202,30 @@
       "description": "Apply CustomImagingBridge.applyCaptureRequestOverrides on direct PhotoMode capture requests (non-MCF / Profile 9 / fallback) for consistent HAL vendor key and NR/Edge tuning.",
       "find": "    invoke-static {v6, v1, p0}, Lcom/motorola/camera/fsm/camera/modes/RequestBuilderHelper;->setIsFaceBeautyCapture(ILandroid/hardware/camera2/CaptureRequest$Builder;Ljava/lang/String;)V\n\n    return-void\n.end method\n\n.method public onSetupStreamingRequests",
       "replace": "    invoke-static {v6, v1, p0}, Lcom/motorola/camera/fsm/camera/modes/RequestBuilderHelper;->setIsFaceBeautyCapture(ILandroid/hardware/camera2/CaptureRequest$Builder;Ljava/lang/String;)V\n\n    invoke-static {p0, v1}, Lcom/motorola/camera/custom/CustomImagingBridge;->applyCaptureRequestOverrides(Ljava/lang/String;Landroid/hardware/camera2/CaptureRequest$Builder;)V\n\n    return-void\n.end method\n\n.method public onSetupStreamingRequests"
+    },
+    {
+      "id": "gallery_await_processing_before_launch",
+      "category": "gallery",
+      "file": "smali/com/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask$start$2.smali",
+      "description": "Wait off the UI thread until SaveImageService finishes finalizing the shot in MediaStore so Google Photos receives a ready item rather than locking on bitmap_view.",
+      "find": "    iget-boolean v5, p0, Lcom/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask$start$2;->$isSplitMode:Z\n\n    invoke-static {v3, v4, v5, p1, v1}, Lcom/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask;->getGalleryIntent(Lcom/motorola/camera/CameraData;Landroid/view/View;ZZZ)Lcom/motorola/camera/Util$ActivityLaunchRequestInfo;",
+      "replace": "    iget-boolean v5, p0, Lcom/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask$start$2;->$isSplitMode:Z\n\n    invoke-static {v3}, Lcom/motorola/camera/custom/CustomImagingBridge;->awaitCameraDataReadyForGallery(Lcom/motorola/camera/CameraData;)V\n\n    invoke-static {v3, v4, v5, p1, v1}, Lcom/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask;->getGalleryIntent(Lcom/motorola/camera/CameraData;Landroid/view/View;ZZZ)Lcom/motorola/camera/Util$ActivityLaunchRequestInfo;"
+    },
+    {
+      "id": "gallery_skip_processing_uri_for_gphotos",
+      "category": "gallery",
+      "file": "smali/com/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask.smali",
+      "description": "Skip OEM processing_uri_intent_extra on non-PRC builds because user-signed ports fail PartnerContentProvider authorization in Google Photos and keep HostPhotoPagerActivity stuck on a static ImageView.",
+      "find": "    if-eqz v13, :cond_3\n\n    invoke-virtual {v0}, Lcom/motorola/camera/CameraData;->getId()J",
+      "replace": "    if-eqz v13, :cond_3\n\n    if-eqz v7, :cond_3\n\n    invoke-virtual {v0}, Lcom/motorola/camera/CameraData;->getId()J"
+    },
+    {
+      "id": "gallery_disable_exit_on_swipe_for_gphotos",
+      "category": "gallery",
+      "file": "smali/com/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask.smali",
+      "description": "Set exit_on_swipe=false on non-PRC ACTION_REVIEW intents so Google Photos preserves left-to-right pager swiping instead of exiting on swipe.",
+      "find": "    if-eqz v12, :cond_5\n\n    invoke-static {v11, v7, v2, v3}, Lcom/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask;->setGalleryPackage(Landroid/content/Intent;ZZZ)V",
+      "replace": "    if-eqz v12, :cond_5\n\n    invoke-static {v11, v7}, Lcom/motorola/camera/custom/CustomImagingBridge;->configureGalleryIntent(Landroid/content/Intent;Z)V\n\n    invoke-static {v11, v7, v2, v3}, Lcom/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask;->setGalleryPackage(Landroid/content/Intent;ZZZ)V"
     }
   ]
 }

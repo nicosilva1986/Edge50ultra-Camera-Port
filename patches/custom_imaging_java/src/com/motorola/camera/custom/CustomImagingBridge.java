@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 package com.motorola.camera.custom;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,6 +17,7 @@ import android.util.Log;
 import android.util.Rational;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
+import com.motorola.camera.CameraData;
 import com.motorola.camera.IqConfigManager;
 import com.motorola.camera.capturedmediadata.CapturedImageMediaData;
 import com.motorola.camera.fsm.camera.modes.RequestBuilderHelper;
@@ -40,6 +42,7 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -73,7 +76,7 @@ public final class CustomImagingBridge {
         try {
             java.io.File dev = new java.io.File("/dev/adsprpc-smd");
             if (!dev.exists()) {
-                return true;
+                return false;
             }
             try (java.io.FileInputStream ignored = new java.io.FileInputStream(dev)) {
                 return true;
@@ -81,7 +84,7 @@ public final class CustomImagingBridge {
                 return false;
             }
         } catch (Throwable ignored) {
-            return true;
+            return false;
         }
     }
 
@@ -114,10 +117,16 @@ public final class CustomImagingBridge {
     private static final class ShotDecision {
         final int[] resolved;
         final String summary;
+        final int profile;
+        final float zoom;
+        final float lux;
 
-        ShotDecision(int[] resolved, String summary) {
+        ShotDecision(int[] resolved, String summary, int profile, float zoom, float lux) {
             this.resolved = resolved;
             this.summary = summary;
+            this.profile = profile;
+            this.zoom = zoom;
+            this.lux = lux;
         }
     }
 
@@ -130,7 +139,8 @@ public final class CustomImagingBridge {
     };
 
     private static final CharSequence[] PROFILE_LABELS = {
-        "Auto (Scene-Adaptive)",
+        "Auto (W/O Stock · Clean HAL + LTM)",
+        "Auto (W/ Stock · Native SuperRes/ISP)",
         "Natural ZSL (NR ZSL / Edge ZSL)",
         "Minimal ISP (NR Minimal / Edge Off)",
         "Detail HDR (RAW HDR / Low Halo)",
@@ -143,10 +153,20 @@ public final class CustomImagingBridge {
     };
 
     private static final CharSequence[] PROFILE_VALUES = {
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+        "0", "10", "1", "2", "3", "4", "5", "6", "7", "8", "9"
     };
 
     private CustomImagingBridge() {}
+
+    private static int parseProfileIndex(String raw) {
+        if (raw == null || raw.isEmpty()) return 0;
+        try {
+            int val = Integer.parseInt(raw.trim());
+            return (val >= 0 && val <= 10) ? val : 0;
+        } catch (Throwable ignored) {
+            return 0;
+        }
+    }
 
     public static void initPostProcPreference(PreferenceFragmentCompat fragment) {
         if (fragment == null) return;
@@ -156,10 +176,7 @@ public final class CustomImagingBridge {
             pref.setEntries(PROFILE_LABELS);
             pref.mEntryValues = PROFILE_VALUES;
             SharedPreferences prefs = PersistBehavior.getPreferences();
-            String current = prefs != null ? prefs.getString(PREF_KEY, "0") : "0";
-            if (current == null || current.length() != 1 || current.charAt(0) < '0' || current.charAt(0) > '9') {
-                current = "0";
-            }
+            String current = String.valueOf(parseProfileIndex(prefs != null ? prefs.getString(PREF_KEY, "0") : "0"));
             pref.setValue(current);
         } catch (Throwable t) {
             Log.w(TAG, "initPostProcPreference failed", t);
@@ -170,10 +187,7 @@ public final class CustomImagingBridge {
         try {
             SharedPreferences prefs = PersistBehavior.getPreferences();
             if (prefs == null) return 0;
-            String raw = prefs.getString(PREF_KEY, "0");
-            if (raw == null) return 0;
-            int val = Integer.parseInt(raw);
-            return (val >= 0 && val <= 9) ? val : 0;
+            return parseProfileIndex(prefs.getString(PREF_KEY, "0"));
         } catch (Throwable ignored) {
             return 0;
         }
@@ -238,7 +252,7 @@ public final class CustomImagingBridge {
         String name = scene != null ? scene.name() : "";
         int profile = getSelectedProfile();
         int[] res = ScenePostProcSelector.resolveExtended(profile, zoom, lux, name, isFlash, isUiSpecial, HTP_RPC_AVAILABLE);
-        String summary = "Edge50Port v1.4.0 p=" + profile
+        String summary = "Edge50Port v1.6.0 p=" + profile
                 + " z=" + (Math.round(zoom * 10f) / 10f)
                 + " lux=" + Math.round(lux)
                 + " act=" + res[0] + " nr=" + res[1] + " edge=" + res[2]
@@ -249,11 +263,12 @@ public final class CustomImagingBridge {
                 + (res[10] >= 0 ? (" hdr=" + res[10]) : "")
                 + (res[11] == 1 ? " t2w=0" : "")
                 + (res[12] == 1 ? " qll=1" : "")
+                + (profile == ScenePostProcSelector.PROFILE_AUTO_STOCK ? " stock=1" : "")
                 + (profile == ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING ? " mcf=0" : "")
                 + (!HTP_RPC_AVAILABLE ? " htp=0" : "")
                 + (name.isEmpty() ? "" : " in=" + name)
                 + (isFlash ? " flash=1" : "");
-        return new ShotDecision(res, summary);
+        return new ShotDecision(res, summary, profile, zoom, lux);
     }
 
     private static int[] resolveActiveScene(boolean isFlash) {
@@ -359,8 +374,9 @@ public final class CustomImagingBridge {
     }
 
     public static boolean shouldAllowInSensorCrop() {
-        int v = resolveActiveScene(false)[3];
-        return v != 0;
+        int profile = getSelectedProfile();
+        return profile != ScenePostProcSelector.PROFILE_PURE_ISP
+                && profile != ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING;
     }
 
     private static final String KEY_ENABLE_ISZ = "org.codeaurora.qcamera3.sessionParameters.EnableInsensorZoom";
@@ -378,6 +394,22 @@ public final class CustomImagingBridge {
     private static final String KEY_ENABLE_QLL = "org.codeaurora.qcamera3.sessionParameters.enableQLL";
     private static final String KEY_SAT_FALLBACK_T2W = "com.lenovo.moto.SATFallback.T2W";
 
+    private static final Set<String> KNOWN_SESSION_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            KEY_ENABLE_ISZ,
+            KEY_ENABLE_SNAPSHOT_ISZ,
+            KEY_ENABLE_XCFA,
+            KEY_ENABLE_MFNR_AIDE,
+            KEY_ENABLE_VSR,
+            KEY_ENABLE_AUTO_HDR,
+            KEY_ENABLE_MFHDR,
+            KEY_ENABLE_SHDR,
+            KEY_ENABLE_QHDR,
+            KEY_HDR_MODE,
+            KEY_HDR_MODE_PREF,
+            KEY_ENABLE_QLL,
+            KEY_SAT_FALLBACK_T2W
+    )));
+
     private static final Map<CameraCharacteristics, Set<String>> REQ_KEY_CACHE =
             Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<CameraCharacteristics, Set<String>> SES_KEY_CACHE =
@@ -389,11 +421,13 @@ public final class CustomImagingBridge {
         Set<String> cached = cache.get(chars);
         if (cached != null) return cached;
         Set<String> names = new HashSet<>();
+        boolean querySucceeded = false;
         try {
             List<CaptureRequest.Key<?>> list = sessionKeys
                     ? chars.getAvailableSessionKeys()
                     : chars.getAvailableCaptureRequestKeys();
             if (list != null) {
+                querySucceeded = true;
                 for (CaptureRequest.Key<?> key : list) {
                     if (key != null && key.getName() != null) {
                         names.add(key.getName());
@@ -402,7 +436,9 @@ public final class CustomImagingBridge {
             }
         } catch (Throwable ignored) {}
         Set<String> unmodifiable = Collections.unmodifiableSet(names);
-        cache.put(chars, unmodifiable);
+        if (querySucceeded && (!sessionKeys || !unmodifiable.isEmpty())) {
+            cache.put(chars, unmodifiable);
+        }
         return unmodifiable;
     }
 
@@ -502,11 +538,13 @@ public final class CustomImagingBridge {
                 Set<String> reqOnlyKeys;
                 if (reqKeys.isEmpty()) {
                     reqOnlyKeys = Collections.emptySet();
-                } else if (sesKeys.isEmpty()) {
-                    reqOnlyKeys = reqKeys;
                 } else {
                     reqOnlyKeys = new HashSet<>(reqKeys);
                     reqOnlyKeys.removeAll(sesKeys);
+                    // Fail closed if getAvailableSessionKeys() returns empty or fails.
+                    if (sesKeys.isEmpty()) {
+                        reqOnlyKeys.removeAll(KNOWN_SESSION_KEYS);
+                    }
                 }
                 if (!reqOnlyKeys.isEmpty() && r.length >= 13) {
                     int iszMode = r[7];
@@ -567,6 +605,47 @@ public final class CustomImagingBridge {
         return getOrResolveForContainer(container).resolved[5] > 0;
     }
 
+    private static void stampExifDescription(SaveImageService.ImageContainer container, byte[] jpegBytes,
+                                             PhotoMetadata origMeta, String summary) {
+        try {
+            if (origMeta != null && !origMeta.isUltraHdr() && summary != null && !summary.isEmpty()) {
+                origMeta.setAttribute("ImageDescription", summary);
+                ByteArrayOutputStream exifOut = new ByteArrayOutputStream(jpegBytes.length + 1024);
+                origMeta.saveJpegAttributes(new ByteArrayInputStream(jpegBytes), exifOut, false);
+                byte[] stamped = exifOut.toByteArray();
+                if (stamped.length > 64) {
+                    container.mMediaData.setByteBuffer(ByteBuffer.wrap(stamped));
+                }
+                Log.i(TAG, "Shot diag: " + summary);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private static int evaluateAutoPostGates(byte[] origBytes) {
+        BitmapFactory.Options thumbOpts = new BitmapFactory.Options();
+        thumbOpts.inSampleSize = 4;
+        thumbOpts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap thumb = BitmapFactory.decodeByteArray(origBytes, 0, origBytes.length, thumbOpts);
+        if (thumb == null) return 0;
+        try {
+            int sw = thumb.getWidth();
+            int sh = thumb.getHeight();
+            if (sw < 16 || sh < 16) return 0;
+            int[] sampleArgb = new int[sw * sh];
+            thumb.getPixels(sampleArgb, 0, sw, 0, 0, sw, sh);
+            int flags = 0;
+            if (AppleStyleToneEngine.evaluateAutoLtmGate(sampleArgb, sampleArgb.length)) {
+                flags |= 1;
+            }
+            if (AppleStyleToneEngine.evaluateAutoHighlightGate(sampleArgb, sampleArgb.length)) {
+                flags |= 2;
+            }
+            return flags;
+        } finally {
+            thumb.recycle();
+        }
+    }
+
     public static void applyCustomLutIfEnabled(SaveImageService.ImageContainer container) {
         if (container == null || container.mMediaData == null || container.mMediaData.isRawData()) {
             return;
@@ -574,6 +653,8 @@ public final class CustomImagingBridge {
         ShotDecision decision = getOrResolveForContainer(container);
         String summary = decision.summary;
         int lutStyle = decision.resolved[5];
+        int profile = decision.profile;
+        float zoom = decision.zoom;
         ByteBuffer buf = container.mMediaData.getByteBuffer();
         if (buf == null) {
             return;
@@ -587,17 +668,30 @@ public final class CustomImagingBridge {
                 origMeta = new PhotoMetadata(new ByteArrayInputStream(origBytes));
             } catch (Throwable ignored) {}
 
-            if (lutStyle <= 0) {
-                if (origMeta != null && !origMeta.isUltraHdr() && summary != null && !summary.isEmpty()) {
-                    origMeta.setAttribute("ImageDescription", summary);
-                    ByteArrayOutputStream exifOut = new ByteArrayOutputStream(origBytes.length + 1024);
-                    origMeta.saveJpegAttributes(new ByteArrayInputStream(origBytes), exifOut, false);
-                    byte[] stamped = exifOut.toByteArray();
-                    if (stamped.length > 64) {
-                        container.mMediaData.setByteBuffer(ByteBuffer.wrap(stamped));
-                    }
-                    Log.i(TAG, "Shot diag: " + summary);
+            // Prevent double-grading if MotCamera5 invokes post-process hook more than once per buffer.
+            String existingDesc = origMeta != null ? origMeta.getAttribute("ImageDescription") : null;
+            if (existingDesc != null && existingDesc.contains("Edge50Port ")) {
+                return;
+            }
+
+            boolean isAutoPost = (profile == ScenePostProcSelector.PROFILE_AUTO_SCENE_ADAPTIVE && lutStyle <= 0);
+            boolean wantLtm = false;
+            boolean wantHighlight = false;
+            boolean wantZoomSharp = false;
+            if (isAutoPost) {
+                wantZoomSharp = (zoom >= 1.70f && zoom < 2.95f && decision.lux < 220f)
+                        || (zoom >= 6.0f && zoom <= 30.0f);
+                if (origMeta == null || !origMeta.isUltraHdr()) {
+                    int gates = evaluateAutoPostGates(origBytes);
+                    wantLtm = (gates & 1) != 0;
+                    wantHighlight = (gates & 2) != 0;
                 }
+                if (!wantLtm && !wantHighlight && !wantZoomSharp) {
+                    stampExifDescription(container, origBytes, origMeta, summary);
+                    return;
+                }
+            } else if (lutStyle <= 0) {
+                stampExifDescription(container, origBytes, origMeta, summary);
                 return;
             }
 
@@ -613,7 +707,7 @@ public final class CustomImagingBridge {
                 int h = bmp.getHeight();
                 if (w <= 0 || h <= 0) return;
 
-                boolean graded = gradeSurfaceInBatches(new PixelSurface() {
+                final PixelSurface surface = new PixelSurface() {
                     @Override
                     public void readRows(int srcY, int rows, int[] dst, int dstOff) {
                         bmp.getPixels(dst, dstOff, w, 0, srcY, w, rows);
@@ -623,7 +717,47 @@ public final class CustomImagingBridge {
                     public void writeRows(int dstY, int rows, int[] src, int srcOff) {
                         bmp.setPixels(src, srcOff, w, 0, dstY, w, rows);
                     }
-                }, w, h, STRIP_HEIGHT, 24, lutStyle);
+                };
+
+                boolean graded;
+                if (isAutoPost) {
+                    float[] baseGrid = null;
+                    float[] stdGrid = null;
+                    int gw = 0;
+                    int gh = 0;
+                    if (wantLtm && w >= 16 && h >= 16) {
+                        int step = AppleStyleToneEngine.autoLtmGridStep();
+                        gw = Math.max(2, (w + step - 1) / step);
+                        gh = Math.max(2, (h + step - 1) / step);
+                        float[] rawLog = new float[gw * gh];
+                        stdGrid = new float[gw * gh];
+                        int[] band = new int[w * step];
+                        for (int y = 0; y < h; y += step) {
+                            int rows = Math.min(step, h - y);
+                            bmp.getPixels(band, 0, w, 0, y, w, rows);
+                            AppleStyleToneEngine.accumulateAutoLtmBand(band, w, rows, y, h, rawLog, stdGrid, gw, gh);
+                        }
+                        baseGrid = AppleStyleToneEngine.finalizeAutoLtmBaseGrid(rawLog, gw, gh);
+                    }
+                    final float[] fBase = baseGrid;
+                    final float[] fStd = stdGrid;
+                    final int fGw = gw;
+                    final int fGh = gh;
+                    final boolean fLtm = wantLtm && fBase != null;
+                    final boolean fHighlight = wantHighlight;
+                    final boolean fZoomSharp = wantZoomSharp;
+                    if (!fLtm && !fHighlight && !fZoomSharp) {
+                        stampExifDescription(container, origBytes, origMeta, summary);
+                        return;
+                    }
+                    graded = gradeSurfaceInBatches(surface, w, h, STRIP_HEIGHT, 24,
+                            (strip, sw, rows, topY) -> AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
+                                    strip, sw, rows, topY, w, h, fBase, fStd, fGw, fGh, fLtm, fHighlight, fZoomSharp, zoom));
+                } else {
+                    graded = gradeSurfaceInBatches(surface, w, h, STRIP_HEIGHT, 24,
+                            (strip, sw, rows, topY) -> AppleStyleToneEngine.applyToArgbPixels(
+                                    strip, sw, rows, lutStyle, w, h, topY));
+                }
                 if (!graded) return;
 
                 ByteArrayOutputStream jpegOut = new ByteArrayOutputStream(origBytes.length);
@@ -631,16 +765,20 @@ public final class CustomImagingBridge {
                     return;
                 }
                 byte[] gradedBytes = jpegOut.toByteArray();
+                String finalSummary = summary
+                        + (isAutoPost && wantLtm ? " ltm=1" : "")
+                        + (isAutoPost && wantHighlight && !wantLtm ? " hl=1" : "")
+                        + (isAutoPost && wantZoomSharp ? " zsharp=1" : "");
                 if (origMeta != null) {
-                    if (summary != null && !summary.isEmpty()) {
-                        origMeta.setAttribute("ImageDescription", summary);
+                    if (finalSummary != null && !finalSummary.isEmpty()) {
+                        origMeta.setAttribute("ImageDescription", finalSummary);
                     }
                     ByteArrayOutputStream exifOut = new ByteArrayOutputStream(gradedBytes.length + 65536);
                     origMeta.saveJpegAttributes(new ByteArrayInputStream(gradedBytes), exifOut, false);
                     gradedBytes = exifOut.toByteArray();
                 }
                 container.mMediaData.setByteBuffer(ByteBuffer.wrap(gradedBytes));
-                Log.i(TAG, "Applied AppleStyle LUT=" + lutStyle + " bytes=" + gradedBytes.length + " " + summary);
+                Log.i(TAG, "Applied post-pass p=" + profile + " lut=" + lutStyle + " bytes=" + gradedBytes.length + " " + finalSummary);
             } finally {
                 bmp.recycle();
             }
@@ -654,13 +792,17 @@ public final class CustomImagingBridge {
         void writeRows(int dstY, int rows, int[] src, int srcOff);
     }
 
+    private interface StripPixelProcessor {
+        void processStrip(int[] stripArgb, int width, int rows, int stripTopY);
+    }
+
     /**
      * Grades a PixelSurface in batches of up to 4 overlapped strips while carrying the untouched
      * tail rows of each batch across batch boundaries so strip 0 of batch k+1 never reads graded pixels.
      */
     private static boolean gradeSurfaceInBatches(PixelSurface surface, int w, int h,
-                                                 int stripHeight, int pad, int lutStyle) {
-        if (surface == null || w <= 0 || h <= 0 || stripHeight <= 0 || lutStyle <= 0) return true;
+                                                 int stripHeight, int pad, StripPixelProcessor processor) {
+        if (surface == null || processor == null || w <= 0 || h <= 0 || stripHeight <= 0) return true;
         pad = Math.max(0, pad);
         final int batchLimit = 4;
         List<int[]> batchBuffers = new ArrayList<>(batchLimit);
@@ -695,7 +837,7 @@ public final class CustomImagingBridge {
             final int taskRows = srcRows;
             final int taskTopY = srcY;
             batchFutures.add(LUT_POOL.submit(() ->
-                    AppleStyleToneEngine.applyToArgbPixels(srcStrip, w, taskRows, lutStyle, w, h, taskTopY)));
+                    processor.processStrip(srcStrip, w, taskRows, taskTopY)));
 
             boolean isBatchEnd = batchBuffers.size() == batchLimit || y + rows >= h;
             if (isBatchEnd) {
@@ -749,7 +891,8 @@ public final class CustomImagingBridge {
             public void writeRows(int dstY, int rows, int[] src, int srcOff) {
                 System.arraycopy(src, srcOff, pixels, dstY * w, rows * w);
             }
-        }, w, h, stripHeight, pad, lutStyle);
+        }, w, h, stripHeight, pad, (strip, sw, rows, topY) ->
+                AppleStyleToneEngine.applyToArgbPixels(strip, sw, rows, lutStyle, w, h, topY));
     }
 
     public static void exportCleanBayerJpeg(ByteBuffer rawBuffer, TotalCaptureResult result,
@@ -997,5 +1140,61 @@ public final class CustomImagingBridge {
         byte[] bytes = new byte[dup.remaining()];
         dup.get(bytes);
         return bytes;
+    }
+
+    /**
+     * Wait off the UI thread while SaveImageService finishes finalizing the MediaStore item for
+     * freshly captured shots so Google Photos receives a finalized public MediaStore URI rather
+     * than an unauthorized Moto OEM processing URI that locks HostPhotoPagerActivity in bitmap_view.
+     */
+    public static void awaitCameraDataReadyForGallery(CameraData data) {
+        if (data == null) return;
+        final long mediaId;
+        try {
+            mediaId = data.getId();
+        } catch (Throwable ignored) {
+            return;
+        }
+        if (mediaId <= 0L) return;
+
+        final long maxWaitMs = 6000L;
+        final long pollMs = 35L;
+        long startNs = 0L;
+        while (true) {
+            boolean stillProcessing;
+            try {
+                stillProcessing = SaveImageService.getProcessingCameraData(mediaId) != null;
+            } catch (Throwable ignored) {
+                return;
+            }
+            if (!stillProcessing) {
+                if (startNs != 0L) {
+                    long waitedMs = (System.nanoTime() - startNs) / 1_000_000L;
+                    Log.d(TAG, "Gallery launch waited " + waitedMs + "ms for mediaId=" + mediaId);
+                }
+                return;
+            }
+            if (startNs == 0L) {
+                startNs = System.nanoTime();
+            } else if ((System.nanoTime() - startNs) >= maxWaitMs * 1_000_000L) {
+                Log.w(TAG, "Gallery launch timed out waiting for mediaId=" + mediaId);
+                return;
+            }
+            try {
+                Thread.sleep(pollMs);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+    }
+
+    /**
+     * Keep Google Photos pager swipe navigation unlocked in both directions instead of exiting back
+     * to the camera on left-to-right swipe (Google Photos defaults exit_on_swipe=true on REVIEW).
+     */
+    public static void configureGalleryIntent(Intent intent, boolean isPrc) {
+        if (intent == null || isPrc) return;
+        intent.putExtra("exit_on_swipe", false);
     }
 }

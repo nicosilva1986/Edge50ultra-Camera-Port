@@ -342,6 +342,25 @@ public final class RawChecks {
         check(maxDiff <= 8, "expected low chromatic demosaic fringe on neutral edge, maxDiff=" + maxDiff);
         // Flat sky on high ISO stays neutral gray without spurious sharpen overshoot.
         rgb(at(highIso, w, 3, 8), farSky, farSky, farSky, 2);
+
+        // Verify CFA_GBRG assigns Gb (channel 2) on row 0 and Gr (channel 1) on row 1.
+        int[] uniRaw = new int[w * h];
+        Arrays.fill(uniRaw, 300);
+        float[] gbrgLsc = {
+            1.0f, 2.0f, 1.0f, 1.0f,  1.0f, 2.0f, 1.0f, 1.0f,
+            1.0f, 2.0f, 1.0f, 1.0f,  1.0f, 2.0f, 1.0f, 1.0f
+        };
+        int[] gbrgOut = processRawToArgb(uniRaw, w, h, CFA_GBRG, ZERO, 1024f, UNITY, null, 0f, gbrgLsc, 2, 2, 100);
+        int gRow0 = channel(at(gbrgOut, w, 4, 4), 8); // green pixel on even row -> Gb=1.0 -> lower
+        int gRow1 = channel(at(gbrgOut, w, 5, 5), 8); // green pixel on odd row -> Gr=2.0 -> higher
+        check(gRow1 > gRow0 + 15, "CFA_GBRG Gr/Gb LSC parity mismatch: row1=" + gRow1 + " row0=" + gRow0);
+
+        // Neutral raw=1024 with unity gain reaches bright highlight (>=245) in 13-arg pipeline while keeping separation <255.
+        int[] whiteRaw = new int[16];
+        Arrays.fill(whiteRaw, 1024);
+        int whitePx = processRawToArgb(whiteRaw, 4, 4, CFA_RGGB, ZERO, 1024f, UNITY, null, 0f, null, 0, 0, 100)[0];
+        check(channel(whitePx, 8) >= 245 && channel(whitePx, 8) < 255,
+                "expected neutral white headroom [245..254], got " + channel(whitePx, 8));
     }
 
     private static void check(boolean condition, String message) {

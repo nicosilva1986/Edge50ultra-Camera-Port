@@ -135,7 +135,7 @@ for (const cam of ['BACK_MAIN', 'BACK_TELE', 'ZOOM_BLENDING']) {
   }
 }
 if (dev4.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']) {
-  dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-main-overrides']['in-sensor-crop-lux-idx-threshold'] = [290, 320];
+  dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-main-overrides']['in-sensor-crop-lux-idx-threshold'] = [380, 410];
 }
 if (dev4.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-tele-overrides']) {
   dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-tele-overrides']['in-sensor-crop-lux-idx-threshold'] = [250, 280];
@@ -178,12 +178,29 @@ const iq5 = JSON.parse(fs.readFileSync(path.join(rAssets, 'iq_config_roadstr'), 
 delete iq4.ctwo.uhdr_settings;
 iq4.ctwo.uhdr_settings_advanced = iq5.uhdr_settings_advanced;
 for (const camObj of Object.values(iq4.ctwo.scene_selection_advanced_overrides || {})) {
-  if (camObj?.auto_ultra_resolution?.hdr_default && !camObj.auto_ultra_resolution.hdr_auto_on) {
-    const def = camObj.auto_ultra_resolution.hdr_default;
-    delete camObj.auto_ultra_resolution.hdr_default;
-    camObj.auto_ultra_resolution.hdr_off = structuredClone(def);
-    camObj.auto_ultra_resolution.hdr_auto_off = structuredClone(def);
-    camObj.auto_ultra_resolution.hdr_auto_on = def.map((row) => ({ ...row, override_scene: 'RAW_HDR' }));
+  if (camObj?.default_mode && !camObj.default_mode.hdr_on && !camObj.default_mode.hdr_default
+      && camObj.default_mode.hdr_auto_on) {
+    camObj.default_mode.hdr_on = structuredClone(camObj.default_mode.hdr_auto_on);
+  }
+  const aur = camObj?.auto_ultra_resolution;
+  if (aur) {
+    const def = aur.hdr_default || aur.hdr_off || aur.hdr_auto_off;
+    if (Array.isArray(def)) {
+      const cleanDef = def.map((row) => ({ ...row, override_scene: 'HAL_FRAME_STACK' }));
+      aur.hdr_default = structuredClone(cleanDef);
+      aur.hdr_off ??= structuredClone(cleanDef);
+      aur.hdr_auto_off ??= structuredClone(cleanDef);
+      aur.hdr_auto_on = structuredClone(cleanDef);
+      aur.hdr_on ??= structuredClone(cleanDef);
+    }
+  }
+}
+if (Array.isArray(iq4.ctwo.qc_mfnr_settings?.default)) {
+  // Replace the 255 (-1 signed) sentinel so MFNR blends 6 ringbuffer frames consistently across rapid shots.
+  for (const row of iq4.ctwo.qc_mfnr_settings.default) {
+    row.number_of_frames = 6;
+    row.mfnr_burst_mode_enable = false;
+    row.shutter_throttle_time = 0;
   }
 }
 fs.writeFileSync(path.join(assetsDir, 'iq_config_ctwo'), JSON.stringify(iq4));
@@ -192,6 +209,7 @@ const mcfSource = fs.existsSync(path.join(MOD_CFG, 'mcf_config_ctwo'))
   ? path.join(MOD_CFG, 'mcf_config_ctwo')
   : path.join(CTWO_CFG, 'mcf_config_ctwo');
 const mcf4 = JSON.parse(decryptMcf(fs.readFileSync(mcfSource)).toString('utf8'));
+const stockMcf4 = JSON.parse(decryptMcf(fs.readFileSync(path.join(CTWO_CFG, 'mcf_config_ctwo'))).toString('utf8')).ctwo;
 const mcf5 = JSON.parse(decryptMcf(fs.readFileSync(path.join(rAssets, 'mcf_config_roadstr')), MCF5_KEY).toString('utf8')).roadstr;
 const N = mcf4.ctwo.imagers.length;
 const rep = (val) => Array.from({ length: N }, () => structuredClone(val));
@@ -312,26 +330,37 @@ mcf4.ctwo['ultra-hdr'] = {
 mcf4.ctwo['buffer-copy-on-zero-capture-algs'] = { enable: rep(true) };
 if (mcf4.ctwo['state-machine']?.['hal-frame-stack']) {
   mcf4.ctwo['state-machine']['hal-frame-stack']['need-to-lock-ae'] = rep(false);
+  mcf4.ctwo['state-machine']['hal-frame-stack']['streaming-cache-enable'] = rep(true);
+}
+if (Array.isArray(mcf4.ctwo['fullframe-config']?.color?.skipPattern)) {
+  const sp = mcf4.ctwo['fullframe-config'].color.skipPattern;
+  if (sp.length > 0) sp[0] = 'skip-1'; // mot_ov50h 1x
+  if (sp.length > 3) sp[3] = 'skip-1'; // mot_s5kjn1 0.5x UW
 }
 if (mcf4.ctwo['fast-init']?.['hold-startup-handle-for-algo']) {
   mcf4.ctwo['fast-init']['hold-startup-handle-for-algo'].algorithms = rep([]);
 }
 if (mcf4.ctwo['ai-scene-detect']) mcf4.ctwo['ai-scene-detect'].enable = rep(false);
-if (mcf4.ctwo['tetras-raw-sr']) mcf4.ctwo['tetras-raw-sr'].enable = rep(false);
+// Live SM8635 capture proved tetras-raw-sr / RAW_SUPER_RESOLUTION dlopens libQnnHtpV73Skel.so
+// and fails QnnDsp openSession (0x72 Connection refused) on untrusted_app, whereas
+// HAL_SUPER_RESOLUTION and HAL_FRAME_STACK succeed natively inside vendor.qti.camera.provider.
+if (mcf4.ctwo['tetras-raw-sr']) {
+  mcf4.ctwo['tetras-raw-sr'].enable = rep(false);
+}
 if (mcf4.ctwo['state-machine']?.['raw-super-resolution']) {
   mcf4.ctwo['state-machine']['raw-super-resolution'].enable = rep(false);
 }
-if (mcf4.ctwo['state-machine']?.['hal-super-resolution']) {
-  mcf4.ctwo['state-machine']['hal-super-resolution'].enable = rep(false);
+if (mcf4.ctwo['state-machine']?.['hal-super-resolution'] && stockMcf4['state-machine']?.['hal-super-resolution']?.enable) {
+  mcf4.ctwo['state-machine']['hal-super-resolution'].enable = structuredClone(stockMcf4['state-machine']['hal-super-resolution'].enable);
 }
-if (mcf4.ctwo['scene-classifer']?.['super-resolution']) {
-  mcf4.ctwo['scene-classifer']['super-resolution'].enable = rep(false);
-  mcf4.ctwo['scene-classifer']['super-resolution']['need-edge-nr-on-preview'] = rep(false);
+if (stockMcf4['scene-classifer']?.['super-resolution']) {
+  mcf4.ctwo['scene-classifer']['super-resolution'] = structuredClone(stockMcf4['scene-classifer']['super-resolution']);
 }
-if (Array.isArray(mcf4.ctwo['arcsoft-tf-drsd']?.['custom-thresh'])) {
+const stockSrThresh = stockMcf4['arcsoft-tf-drsd']?.['custom-thresh']?.find((t) => t?.variant === 'super-resolution');
+if (Array.isArray(mcf4.ctwo['arcsoft-tf-drsd']?.['custom-thresh']) && stockSrThresh) {
   for (const th of mcf4.ctwo['arcsoft-tf-drsd']['custom-thresh']) {
     if (th?.variant === 'super-resolution') {
-      th['zoom-thresh-in'] = rep(999);
+      th['zoom-thresh-in'] = structuredClone(stockSrThresh['zoom-thresh-in']);
     }
   }
 }
@@ -362,7 +391,6 @@ const removedAlgs = new Set([
   'MCF_AL_SUPERRESOLUTION_CAPTURE_ALG',
   'MCF_AL_SUPER_RESOLUTION_AS_HDR_CAPTURE_ALG',
   'MCF_AL_SUPER_RESOLUTION_BST_HDR_CAPTURE_ALG',
-  'MCF_TETRAS_RAW_SUPER_RESOLUTION_CAPTURE_ALG',
   'MCF_TETRAS_SUPERRESOLUTION_CAPTURE_ALG',
   'MCF_TETRAS_SUPER_RESOLUTION_BST_HDR_CAPTURE_ALG',
   'MCF_TETRAS_SENSEPR_CAPTURE_ALG',
@@ -391,9 +419,11 @@ if (mcf4.ctwo['state-machine-to-algorithms-map']) {
   }
   cleanMap.MCF_HAL_FRAME_STACK_STATE_MACHINE = [
     'MCF_BST_PURPLE_FRINGE_CAPTURE_ALG',
-    'MCF_ARCSOFT_DISTORTION_CORREC_CAPTURE_ALG',
+    'MCF_MOT_SELECTIVE_COLOR_CAPTURE_ALG',
+    'MCF_AS_MINIATURE_BOKEH_CAPTURE_ALG',
     'MCF_UHDR_ALG',
     'MCF_MEISHE_NV_EFFECTS_CAPTURE_ALG',
+    'MCF_MOT_COMPOSITION_ALG',
   ];
   mcf4.ctwo['state-machine-to-algorithms-map'] = cleanMap;
 }

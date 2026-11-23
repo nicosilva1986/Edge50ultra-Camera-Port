@@ -214,24 +214,24 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
     expectResolve.set(name, expected);
   }
 
-  addResolve('daylight-1x', 0, '1', '100', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('daylight-hdr', 0, '1', '120', 1, 0, 0, [2, 3, 0, 1, 0, 0, 0]);
-  addResolve('tele-3x', 0, '3', '100', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('tele-3x-hdr', 0, '3', '140', 1, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('tele-295', 0, '2.95', '200', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('daylight-1x', 0, '1', '100', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('daylight-hdr', 0, '1', '120', 1, 0, 0, [2, 2, 0, 1, 0, 0, 0]);
+  addResolve('tele-3x', 0, '3', '100', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('tele-3x-hdr', 0, '3', '140', 1, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('tele-295', 0, '2.95', '200', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
   addResolve('zoom-15x', 0, '15', '90', 0, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
   addResolve('zoom-15x-hdr', 0, '15', '90', 1, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
   addResolve('zoom-12-low-light', 0, '12', '400', 1, 0, 0, [1, 3, 1, 1, 0, 0, 0]);
-  addResolve('low-light', 0, '1', '280', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('low-light-hdr', 0, '1', '350', 1, 0, 0, [0, 3, 0, 1, 0, 0, 0]);
-  addResolve('tele-goes-low-light', 0, '3.5', '280', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('nan-zoom', 0, 'NaN', '100', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('nan-lux', 0, '1', 'NaN', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('nan-zoom-keeps-low-light', 0, 'NaN', '320', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('negative-zoom', 0, '-2', '80', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('negative-lux-hdr', 0, '1', '-40', 1, 0, 0, [2, 3, 0, 1, 0, 0, 0]);
-  addResolve('infinity-zoom', 0, 'Infinity', '100', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
-  addResolve('negative-infinity-lux', 0, '1', '-Infinity', 0, 0, 0, [1, 3, 0, 1, 0, 0, 0]);
+  addResolve('low-light', 0, '1', '280', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('low-light-hdr', 0, '1', '350', 1, 0, 0, [0, 2, 0, 1, 0, 0, 0]);
+  addResolve('tele-goes-low-light', 0, '3.5', '280', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('nan-zoom', 0, 'NaN', '100', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('nan-lux', 0, '1', 'NaN', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('nan-zoom-keeps-low-light', 0, 'NaN', '320', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('negative-zoom', 0, '-2', '80', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('negative-lux-hdr', 0, '1', '-40', 1, 0, 0, [2, 2, 0, 1, 0, 0, 0]);
+  addResolve('infinity-zoom', 0, 'Infinity', '100', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('negative-infinity-lux', 0, '1', '-Infinity', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
   addResolve('flash-auto', 0, '1', '100', 1, 0, 1, KEEP);
   addResolve('flash-natural', 1, '20', '500', 1, 0, 1, KEEP);
   addResolve('flash-amber', 7, '15', '400', 1, 0, 1, KEEP);
@@ -252,10 +252,10 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   jobs.push('E below-12 nextDown12 100 0');
   jobs.push('E below-295 nextDown295 100 0');
   expectResolve.set('exact-12', [1, 3, 1, 1, 0, 0, 0]);
-  expectResolve.set('exact-295', [1, 3, 0, 1, 0, 0, 0]);
-  expectResolve.set('exact-280', [1, 3, 0, 1, 0, 0, 0]);
-  expectResolve.set('below-12', [1, 3, 0, 1, 0, 0, 0]);
-  expectResolve.set('below-295', [1, 3, 0, 1, 0, 0, 0]);
+  expectResolve.set('exact-295', [1, 2, 0, 1, 0, 0, 0]);
+  expectResolve.set('exact-280', [1, 2, 0, 1, 0, 0, 0]);
+  expectResolve.set('below-12', [1, 2, 0, 1, 0, 0, 0]);
+  expectResolve.set('below-295', [1, 2, 0, 1, 0, 0, 0]);
 
   for (const style of [1, 2, 3]) {
     jobs.push(`P black-${style} ${style} ff000000`);
@@ -421,13 +421,13 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
 
   const extChecks = {
     // [sceneAction, nr, edge, mfnr, sz, lut, raw, isz, aide, vsr, hdr, t2wLock, qll]
-    'uw-day': [1, 3, 0, 1, 0, 0, 0, -1, 0, -1, -1, -1, -1],
-    'uw-dusk': [1, 1, 0, 1, 0, 0, 0, -1, 1, -1, 1, -1, -1],
-    'isz2x-dusk': [1, 3, 0, 1, 0, 0, 0, 1, 0, -1, 1, -1, -1],
-    'isz2x-night': [1, 3, 0, 1, 0, 0, 0, 0, 1, -1, 1, -1, -1],
-    'tele3x-day': [1, 3, 0, 1, 0, 0, 0, -1, 0, -1, -1, 1, -1],
-    'tele6x-day': [1, 3, 0, 1, 0, 0, 0, 1, 0, 2, 1, 1, -1],
-    'tele6x-dusk': [1, 3, 0, 1, 0, 0, 0, 0, 1, 2, 1, 1, -1],
+    'uw-day': [1, 2, 1, 1, 0, 0, 0, -1, 0, -1, -1, -1, -1],
+    'uw-dusk': [1, 2, 1, 1, 0, 0, 0, -1, 0, -1, -1, -1, -1],
+    'isz2x-dusk': [1, 2, 0, 1, 0, 0, 0, 1, 0, -1, -1, -1, -1],
+    'isz2x-night': [1, 2, 0, 1, 0, 0, 0, 0, 1, -1, -1, -1, -1],
+    'tele3x-day': [1, 2, 0, 1, 0, 0, 0, -1, 0, -1, -1, 1, -1],
+    'tele6x-day': [1, 2, 0, 1, 0, 0, 0, 1, 0, 2, -1, 1, -1],
+    'tele6x-dusk': [1, 2, 0, 1, 0, 0, 0, 0, 1, 2, -1, 1, -1],
     'detail-hdr': [1, 3, 0, 1, 0, 0, 0, -1, 0, -1, 2, -1, -1],
     'p9-direct': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0],
   };
@@ -529,8 +529,8 @@ public final class BridgeChecks {
             }
         }
         int[] hdrRes = ScenePostProcSelector.resolve(0, 1.0f, 50.0f, "HDR", false);
-        if (hdrRes[0] != ScenePostProcSelector.SCENE_RAW_HDR || hdrRes[1] != ScenePostProcSelector.NR_MINIMAL) {
-            throw new AssertionError("Expected Auto HDR -> RAW_HDR+MINIMAL: " + Arrays.toString(hdrRes));
+        if (hdrRes[0] != ScenePostProcSelector.SCENE_RAW_HDR || hdrRes[1] != ScenePostProcSelector.NR_HIGH_QUALITY) {
+            throw new AssertionError("Expected Auto HDR -> RAW_HDR+HIGH_QUALITY: " + Arrays.toString(hdrRes));
         }
 
         // 2. Per-capture isolation: Shot 10 (profile 5 LUT=1) vs overlapping Shot 11 (profile 0 LUT=0).
@@ -598,8 +598,150 @@ public final class BridgeChecks {
         if (CustomImagingBridge.resolveJpegQuality(95) != 98) {
             throw new AssertionError("Expected JPEG quality bump 95 -> 98");
         }
+        // shouldAllowInSensorCrop must stay true for p=0,1,2,3,5,6,7,10 regardless of zoom/MFNR and false only for p=4,9.
+        for (String pStr : new String[] {"0", "1", "2", "3", "5", "6", "7", "10"}) {
+            PersistBehavior.mockProfile = pStr;
+            if (!CustomImagingBridge.shouldAllowInSensorCrop()) {
+                throw new AssertionError("shouldAllowInSensorCrop must be true for profile=" + pStr);
+            }
+        }
+        PersistBehavior.mockProfile = "4";
+        if (CustomImagingBridge.shouldAllowInSensorCrop()) {
+            throw new AssertionError("shouldAllowInSensorCrop must be false for Pure ISP");
+        }
+        PersistBehavior.mockProfile = "9";
+        if (CustomImagingBridge.shouldAllowInSensorCrop()) {
+            throw new AssertionError("shouldAllowInSensorCrop must be false for Disable Post Processing");
+        }
+        PersistBehavior.mockProfile = "10";
+        if (CustomImagingBridge.getSelectedProfile() != ScenePostProcSelector.PROFILE_AUTO_STOCK) {
+            throw new AssertionError("Expected getSelectedProfile()==10 for Auto W/ Stock");
+        }
 
-        // 2c. Non-root (!htpAvailable) rescue for HTP-blocked RAW_SUPER_NIGHT / RAW_HDR / MOTION_CAPTURE.
+        // 2c. Profile 0 extreme zoom SUPER_RESOLUTION override vs Profile 10 Auto (W/ Stock).
+        int[] p0Sr15x = ScenePostProcSelector.resolve(0, 15.4f, 314.0f, "SUPER_RESOLUTION", false, false, false);
+        if (p0Sr15x[0] != ScenePostProcSelector.SCENE_HAL_FRAME_STACK
+                || p0Sr15x[1] != ScenePostProcSelector.NR_MINIMAL
+                || p0Sr15x[2] != ScenePostProcSelector.EDGE_FAST
+                || p0Sr15x[3] != 1
+                || p0Sr15x[4] != 0) {
+            throw new AssertionError("Profile 0 at 15.4x SUPER_RESOLUTION must use HAL_FRAME_STACK+NR_MINIMAL+EDGE_FAST+MFNR=1+sz=0, got "
+                    + Arrays.toString(p0Sr15x));
+        }
+        int[] p10Sr15x = ScenePostProcSelector.resolve(ScenePostProcSelector.PROFILE_AUTO_STOCK,
+                15.4f, 314.0f, "SUPER_RESOLUTION", false, false, false);
+        if (p10Sr15x[0] != ScenePostProcSelector.SCENE_KEEP || p10Sr15x[1] != -1 || p10Sr15x[4] != -1) {
+            throw new AssertionError("Profile 10 at 15.4x SUPER_RESOLUTION must preserve Stock (-1), got "
+                    + Arrays.toString(p10Sr15x));
+        }
+        int[] p10RawHdrRescue = ScenePostProcSelector.resolve(ScenePostProcSelector.PROFILE_AUTO_STOCK,
+                1.0f, 120.0f, "RAW_HDR", false, false, false);
+        if (p10RawHdrRescue[0] != ScenePostProcSelector.SCENE_HAL_FRAME_STACK
+                || p10RawHdrRescue[1] != -1 || p10RawHdrRescue[3] != 1 || p10RawHdrRescue[4] != -1) {
+            throw new AssertionError("Profile 10 must rescue HTP-blocked RAW_HDR to HAL_FRAME_STACK while keeping NR/SZ=-1, got "
+                    + Arrays.toString(p10RawHdrRescue));
+        }
+        int[] p10RawSrRescue = ScenePostProcSelector.resolve(ScenePostProcSelector.PROFILE_AUTO_STOCK,
+                20.0f, 120.0f, "RAW_SUPER_RESOLUTION", false, false, false);
+        if (p10RawSrRescue[0] != ScenePostProcSelector.SCENE_HAL_FRAME_STACK || p10RawSrRescue[3] != 1) {
+            throw new AssertionError("Profile 10 must rescue QNN-HTP-blocked RAW_SUPER_RESOLUTION when !htpAvailable, got "
+                    + Arrays.toString(p10RawSrRescue));
+        }
+        int[] p0Ultra100x = ScenePostProcSelector.resolve(0, 100.0f, 120.0f, "NORMAL", false, false, false);
+        if (p0Ultra100x[0] != ScenePostProcSelector.SCENE_HAL_FRAME_STACK
+                || p0Ultra100x[1] != ScenePostProcSelector.NR_FAST
+                || p0Ultra100x[2] != ScenePostProcSelector.EDGE_OFF) {
+            throw new AssertionError("Profile 0 at 100x must use HAL_FRAME_STACK+NR_FAST+EDGE_OFF (no block worms), got "
+                    + Arrays.toString(p0Ultra100x));
+        }
+        PersistBehavior.mockProfile = "0";
+
+        // 2d. Profile 0 High-DR LTM gate & zero-overshoot steerable zoom acutance.
+        int[] flatFrame = new int[64 * 64];
+        Arrays.fill(flatFrame, 0xFF808080);
+        if (AppleStyleToneEngine.evaluateAutoLtmGate(flatFrame, flatFrame.length)) {
+            throw new AssertionError("evaluateAutoLtmGate must return false on flat frame");
+        }
+        int[] normalOutdoor = new int[64 * 64];
+        for (int i = 0; i < normalOutdoor.length; i++) {
+            int y = i / 64;
+            if (y < 6) normalOutdoor[i] = 0xFF141414;      // ~9% frame shadow
+            else if (y < 60) normalOutdoor[i] = 0xFF7890B0; // ~84% midtones
+            else normalOutdoor[i] = 0xFFF2F2F2;             // ~6% bright cloud
+        }
+        if (AppleStyleToneEngine.evaluateAutoLtmGate(normalOutdoor, normalOutdoor.length)) {
+            throw new AssertionError("evaluateAutoLtmGate must ignore well-exposed daylight scenes with midCount > 62%");
+        }
+        int[] hdrFrame = new int[64 * 64];
+        for (int i = 0; i < hdrFrame.length; i++) {
+            int y = (i / 64);
+            if (y < 24) hdrFrame[i] = 0xFF141414;       // ~37% deep shadows (<32)
+            else if (y < 48) hdrFrame[i] = 0xFF808080;  // 37.5% midtones
+            else hdrFrame[i] = 0xFFF4F4F4;              // 25% highlights (>236)
+        }
+        if (!AppleStyleToneEngine.evaluateAutoLtmGate(hdrFrame, hdrFrame.length)) {
+            throw new AssertionError("evaluateAutoLtmGate must trigger on bimodal high-DR backlit frame");
+        }
+        int sw = 32, sh = 32;
+        int[] stepEdge = new int[sw * sh];
+        for (int y = 0; y < sh; y++) {
+            for (int x = 0; x < sw; x++) {
+                int v = x < 15 ? 40 : (x == 15 ? 120 : 210);
+                stepEdge[y * sw + x] = 0xFF000000 | (v << 16) | (v << 8) | v;
+            }
+        }
+        int[] edge100x = stepEdge.clone();
+        AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
+                edge100x, sw, sh, 0, sw, sh, null, null, 0, 0, false, true, 100.0f);
+        if (!Arrays.equals(stepEdge, edge100x)) {
+            throw new AssertionError("Steerable zoom acutance must stay off above 30x");
+        }
+        AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
+                stepEdge, sw, sh, 0, sw, sh, null, null, 0, 0, false, true, 6.0f);
+        for (int y = 2; y < sh - 2; y++) {
+            for (int x = 2; x < sw - 2; x++) {
+                int lum = stepEdge[y * sw + x] & 255;
+                if (lum < 40 || lum > 210) {
+                    throw new AssertionError("Steerable zoom acutance produced overshoot/ringing: lum=" + lum);
+                }
+            }
+        }
+
+        // Independent white-point monotonicity & highlight-gate check (prevents 254->242, 255->255 cliff).
+        if (AppleStyleToneEngine.evaluateAutoHighlightGate(flatFrame, flatFrame.length)
+                || AppleStyleToneEngine.evaluateAutoHighlightGate(normalOutdoor, normalOutdoor.length)) {
+            throw new AssertionError("evaluateAutoHighlightGate must stay false when Y>=250 is <0.5%");
+        }
+        int[] clippedCloudFrame = new int[64 * 64];
+        for (int i = 0; i < clippedCloudFrame.length; i++) {
+            int y = i / 64;
+            clippedCloudFrame[i] = y < 2 ? 0xFFFCFCFC : 0xFF808080; // ~3.1% near-clipped white (Y=252), 97% midtones
+        }
+        if (!AppleStyleToneEngine.evaluateAutoHighlightGate(clippedCloudFrame, clippedCloudFrame.length)) {
+            throw new AssertionError("evaluateAutoHighlightGate must catch bright clouds (Y>=250 >=0.5%) even when midtones > 62%");
+        }
+        int[] whiteRamp = new int[256];
+        for (int v = 0; v < 256; v++) whiteRamp[v] = 0xFF000000 | (v << 16) | (v << 8) | v;
+        AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
+                whiteRamp, 256, 1, 0, 256, 1, null, null, 0, 0, false, true, false, 1.0f);
+        int prevGray = -1;
+        for (int v = 0; v < 256; v++) {
+            int outY = whiteRamp[v] & 255;
+            if (outY < prevGray) {
+                throw new AssertionError("White-point shoulder must remain monotone at " + v + ": " + outY + " < " + prevGray);
+            }
+            if (v <= 224 && outY != v) {
+                throw new AssertionError("Highlight-only shoulder must leave <=224 untouched at " + v + ", got " + outY);
+            }
+            prevGray = outY;
+        }
+        int g254 = whiteRamp[254] & 255;
+        int g255 = whiteRamp[255] & 255;
+        if (g255 - g254 > 2 || g255 < 248 || g255 > 250) {
+            throw new AssertionError("Unexpected white-point shoulder endpoints: 254->" + g254 + ", 255->" + g255);
+        }
+
+        // 2e. Non-root (!htpAvailable) rescue for HTP-blocked RAW_SUPER_NIGHT / RAW_HDR / MOTION_CAPTURE.
         for (String s : new String[] {"RAW_SUPER_NIGHT", "RAW_SUPER_NIGHT_DEDICATED", "RAW_HDR", "MOTION_CAPTURE"}) {
             int[] rescued = ScenePostProcSelector.resolve(0, 1.0f, 500.0f, s, false, "RAW_SUPER_NIGHT_DEDICATED".equals(s), false);
             if (rescued[0] != ScenePostProcSelector.SCENE_HAL_FRAME_STACK
@@ -700,7 +842,8 @@ public final class BridgeChecks {
             }
             @Override
             public List<CaptureRequest.Key<?>> getAvailableSessionKeys() {
-                return java.util.Collections.emptyList();
+                return java.util.Collections.singletonList(
+                        new CaptureRequest.Key<>("com.example.mock.SessionOnly", Integer.class));
             }
         };
         PersistBehavior.mockProfile = "0";
@@ -719,6 +862,25 @@ public final class BridgeChecks {
         }
         if (!Byte.valueOf((byte) 0).equals(req6x.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode", Byte.class)))) {
             throw new AssertionError("Expected enableMFNRAIDEMode=0 at 6x bright lux=50 when request-only");
+        }
+
+        // 5b. Fail-closed guard: when getAvailableSessionKeys() returns empty, KNOWN_SESSION_KEYS are NOT mutated per-shot.
+        SettingsManager.mockChars = new CameraCharacteristics() {
+            @Override
+            public List<CaptureRequest.Key<?>> getAvailableCaptureRequestKeys() {
+                return ctwoVendorKeys;
+            }
+            @Override
+            public List<CaptureRequest.Key<?>> getAvailableSessionKeys() {
+                return java.util.Collections.emptyList();
+            }
+        };
+        CaptureRequest.Builder reqEmptySessionKeys = new CaptureRequest.Builder();
+        CustomImagingBridge.applyCaptureRequestOverrides("0", reqEmptySessionKeys, null);
+        if (reqEmptySessionKeys.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableMFHDR", Integer.class)) != null
+                || reqEmptySessionKeys.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableVSR", Integer.class)) != null
+                || reqEmptySessionKeys.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableSnapshotOnlyInsensorZoom", Integer.class)) != null) {
+            throw new AssertionError("KNOWN_SESSION_KEYS must fail-closed when getAvailableSessionKeys() is empty");
         }
 
         // 5b. On real SM8635 ctwo HAL, keys present in availableSessionKeys MUST NOT be mutated per-shot

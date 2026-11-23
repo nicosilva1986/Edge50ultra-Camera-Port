@@ -150,9 +150,13 @@ public final class AppleStyleToneEngine {
         }
 
         // Fast separable 5-tap edge-stopping bilateral filter on log-luminance.
+        return bilateralSmoothLogGrid(src, gw, gh, 0.40f);
+    }
+
+    private static float[] bilateralSmoothLogGrid(float[] src, int gw, int gh, float sigmaR) {
         float[] tmp = new float[gw * gh];
         float[] out = new float[gw * gh];
-        final float inv2SigmaR2 = 1f / (2f * 0.40f * 0.40f);
+        final float inv2SigmaR2 = 1f / (2f * sigmaR * sigmaR);
         final float[] spatialW = {0.25f, 0.61f, 1.0f, 0.61f, 0.25f};
 
         for (int gy = 0; gy < gh; gy++) {
@@ -190,6 +194,400 @@ public final class AppleStyleToneEngine {
             }
         }
         return out;
+    }
+
+    /**
+     * Fast pre-gate for Profile 0 auto LTM: triggers only on genuinely wide dynamic range frames
+     * with meaningful deep shadows (< 40) AND bright highlights (> 228). Skips flat/normal frames.
+     */
+    public static boolean evaluateAutoLtmGate(int[] sampleArgb, int sampleCount) {
+        if (sampleArgb == null || sampleCount <= 0) {
+            return false;
+        }
+        int n = Math.min(sampleArgb.length, sampleCount);
+        if (n <= 0) {
+            return false;
+        }
+        int[] hist = new int[256];
+        int shadowCount = 0;
+        int hlCount = 0;
+        int midCount = 0;
+        for (int i = 0; i < n; i++) {
+            int p = sampleArgb[i];
+            int y = (((p >>> 16) & 255) * 77 + ((p >>> 8) & 255) * 150 + (p & 255) * 29) >>> 8;
+            hist[y]++;
+            if (y < 32) shadowCount++;
+            else if (y > 236) hlCount++;
+            if (y >= 48 && y <= 200) midCount++;
+        }
+        int p05Target = Math.max(1, (n * 5) / 100);
+        int p95Target = Math.max(p05Target, (n * 95) / 100);
+        int cum = 0;
+        int p05 = 0;
+        int p95 = 255;
+        boolean found05 = false;
+        for (int bin = 0; bin < 256; bin++) {
+            cum += hist[bin];
+            if (!found05 && cum >= p05Target) {
+                p05 = bin;
+                found05 = true;
+            }
+            if (cum >= p95Target) {
+                p95 = bin;
+                break;
+            }
+        }
+        return (p95 - p05) >= 165
+                && shadowCount >= 0.10f * n
+                && hlCount >= 0.02f * n
+                && midCount <= 0.62f * n;
+    }
+
+    /**
+     * Independent highlight-rolloff pre-gate for Profile 0: triggers when >= 0.5% of pixels
+     * reach near-clipping luminance (Y >= 250) on a bright-sky/highlight frame (p95 >= 232),
+     * avoiding decode/encode work on indoor/shaded frames with intact highlights.
+     */
+    public static boolean evaluateAutoHighlightGate(int[] sampleArgb, int sampleCount) {
+        if (sampleArgb == null || sampleCount <= 0) {
+            return false;
+        }
+        int n = Math.min(sampleArgb.length, sampleCount);
+        if (n <= 0) {
+            return false;
+        }
+        int nearClipCount = 0;
+        final int threshold = Math.max(1, (int) Math.ceil(0.005f * n));
+        for (int i = 0; i < n; i++) {
+            int p = sampleArgb[i];
+            int y = (((p >>> 16) & 255) * 77 + ((p >>> 8) & 255) * 150 + (p & 255) * 29) >>> 8;
+            if (y >= 250 && ++nearClipCount >= threshold) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Grid step size (8 px) used for whole-frame edge-aware Auto LTM base & variance grids. */
+    public static int autoLtmGridStep() {
+        return GRID_STEP;
+    }
+
+    /** Accumulates one horizontal band (height <= bandRows) into coarse 8x8 log-luma & std cells. */
+    public static void accumulateAutoLtmBand(int[] bandArgb, int width, int bandRows, int bandTopY,
+                                             int fullHeight, float[] rawLogGrid, float[] stdGrid, int gw, int gh) {
+        if (bandArgb == null || rawLogGrid == null || stdGrid == null || width < 16 || fullHeight < 16) {
+            return;
+        }
+        int gyStart = bandTopY / GRID_STEP;
+        int gyEnd = Math.min(gh, (bandTopY + bandRows + GRID_STEP - 1) / GRID_STEP);
+        for (int gy = gyStart; gy < gyEnd; gy++) {
+            int y0 = Math.max(bandTopY, gy * GRID_STEP);
+            int y1 = Math.min(Math.min(fullHeight, bandTopY + bandRows), (gy + 1) * GRID_STEP);
+            for (int gx = 0; gx < gw; gx++) {
+                int x0 = gx * GRID_STEP;
+                int x1 = Math.min(width, x0 + GRID_STEP);
+                double sum = 0.0;
+                double sumSq = 0.0;
+                int n = 0;
+                for (int y = y0; y < y1; y += 2) {
+                    int row = (y - bandTopY) * width;
+                    for (int x = x0; x < x1; x += 2) {
+                        int p = bandArgb[row + x];
+                        float yLin = 0.2126f * SRGB_TO_LIN[(p >>> 16) & 255]
+                                   + 0.7152f * SRGB_TO_LIN[(p >>> 8) & 255]
+                                   + 0.0722f * SRGB_TO_LIN[p & 255];
+                        sum += yLin;
+                        sumSq += (double) yLin * (double) yLin;
+                        n++;
+                    }
+                }
+                if (n > 0) {
+                    float meanY = (float) (sum / n);
+                    float var = Math.max(0f, (float) (sumSq / n) - meanY * meanY);
+                    int idx = gy * gw + gx;
+                    rawLogGrid[idx] = (float) Math.log(meanY + 0.002f);
+                    stdGrid[idx] = (float) Math.sqrt(var);
+                }
+            }
+        }
+    }
+
+    /** Finalizes a coarse log-luma LTM grid with tight edge-stopping sigma_r = 0.35 smoothing. */
+    public static float[] finalizeAutoLtmBaseGrid(float[] rawLogGrid, int gw, int gh) {
+        if (rawLogGrid == null || gw < 2 || gh < 2) {
+            return null;
+        }
+        return bilateralSmoothLogGrid(rawLogGrid, gw, gh, 0.35f);
+    }
+
+    /** Convenience whole-frame builder returning {baseLogGrid, stdGrid} for Auto LTM. */
+    public static float[][] buildAutoLtmGrid(int[] argb, int width, int height) {
+        if (argb == null || width < 16 || height < 16 || argb.length < width * height) {
+            return null;
+        }
+        int gw = Math.max(2, (width + GRID_STEP - 1) / GRID_STEP);
+        int gh = Math.max(2, (height + GRID_STEP - 1) / GRID_STEP);
+        float[] rawLog = new float[gw * gh];
+        float[] std = new float[gw * gh];
+        accumulateAutoLtmBand(argb, width, height, 0, height, rawLog, std, gw, gh);
+        return new float[][] {finalizeAutoLtmBaseGrid(rawLog, gw, gh), std};
+    }
+
+    /**
+     * Profile 0 post-pass: (1) high-DR gated 8x8 edge-aware log-luma LTM using full-frame grids,
+     * and/or (2) structure-tensor steerable zoom acutance strictly clamped to 3x3 [min, max].
+     */
+    public static void applyAutoLocalToneAndZoomAcutance(
+            int[] argb, int width, int height,
+            int stripTopY, int fullWidth, int fullHeight,
+            float[] ltmBaseGrid, float[] ltmStdGrid, int gw, int gh,
+            boolean applyLtm, boolean applyZoomAcutance) {
+        applyAutoLocalToneAndZoomAcutance(
+                argb, width, height, stripTopY, fullWidth, fullHeight,
+                ltmBaseGrid, ltmStdGrid, gw, gh, applyLtm, applyZoomAcutance, 6.0f);
+    }
+
+    /**
+     * Profile 0 post-pass: (1) true high-DR gated 8x8 edge-aware log-luma LTM (protecting blue sky/mids),
+     * and/or (2) zoom-calibrated structure-tensor steerable acutance clamped strictly to 3x3 [min, max].
+     */
+    public static void applyAutoLocalToneAndZoomAcutance(
+            int[] argb, int width, int height,
+            int stripTopY, int fullWidth, int fullHeight,
+            float[] ltmBaseGrid, float[] ltmStdGrid, int gw, int gh,
+            boolean applyLtm, boolean applyZoomAcutance, float zoomRatio) {
+        applyAutoLocalToneAndZoomAcutance(
+                argb, width, height, stripTopY, fullWidth, fullHeight,
+                ltmBaseGrid, ltmStdGrid, gw, gh, applyLtm, applyLtm, applyZoomAcutance, zoomRatio);
+    }
+
+    /**
+     * Profile 0 post-pass: (1) high-DR shadow LTM and/or monotone SDR highlight shoulder above 224
+     * (continuous across pure white 255 -> 249 with zero neighbor cliff), and (2) zoom-calibrated
+     * structure-tensor steerable acutance clamped strictly to 3x3 [min, max].
+     */
+    public static void applyAutoLocalToneAndZoomAcutance(
+            int[] argb, int width, int height,
+            int stripTopY, int fullWidth, int fullHeight,
+            float[] ltmBaseGrid, float[] ltmStdGrid, int gw, int gh,
+            boolean applyLtm, boolean applyHighlightShoulder,
+            boolean applyZoomAcutance, float zoomRatio) {
+        if (argb == null || width <= 0 || height <= 0
+                || (!applyLtm && !applyHighlightShoulder && !applyZoomAcutance)) {
+            return;
+        }
+        long requested = (long) width * (long) height;
+        int count = (int) Math.min(argb.length, requested);
+        int effHeight = count / width;
+        if (effHeight <= 0) {
+            return;
+        }
+
+        final boolean hasLtmGrid = applyLtm && ltmBaseGrid != null && ltmStdGrid != null
+                && gw >= 2 && gh >= 2
+                && ltmBaseGrid.length >= gw * gh && ltmStdGrid.length >= gw * gh;
+
+        if (hasLtmGrid || applyHighlightShoulder) {
+            for (int y = 0; y < effHeight; y++) {
+                int globalY = stripTopY + y;
+                float fy = hasLtmGrid ? clamp((globalY + 0.5f) / GRID_STEP - 0.5f, 0f, gh - 1.0001f) : 0f;
+                int y0 = (int) fy;
+                int y1 = hasLtmGrid ? Math.min(y0 + 1, gh - 1) : 0;
+                float ty = fy - y0;
+                int rowBase = y * width;
+
+                for (int x = 0; x < width; x++) {
+                    int i = rowBase + x;
+                    int pixel = argb[i];
+                    int alpha = pixel & 0xFF000000;
+                    int r8 = (pixel >>> 16) & 255;
+                    int g8 = (pixel >>> 8) & 255;
+                    int b8 = pixel & 255;
+                    if ((r8 | g8 | b8) == 0) {
+                        continue;
+                    }
+
+                    int outR8 = r8;
+                    int outG8 = g8;
+                    int outB8 = b8;
+
+                    if (hasLtmGrid) {
+                        float fx = clamp((x + 0.5f) / GRID_STEP - 0.5f, 0f, gw - 1.0001f);
+                        int x0 = (int) fx;
+                        int x1 = Math.min(x0 + 1, gw - 1);
+                        float tx = fx - x0;
+                        int idx00 = y0 * gw + x0;
+                        int idx10 = y0 * gw + x1;
+                        int idx01 = y1 * gw + x0;
+                        int idx11 = y1 * gw + x1;
+
+                        float bTop = ltmBaseGrid[idx00] + (ltmBaseGrid[idx10] - ltmBaseGrid[idx00]) * tx;
+                        float bBot = ltmBaseGrid[idx01] + (ltmBaseGrid[idx11] - ltmBaseGrid[idx01]) * tx;
+                        float baseLogY = bTop + (bBot - bTop) * ty;
+                        float baseY = Math.max(0.0005f, (float) Math.exp(baseLogY) - 0.002f);
+
+                        float sTop = ltmStdGrid[idx00] + (ltmStdGrid[idx10] - ltmStdGrid[idx00]) * tx;
+                        float sBot = ltmStdGrid[idx01] + (ltmStdGrid[idx11] - ltmStdGrid[idx01]) * tx;
+                        float baseStd = sTop + (sBot - sTop) * ty;
+
+                        float darkFloor = smoothstep(0.004f, 0.020f, baseY);
+                        float shadowBand = 1f - smoothstep(0.035f, 0.14f, baseY);
+                        float noiseDamp = smoothstep(0.008f, 0.034f, baseStd);
+                        float lift = 1f + 0.24f * darkFloor * shadowBand * (0.25f + 0.75f * noiseDamp);
+                        if (lift > 1.001f) {
+                            float r = SRGB_TO_LIN[r8] * lift;
+                            float g = SRGB_TO_LIN[g8] * lift;
+                            float b = SRGB_TO_LIN[b8] * lift;
+                            outR8 = toSrgbByte(r);
+                            outG8 = toSrgbByte(g);
+                            outB8 = toSrgbByte(b);
+                        }
+                    }
+
+                    if (applyHighlightShoulder || hasLtmGrid) {
+                        int peak8 = Math.max(outR8, Math.max(outG8, outB8));
+                        if (peak8 > 224) {
+                            float excess = peak8 - 224.0f;
+                            float targetPeak = 224.0f + 128.0f * excess / (128.0f + excess);
+                            float scale = targetPeak / (float) peak8;
+                            outR8 = clampByte(Math.round(outR8 * scale));
+                            outG8 = clampByte(Math.round(outG8 * scale));
+                            outB8 = clampByte(Math.round(outB8 * scale));
+                        }
+                    }
+
+                    if (outR8 != r8 || outG8 != g8 || outB8 != b8) {
+                        argb[i] = alpha | (outR8 << 16) | (outG8 << 8) | outB8;
+                    }
+                }
+            }
+        }
+
+        if (applyZoomAcutance && zoomRatio >= 1.70f && zoomRatio <= 30.0f && width >= 6 && effHeight >= 6) {
+            final float threshPx;
+            final float cohMin;
+            final float maxAmount;
+            if (zoomRatio < 2.95f) {
+                threshPx = 10.0f / 255.0f;
+                cohMin = 0.55f;
+                maxAmount = 0.25f;
+            } else if (zoomRatio < 12.0f) {
+                threshPx = 8.0f / 255.0f;
+                cohMin = 0.48f;
+                maxAmount = 0.42f;
+            } else {
+                threshPx = 9.0f / 255.0f;
+                cohMin = 0.55f;
+                maxAmount = 0.32f;
+            }
+            float[] yBuf = new float[count];
+            for (int i = 0; i < count; i++) {
+                int p = argb[i];
+                yBuf[i] = (0.2126f * ((p >>> 16) & 255)
+                         + 0.7152f * ((p >>> 8) & 255)
+                         + 0.0722f * (p & 255)) * (1.0f / 255.0f);
+            }
+            final float noiseThresh = threshPx * threshPx;
+            for (int y = 2; y < effHeight - 2; y++) {
+                int row = y * width;
+                for (int x = 2; x < width - 2; x++) {
+                    float jxx = 0f;
+                    float jxy = 0f;
+                    float jyy = 0f;
+                    float localMin = 1f;
+                    float localMax = 0f;
+                    for (int ky = -1; ky <= 1; ky++) {
+                        int kRow = (y + ky) * width;
+                        for (int kx = -1; kx <= 1; kx++) {
+                            int ki = kRow + x + kx;
+                            float v = yBuf[ki];
+                            if (v < localMin) localMin = v;
+                            if (v > localMax) localMax = v;
+                            float gx = 0.5f * (yBuf[ki + 1] - yBuf[ki - 1]);
+                            float gy = 0.5f * (yBuf[ki + width] - yBuf[ki - width]);
+                            jxx += gx * gx;
+                            jxy += gx * gy;
+                            jyy += gy * gy;
+                        }
+                    }
+                    jxx *= (1f / 9f);
+                    jxy *= (1f / 9f);
+                    jyy *= (1f / 9f);
+                    float tr = jxx + jyy;
+                    if (tr < noiseThresh) {
+                        continue;
+                    }
+                    float diff = jxx - jyy;
+                    float disc = (float) Math.sqrt(diff * diff + 4f * jxy * jxy);
+                    float l1 = 0.5f * (tr + disc);
+                    float l2 = 0.5f * (tr - disc);
+                    float coh = (l1 - l2) / (l1 + l2 + 1e-8f);
+                    if (coh < cohMin) {
+                        continue;
+                    }
+                    float vx = diff >= 0f ? (diff + disc) : (2f * jxy);
+                    float vy = diff >= 0f ? (2f * jxy) : (disc - diff);
+                    float len = (float) Math.sqrt(vx * vx + vy * vy);
+                    if (len < 1e-6f) {
+                        continue;
+                    }
+                    vx /= len;
+                    vy /= len;
+                    float ym = sampleBilinearY(yBuf, width, effHeight, x - vx, y - vy);
+                    float yp = sampleBilinearY(yBuf, width, effHeight, x + vx, y + vy);
+                    float yc = yBuf[row + x];
+                    float detail = yc - 0.5f * (ym + yp);
+                    float amount = maxAmount * smoothstep(cohMin, Math.min(0.95f, cohMin + 0.35f), coh);
+                    float yTarget = clamp(yc + amount * detail, localMin, localMax);
+                    float delta255 = (yTarget - yc) * 255.0f;
+                    if (Math.abs(delta255) < 0.25f) {
+                        continue;
+                    }
+                    int i = row + x;
+                    int pixel = argb[i];
+                    int r8 = (pixel >>> 16) & 255;
+                    int g8 = (pixel >>> 8) & 255;
+                    int b8 = pixel & 255;
+                    if (delta255 > 0f) {
+                        float maxHeadroom = 255f - Math.max(r8, Math.max(g8, b8));
+                        delta255 = Math.min(delta255, maxHeadroom);
+                    } else {
+                        float minFloor = -Math.min(r8, Math.min(g8, b8));
+                        delta255 = Math.max(delta255, minFloor);
+                    }
+                    int dInt = Math.round(delta255);
+                    if (dInt != 0) {
+                        argb[i] = (pixel & 0xFF000000)
+                                | (clampByte(r8 + dInt) << 16)
+                                | (clampByte(g8 + dInt) << 8)
+                                | clampByte(b8 + dInt);
+                    }
+                }
+            }
+        }
+    }
+
+    private static float sampleBilinearY(float[] yBuf, int w, int h, float fx, float fy) {
+        float cx = clamp(fx, 0f, w - 1.0001f);
+        float cy = clamp(fy, 0f, h - 1.0001f);
+        int x0 = (int) cx;
+        int y0 = (int) cy;
+        int x1 = Math.min(x0 + 1, w - 1);
+        int y1 = Math.min(y0 + 1, h - 1);
+        float tx = cx - x0;
+        float ty = cy - y0;
+        float v00 = yBuf[y0 * w + x0];
+        float v10 = yBuf[y0 * w + x1];
+        float v01 = yBuf[y1 * w + x0];
+        float v11 = yBuf[y1 * w + x1];
+        float top = v00 + (v10 - v00) * tx;
+        float bot = v01 + (v11 - v01) * tx;
+        return top + (bot - top) * ty;
+    }
+
+    private static int clampByte(int v) {
+        return v < 0 ? 0 : (Math.min(255, v));
     }
 
     private static int gradePixel(int alpha, float r, float g, float b, boolean isGray,

@@ -14,7 +14,14 @@ test('smali_patches_cam5.json loads cleanly and defines valid unique patch entri
   const data = JSON.parse(fs.readFileSync(PATCHES_PATH, 'utf8'));
   assert.equal(data.targetPackage, 'com.motorola.camera5');
   assert.equal(data.targetVersion, '10.0.44.42');
-  assert.ok(Array.isArray(data.patches) && data.patches.length === 25);
+  assert.ok(Array.isArray(data.patches) && data.patches.length === 28);
+
+  const galleryPatchIds = data.patches.filter((p) => p.category === 'gallery').map((p) => p.id);
+  assert.deepEqual(galleryPatchIds, [
+    'gallery_await_processing_before_launch',
+    'gallery_skip_processing_uri_for_gphotos',
+    'gallery_disable_exit_on_swipe_for_gphotos',
+  ]);
 
   for (const name of ['CustomImagingBridge', 'ScenePostProcSelector', 'AppleStyleToneEngine', 'CleanBayerRawProcessor']) {
     const sp = path.join(REPO_ROOT, 'patches', 'custom_imaging_smali', 'com', 'motorola', 'camera', 'custom', `${name}.smali`);
@@ -63,13 +70,30 @@ test(
     }
     assert.deepEqual(
       dev.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']?.['in-sensor-crop-lux-idx-threshold'],
-      [290, 320],
+      [380, 410],
     );
     assert.deepEqual(
       dev.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-tele-overrides']?.['in-sensor-crop-lux-idx-threshold'],
       [250, 280],
     );
     assert.ok((dev.ctwo['remosaic-config']?.['to-high-res-rg-threshold']?.[0] ?? 9) <= 0.1);
+
+    const iq = JSON.parse(fs.readFileSync(path.join(STAGE_CAM5, 'assets', 'iq_config_ctwo'), 'utf8'));
+    assert.equal(
+      iq.ctwo.scene_selection_advanced_overrides?.BACK_MAIN?.auto_ultra_resolution?.hdr_auto_on?.[0]?.override_scene,
+      'HAL_FRAME_STACK',
+      'auto_ultra_resolution hdr_auto_on must stay HAL_FRAME_STACK (not RAW_HDR)',
+    );
+    assert.ok(
+      Array.isArray(iq.ctwo.scene_selection_advanced_overrides?.BACK_MAIN?.default_mode?.hdr_on),
+      'BACK_MAIN default_mode must provide hdr_on for HDR=ON mode',
+    );
+    assert.ok(Array.isArray(iq.ctwo.qc_mfnr_settings?.default) && iq.ctwo.qc_mfnr_settings.default.length === 5);
+    for (const row of iq.ctwo.qc_mfnr_settings.default) {
+      assert.equal(row.number_of_frames, 6);
+      assert.equal(row.mfnr_burst_mode_enable, false);
+      assert.equal(row.shutter_throttle_time, 0);
+    }
 
     const feat = JSON.parse(fs.readFileSync(path.join(STAGE_CAM5, 'assets', 'app_feature_ctwo'), 'utf8'));
     assert.equal(
@@ -79,11 +103,24 @@ test(
     );
 
     const mcf = JSON.parse(decryptMcf(fs.readFileSync(path.join(STAGE_CAM5, 'assets', 'mcf_config_ctwo')), MCF5_KEY).toString('utf8'));
+    assert.ok(mcf.ctwo['tetras-raw-sr']?.enable.every((v) => v === false));
     assert.ok(mcf.ctwo['state-machine']?.['raw-super-resolution']?.enable.every((v) => v === false));
-    assert.ok(mcf.ctwo['state-machine']?.['hal-super-resolution']?.enable.every((v) => v === false));
-    assert.ok(mcf.ctwo['scene-classifer']?.['super-resolution']?.enable.every((v) => v === false));
+    assert.ok(mcf.ctwo['state-machine']?.['hal-frame-stack']?.['streaming-cache-enable']?.every((v) => v === true));
+    assert.equal(mcf.ctwo['fullframe-config']?.color?.skipPattern?.[0], 'skip-1');
+    assert.equal(mcf.ctwo['fullframe-config']?.color?.skipPattern?.[3], 'skip-1');
+    assert.equal(mcf.ctwo['state-machine']?.['hal-super-resolution']?.enable?.[2], true);
+    assert.equal(mcf.ctwo['scene-classifer']?.['super-resolution']?.enable?.[2], true);
+    assert.ok(
+      mcf.ctwo['state-machine-to-algorithms-map']?.MCF_HAL_FRAME_STACK_STATE_MACHINE?.includes('MCF_MOT_SELECTIVE_COLOR_CAPTURE_ALG'),
+      'MCF_HAL_FRAME_STACK_STATE_MACHINE should preserve OpenCL/Moto capture modes',
+    );
+    assert.equal(
+      mcf.ctwo['state-machine-to-algorithms-map']?.MCF_HAL_FRAME_STACK_STATE_MACHINE?.includes('MCF_ARCSOFT_DISTORTION_CORREC_CAPTURE_ALG'),
+      false,
+      'MCF_HAL_FRAME_STACK_STATE_MACHINE should not apply portrait distortion correction globally',
+    );
     const srThresh = mcf.ctwo['arcsoft-tf-drsd']?.['custom-thresh']?.find((t) => t?.variant === 'super-resolution');
-    assert.ok(srThresh && srThresh['zoom-thresh-in'].every((v) => v >= 999));
+    assert.ok(srThresh && srThresh['zoom-thresh-in'][2] <= 12);
     assert.equal(mcf.ctwo['arcsoft-tf-drsd']?.['ev-lib-api-version'], 1);
 
     for (const sec of [

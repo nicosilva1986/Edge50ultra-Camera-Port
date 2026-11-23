@@ -27,7 +27,7 @@
 .method constructor <init>(IFZ)V
     .locals 0
 
-    .line 125
+    .line 134
     invoke-direct {p0, p1, p2, p3}, Ljava/util/LinkedHashMap;-><init>(IFZ)V
 
     return-void
@@ -47,7 +47,7 @@
         }
     .end annotation
 
-    .line 128
+    .line 137
     invoke-virtual {p0}, Lcom/motorola/camera/custom/CustomImagingBridge$1;->size()I
 
     move-result p1

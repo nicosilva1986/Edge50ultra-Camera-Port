@@ -125,7 +125,8 @@ public final class CleanBayerRawProcessor {
                 double val = Math.max(0.0, Math.min(1.0, normalized)) * wbGains3[colors[site]];
                 if (hasLsc) {
                     int color = colors[site];
-                    int lscCh = color == RED ? 0 : (color == BLUE ? 3 : ((y & 1) == 0 ? 1 : 2));
+                    boolean greenRedRow = ((y & 1) == 0) ^ (cfaPattern >= CFA_GBRG);
+                    int lscCh = color == RED ? 0 : (color == BLUE ? 3 : (greenRedRow ? 1 : 2));
                     float lscX = (x * (lscCols - 1)) / (float) Math.max(1, width - 1);
                     int lx0 = Math.min(lscCols - 2, (int) lscX);
                     float fx = lscX - lx0;
@@ -173,9 +174,9 @@ public final class CleanBayerRawProcessor {
             double cb = linB[i];
             double peak = Math.max(cr, Math.max(cg, cb));
             double scale = 1.0;
-            if (peak > 0.72) {
-                double excess = peak - 0.72;
-                scale = (0.72 + 0.28 * (excess / (0.28 + excess))) / peak;
+            if (peak > 0.84) {
+                double excess = peak - 0.84;
+                scale = (0.84 + 0.16 * (excess / (0.16 + excess))) / peak;
             }
             float sr = encode(cr * scale);
             float sg = encode(cg * scale);
@@ -196,15 +197,16 @@ public final class CleanBayerRawProcessor {
     }
 
     private static void clampBayerHotPixels(float[] mosaic, int width, int height) {
+        float[] src = mosaic.clone();
         int s2 = width * 2;
         for (int y = 2; y < height - 2; y++) {
             int row = y * width;
             for (int x = 2; x < width - 2; x++) {
                 int i = row + x;
-                float c = mosaic[i];
-                float n0 = mosaic[i - s2 - 2], n1 = mosaic[i - s2], n2 = mosaic[i - s2 + 2];
-                float n3 = mosaic[i - 2],                              n4 = mosaic[i + 2];
-                float n5 = mosaic[i + s2 - 2], n6 = mosaic[i + s2], n7 = mosaic[i + s2 + 2];
+                float c = src[i];
+                float n0 = src[i - s2 - 2], n1 = src[i - s2], n2 = src[i - s2 + 2];
+                float n3 = src[i - 2],                           n4 = src[i + 2];
+                float n5 = src[i + s2 - 2], n6 = src[i + s2], n7 = src[i + s2 + 2];
                 float maxN = Math.max(Math.max(Math.max(n0, n1), Math.max(n2, n3)),
                                       Math.max(Math.max(n4, n5), Math.max(n6, n7)));
                 float minN = Math.min(Math.min(Math.min(n0, n1), Math.min(n2, n3)),
@@ -373,17 +375,25 @@ public final class CleanBayerRawProcessor {
                         }
                     }
                 }
-                if (!foundSameSide || bestChromaMag >= origMag) {
+                if (!foundSameSide || origMag <= 2.25f * bestChromaMag + 0.0005f) {
                     continue;
                 }
-                float crg = rg + (bestRG - rg) * 0.85f;
-                float cbg = bg + (bestBG - bg) * 0.85f;
+                float crg = rg + (bestRG - rg) * 0.80f;
+                float cbg = bg + (bestBG - bg) * 0.80f;
                 if (crg != rg || cbg != bg) {
                     float yLum = 0.2126f * rArr[i] + 0.7152f * gArr[i] + 0.0722f * bArr[i];
                     float gNew = yLum - 0.2126f * crg - 0.0722f * cbg;
-                    rArr[i] = Math.max(0f, gNew + crg);
-                    gArr[i] = Math.max(0f, gNew);
-                    bArr[i] = Math.max(0f, gNew + cbg);
+                    if (gNew >= 0f) {
+                        rArr[i] = Math.max(0f, gNew + crg);
+                        gArr[i] = gNew;
+                        bArr[i] = Math.max(0f, gNew + cbg);
+                    } else {
+                        float scale = yLum / Math.max(1e-5f, 0.2126f * crg + 0.0722f * cbg);
+                        float s = Math.max(0f, Math.min(1f, scale));
+                        rArr[i] = Math.max(0f, (yLum - 0.2126f * crg * s - 0.0722f * cbg * s) + crg * s);
+                        gArr[i] = Math.max(0f, yLum - 0.2126f * crg * s - 0.0722f * cbg * s);
+                        bArr[i] = Math.max(0f, (yLum - 0.2126f * crg * s - 0.0722f * cbg * s) + cbg * s);
+                    }
                 }
             }
         }
