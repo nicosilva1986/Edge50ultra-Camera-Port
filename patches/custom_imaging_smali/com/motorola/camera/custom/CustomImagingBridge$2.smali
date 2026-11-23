@@ -32,7 +32,7 @@
         }
     .end annotation
 
-    .line 710
+    .line 734
     iput-object p1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bmp:Landroid/graphics/Bitmap;
 
     iput p2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$w:I
@@ -47,7 +47,7 @@
 .method public readRows(II[II)V
     .locals 8
 
-    .line 713
+    .line 737
     iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bmp:Landroid/graphics/Bitmap;
 
     iget v3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$w:I
@@ -66,14 +66,14 @@
 
     invoke-virtual/range {v0 .. v7}, Landroid/graphics/Bitmap;->getPixels([IIIIIII)V
 
-    .line 714
+    .line 738
     return-void
 .end method
 
 .method public writeRows(II[II)V
     .locals 8
 
-    .line 718
+    .line 742
     iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bmp:Landroid/graphics/Bitmap;
 
     iget v3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$w:I
@@ -92,6 +92,6 @@
 
     invoke-virtual/range {v0 .. v7}, Landroid/graphics/Bitmap;->setPixels([IIIIIII)V
 
-    .line 719
+    .line 743
     return-void
 .end method

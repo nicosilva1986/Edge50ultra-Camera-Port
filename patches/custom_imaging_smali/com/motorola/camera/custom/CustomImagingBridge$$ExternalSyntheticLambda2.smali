@@ -11,6 +11,10 @@
 
 .field public final synthetic f$1:I
 
+.field public final synthetic f$10:Z
+
+.field public final synthetic f$11:I
+
 .field public final synthetic f$2:[F
 
 .field public final synthetic f$3:[F
@@ -29,7 +33,7 @@
 
 
 # direct methods
-.method public synthetic constructor <init>(II[F[FIIZZZF)V
+.method public synthetic constructor <init>(II[F[FIIZZZFZI)V
     .locals 0
 
     .line 0
@@ -55,44 +59,80 @@
 
     iput p10, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$9:F
 
+    iput-boolean p11, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$10:Z
+
+    iput p12, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$11:I
+
     return-void
 .end method
 
 
 # virtual methods
 .method public final processStrip([IIII)V
-    .locals 14
+    .locals 16
 
     .line 0
-    iget v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$0:I
+    move-object/from16 v0, p0
 
-    iget v1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$1:I
+    iget v1, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$0:I
 
-    iget-object v2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$2:[F
+    move v2, v1
 
-    iget-object v3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$3:[F
+    iget v1, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$1:I
 
-    iget v4, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$4:I
+    move v3, v2
 
-    iget v5, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$5:I
+    iget-object v2, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$2:[F
 
-    iget-boolean v6, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$6:Z
+    move v4, v3
 
-    iget-boolean v7, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$7:Z
+    iget-object v3, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$3:[F
 
-    iget-boolean v8, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$8:Z
+    move v5, v4
 
-    iget v9, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$9:F
+    iget v4, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$4:I
 
-    move-object v10, p1
+    move v6, v5
 
-    move/from16 v11, p2
+    iget v5, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$5:I
 
-    move/from16 v12, p3
+    move v7, v6
 
-    move/from16 v13, p4
+    iget-boolean v6, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$6:Z
 
-    invoke-static/range {v0 .. v13}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$applyCustomLutIfEnabled$0(II[F[FIIZZZF[IIII)V
+    move v8, v7
+
+    iget-boolean v7, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$7:Z
+
+    move v9, v8
+
+    iget-boolean v8, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$8:Z
+
+    move v10, v9
+
+    iget v9, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$9:F
+
+    move v11, v10
+
+    iget-boolean v10, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$10:Z
+
+    iget v0, v0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda2;->f$11:I
+
+    move v12, v11
+
+    move v11, v0
+
+    move v0, v12
+
+    move-object/from16 v12, p1
+
+    move/from16 v13, p2
+
+    move/from16 v14, p3
+
+    move/from16 v15, p4
+
+    invoke-static/range {v0 .. v15}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$applyCustomLutIfEnabled$0(II[F[FIIZZZFZI[IIII)V
 
     return-void
 .end method

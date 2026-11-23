@@ -214,8 +214,9 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
     expectResolve.set(name, expected);
   }
 
-  addResolve('daylight-1x', 0, '1', '100', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
-  addResolve('daylight-hdr', 0, '1', '120', 1, 0, 0, [2, 2, 0, 1, 0, 0, 0]);
+  addResolve('daylight-1x', 0, '1', '100', 0, 0, 0, [1, 2, 1, 1, 0, 0, 0]);
+  addResolve('daylight-hdr', 0, '1', '120', 1, 0, 0, [2, 2, 1, 1, 0, 0, 0]);
+  addResolve('dusk-1x', 0, '1', '160', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
   addResolve('tele-3x', 0, '3', '100', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
   addResolve('tele-3x-hdr', 0, '3', '140', 1, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
   addResolve('tele-295', 0, '2.95', '200', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
@@ -225,13 +226,13 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   addResolve('low-light', 0, '1', '280', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
   addResolve('low-light-hdr', 0, '1', '350', 1, 0, 0, [0, 2, 0, 1, 0, 0, 0]);
   addResolve('tele-goes-low-light', 0, '3.5', '280', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
-  addResolve('nan-zoom', 0, 'NaN', '100', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
-  addResolve('nan-lux', 0, '1', 'NaN', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('nan-zoom', 0, 'NaN', '100', 0, 0, 0, [1, 2, 1, 1, 0, 0, 0]);
+  addResolve('nan-lux', 0, '1', 'NaN', 0, 0, 0, [1, 2, 1, 1, 0, 0, 0]);
   addResolve('nan-zoom-keeps-low-light', 0, 'NaN', '320', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
-  addResolve('negative-zoom', 0, '-2', '80', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
-  addResolve('negative-lux-hdr', 0, '1', '-40', 1, 0, 0, [2, 2, 0, 1, 0, 0, 0]);
-  addResolve('infinity-zoom', 0, 'Infinity', '100', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
-  addResolve('negative-infinity-lux', 0, '1', '-Infinity', 0, 0, 0, [1, 2, 0, 1, 0, 0, 0]);
+  addResolve('negative-zoom', 0, '-2', '80', 0, 0, 0, [1, 2, 1, 1, 0, 0, 0]);
+  addResolve('negative-lux-hdr', 0, '1', '-40', 1, 0, 0, [2, 2, 1, 1, 0, 0, 0]);
+  addResolve('infinity-zoom', 0, 'Infinity', '100', 0, 0, 0, [1, 2, 1, 1, 0, 0, 0]);
+  addResolve('negative-infinity-lux', 0, '1', '-Infinity', 0, 0, 0, [1, 2, 1, 1, 0, 0, 0]);
   addResolve('flash-auto', 0, '1', '100', 1, 0, 1, KEEP);
   addResolve('flash-natural', 1, '20', '500', 1, 0, 1, KEEP);
   addResolve('flash-amber', 7, '15', '400', 1, 0, 1, KEEP);
@@ -255,7 +256,7 @@ test('scene profiles, LUT anchors, cube parser, and 1080p grade', () => {
   expectResolve.set('exact-295', [1, 2, 0, 1, 0, 0, 0]);
   expectResolve.set('exact-280', [1, 2, 0, 1, 0, 0, 0]);
   expectResolve.set('below-12', [1, 2, 0, 1, 0, 0, 0]);
-  expectResolve.set('below-295', [1, 2, 0, 1, 0, 0, 0]);
+  expectResolve.set('below-295', [1, 2, 1, 1, 0, 0, 0]);
 
   for (const style of [1, 2, 3]) {
     jobs.push(`P black-${style} ${style} ff000000`);
@@ -930,6 +931,56 @@ public final class BridgeChecks {
         SettingsManager.mockCamType = null;
         SettingsManager.mockZoomInv = 1f;
         PersistBehavior.mockProfile = "0";
+
+        // 6. v1.7.0 Backlit Subject Gate, ISO-800 suppression, flat-sky safety, and daylight 1x acutance bounds.
+        int[] backlitSample = new int[200];
+        for (int i = 0; i < 200; i++) {
+            backlitSample[i] = (i < 24) ? 0xFF282B1E : 0xFFBEBFC4; // 12% dark olive subject (Y~42) + 88% overcast cloud (Y~190)
+        }
+        if (!AppleStyleToneEngine.evaluateAutoBacklitSubjectGate(backlitSample, backlitSample.length)) {
+            throw new AssertionError("Expected high-key overcast + 12% dark bird sample to pass evaluateAutoBacklitSubjectGate");
+        }
+        int[] openBeachSample = new int[200];
+        for (int i = 0; i < 200; i++) {
+            openBeachSample[i] = (i < 16) ? 0xFF64645E : 0xFFB0C8DC; // P5~100 bright coastal scene must reject
+        }
+        if (AppleStyleToneEngine.evaluateAutoBacklitSubjectGate(openBeachSample, openBeachSample.length)) {
+            throw new AssertionError("Open coastal daylight scene (P5>=95) must NOT pass evaluateAutoBacklitSubjectGate");
+        }
+        int[] grayRamp = new int[256];
+        for (int i = 0; i < 256; i++) {
+            grayRamp[i] = 0xFF000000 | (i << 16) | (i << 8) | i;
+        }
+        if (AppleStyleToneEngine.evaluateAutoBacklitSubjectGate(grayRamp, grayRamp.length)) {
+            throw new AssertionError("Flat full-range gray ramp must NOT pass evaluateAutoBacklitSubjectGate");
+        }
+
+        // Backlit curve must lift Y=42 olive feather noticeably while leaving overcast cloud Y=190 neutral & unshifted, and ISO>=800 must be no-op.
+        int[] backlitTest = new int[32 * 32];
+        for (int i = 0; i < backlitTest.length; i++) {
+            backlitTest[i] = (i % 8 < 2) ? 0xFF2A3218 : 0xFFBEC0CA; // subtle lavender cast (spread 12) + olive dark subject
+        }
+        int[] backlitIso800 = backlitTest.clone();
+        AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
+                backlitTest, 32, 32, 0, 32, 32,
+                null, null, 0, 0, false, false, true, 6.0f, true, 100);
+        int liftedBird = backlitTest[0];
+        int birdY = (((liftedBird >> 16) & 255) * 77 + ((liftedBird >> 8) & 255) * 150 + (liftedBird & 255) * 29) >> 8;
+        if (birdY < 60) {
+            throw new AssertionError("Expected backlit lift to raise olive shadow Y=45 to >=60, got " + birdY);
+        }
+        int cloudPx = backlitTest[4];
+        int cloudSpread = Math.max((cloudPx >> 16) & 255, Math.max((cloudPx >> 8) & 255, cloudPx & 255))
+                - Math.min((cloudPx >> 16) & 255, Math.min((cloudPx >> 8) & 255, cloudPx & 255));
+        if (cloudSpread >= 12) {
+            throw new AssertionError("Expected cloud-tint clamp to damp subtle overcast cast (spread <12), got " + cloudSpread);
+        }
+        AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
+                backlitIso800, 32, 32, 0, 32, 32,
+                null, null, 0, 0, false, false, true, 6.0f, true, 800);
+        if (backlitIso800[0] != 0xFF2A3218) {
+            throw new AssertionError("ISO >= 800 must suppress both backlit lift and zoom acutance");
+        }
     }
 }
 `);

@@ -30,24 +30,24 @@
 .method constructor <init>([ILjava/lang/String;IFF)V
     .locals 0
 
-    .line 124
+    .line 125
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 125
+    .line 126
     iput-object p1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
-    .line 126
+    .line 127
     iput-object p2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->summary:Ljava/lang/String;
 
-    .line 127
+    .line 128
     iput p3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->profile:I
 
-    .line 128
+    .line 129
     iput p4, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->zoom:F
 
-    .line 129
+    .line 130
     iput p5, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->lux:F
 
-    .line 130
+    .line 131
     return-void
 .end method

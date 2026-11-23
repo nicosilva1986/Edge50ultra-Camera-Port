@@ -268,6 +268,69 @@ public final class AppleStyleToneEngine {
         return false;
     }
 
+    /**
+     * High-key backlit subject pre-gate for Profile 0 tele: detects frames where a bright
+     * sky/background (P50 >= 165, meanY >= 150) flanks uncrushed dark subjects (3%-22% in Y [20..108])
+     * without high clipping (p95 <= 228, hi250 < 0.5%, lo06 < 0.5%).
+     */
+    public static boolean evaluateAutoBacklitSubjectGate(int[] sampleArgb, int sampleCount) {
+        if (sampleArgb == null || sampleCount <= 0) {
+            return false;
+        }
+        int n = Math.min(sampleArgb.length, sampleCount);
+        if (n <= 0) {
+            return false;
+        }
+        int[] hist = new int[256];
+        long sumY = 0;
+        int lo06Count = 0;
+        int hi250Count = 0;
+        int subjectBandCount = 0;
+        for (int i = 0; i < n; i++) {
+            int p = sampleArgb[i];
+            int y = (((p >>> 16) & 255) * 77 + ((p >>> 8) & 255) * 150 + (p & 255) * 29) >>> 8;
+            hist[y]++;
+            sumY += y;
+            if (y <= 5) lo06Count++;
+            if (y >= 250) hi250Count++;
+            if (y >= 20 && y <= 108) subjectBandCount++;
+        }
+        double meanY = sumY / (double) n;
+        int p05Target = Math.max(1, (n * 5) / 100);
+        int p50Target = Math.max(p05Target, (n * 50) / 100);
+        int p95Target = Math.max(p50Target, (n * 95) / 100);
+        int cum = 0;
+        int p05 = 0;
+        int p50 = 128;
+        int p95 = 255;
+        boolean f05 = false;
+        boolean f50 = false;
+        for (int bin = 0; bin < 256; bin++) {
+            cum += hist[bin];
+            if (!f05 && cum >= p05Target) {
+                p05 = bin;
+                f05 = true;
+            }
+            if (!f50 && cum >= p50Target) {
+                p50 = bin;
+                f50 = true;
+            }
+            if (cum >= p95Target) {
+                p95 = bin;
+                break;
+            }
+        }
+        return p50 >= 165
+                && meanY >= 150.0
+                && p05 >= 15 && p05 <= 60
+                && (p50 - p05) >= 100
+                && p95 <= 228
+                && subjectBandCount >= 0.03f * n
+                && subjectBandCount <= 0.22f * n
+                && lo06Count < 0.005f * n
+                && hi250Count < 0.005f * n;
+    }
+
     /** Grid step size (8 px) used for whole-frame edge-aware Auto LTM base & variance grids. */
     public static int autoLtmGridStep() {
         return GRID_STEP;
@@ -373,8 +436,26 @@ public final class AppleStyleToneEngine {
             float[] ltmBaseGrid, float[] ltmStdGrid, int gw, int gh,
             boolean applyLtm, boolean applyHighlightShoulder,
             boolean applyZoomAcutance, float zoomRatio) {
+        applyAutoLocalToneAndZoomAcutance(
+                argb, width, height, stripTopY, fullWidth, fullHeight,
+                ltmBaseGrid, ltmStdGrid, gw, gh,
+                applyLtm, applyHighlightShoulder, applyZoomAcutance, zoomRatio,
+                false, 100);
+    }
+
+    /**
+     * Extended v1.7.0 Profile 0 post-pass adding backlit subject shadow lift (ISO-damped,
+     * neutral cloud-tint guarded) and bright-daylight 0.5x/1x/3x 3x3-clamped luminance acutance.
+     */
+    public static void applyAutoLocalToneAndZoomAcutance(
+            int[] argb, int width, int height,
+            int stripTopY, int fullWidth, int fullHeight,
+            float[] ltmBaseGrid, float[] ltmStdGrid, int gw, int gh,
+            boolean applyLtm, boolean applyHighlightShoulder,
+            boolean applyZoomAcutance, float zoomRatio,
+            boolean applyBacklitLift, int isoValue) {
         if (argb == null || width <= 0 || height <= 0
-                || (!applyLtm && !applyHighlightShoulder && !applyZoomAcutance)) {
+                || (!applyLtm && !applyHighlightShoulder && !applyZoomAcutance && !applyBacklitLift)) {
             return;
         }
         long requested = (long) width * (long) height;
@@ -387,13 +468,16 @@ public final class AppleStyleToneEngine {
         final boolean hasLtmGrid = applyLtm && ltmBaseGrid != null && ltmStdGrid != null
                 && gw >= 2 && gh >= 2
                 && ltmBaseGrid.length >= gw * gh && ltmStdGrid.length >= gw * gh;
+        final boolean hasBacklitGrid = applyBacklitLift && !hasLtmGrid && isoValue < 800;
+        final float backlitAdd = isoValue > 200 ? 0.55f : 1.85f;
 
-        if (hasLtmGrid || applyHighlightShoulder) {
+        if (hasLtmGrid || hasBacklitGrid || applyHighlightShoulder) {
+            final boolean needGrid = hasLtmGrid;
             for (int y = 0; y < effHeight; y++) {
                 int globalY = stripTopY + y;
-                float fy = hasLtmGrid ? clamp((globalY + 0.5f) / GRID_STEP - 0.5f, 0f, gh - 1.0001f) : 0f;
+                float fy = needGrid ? clamp((globalY + 0.5f) / GRID_STEP - 0.5f, 0f, gh - 1.0001f) : 0f;
                 int y0 = (int) fy;
-                int y1 = hasLtmGrid ? Math.min(y0 + 1, gh - 1) : 0;
+                int y1 = needGrid ? Math.min(y0 + 1, gh - 1) : 0;
                 float ty = fy - y0;
                 int rowBase = y * width;
 
@@ -443,6 +527,41 @@ public final class AppleStyleToneEngine {
                             outG8 = toSrgbByte(g);
                             outB8 = toSrgbByte(b);
                         }
+                    } else if (hasBacklitGrid) {
+                        int peak8In = Math.max(r8, Math.max(g8, b8));
+                        if (peak8In <= 224) {
+                            float rLin = SRGB_TO_LIN[r8];
+                            float gLin = SRGB_TO_LIN[g8];
+                            float bLin = SRGB_TO_LIN[b8];
+                            float linY = 0.2126f * rLin + 0.7152f * gLin + 0.0722f * bLin;
+                            if (linY > 0.003f && linY < 0.20f) {
+                                float subject = smoothstep(0.004f, 0.014f, linY) * (1f - smoothstep(0.050f, 0.19f, linY));
+                                float gain = 1f + backlitAdd * subject;
+                                if (gain > 1.005f) {
+                                    float outRL = rLin * gain;
+                                    float outGL = gLin * gain;
+                                    float outBL = bLin * gain;
+                                    // Gentle linear chroma recovery in lifted backlit shadows so plumage color doesn't wash pale.
+                                    float lumaL = 0.2126f * outRL + 0.7152f * outGL + 0.0722f * outBL;
+                                    float sat = 1f + 0.16f * Math.min(1f, (gain - 1f) * 0.75f);
+                                    outRL = Math.max(0f, lumaL + (outRL - lumaL) * sat);
+                                    outGL = Math.max(0f, lumaL + (outGL - lumaL) * sat);
+                                    outBL = Math.max(0f, lumaL + (outBL - lumaL) * sat);
+                                    outR8 = toSrgbByte(outRL);
+                                    outG8 = toSrgbByte(outGL);
+                                    outB8 = toSrgbByte(outBL);
+                                }
+                            }
+                        }
+                        // Near-neutral bright overcast cloud clamp (prevents lavender drift; keeps blue sky/feathers intact).
+                        int maxN = Math.max(outR8, Math.max(outG8, outB8));
+                        int minN = Math.min(outR8, Math.min(outG8, outB8));
+                        if (minN >= 170 && (maxN - minN) <= 14 && (maxN - minN) > 0) {
+                            int lumN = (outR8 * 54 + outG8 * 183 + outB8 * 18) >>> 8;
+                            outR8 = clampByte(outR8 + Math.round((lumN - outR8) * 0.20f));
+                            outG8 = clampByte(outG8 + Math.round((lumN - outG8) * 0.20f));
+                            outB8 = clampByte(outB8 + Math.round((lumN - outB8) * 0.20f));
+                        }
                     }
 
                     if (applyHighlightShoulder || hasLtmGrid) {
@@ -464,22 +583,36 @@ public final class AppleStyleToneEngine {
             }
         }
 
-        if (applyZoomAcutance && zoomRatio >= 1.70f && zoomRatio <= 30.0f && width >= 6 && effHeight >= 6) {
+        if (applyZoomAcutance && zoomRatio >= 0.45f && zoomRatio <= 30.0f && isoValue < 800 && width >= 6 && effHeight >= 6) {
+            final float isoDamp = isoValue > 200 ? 0.5f : 1.0f;
+            final boolean wideTextureBand = zoomRatio < 2.95f;
             final float threshPx;
             final float cohMin;
             final float maxAmount;
-            if (zoomRatio < 2.95f) {
+            if (zoomRatio < 0.95f) {
+                threshPx = 11.0f / 255.0f;
+                cohMin = 0.25f;
+                maxAmount = 0.24f * isoDamp;
+            } else if (zoomRatio < 1.70f) {
+                threshPx = 9.0f / 255.0f;
+                cohMin = 0.22f;
+                maxAmount = 0.38f * isoDamp;
+            } else if (zoomRatio < 2.95f) {
                 threshPx = 10.0f / 255.0f;
-                cohMin = 0.55f;
-                maxAmount = 0.25f;
+                cohMin = 0.35f;
+                maxAmount = 0.28f * isoDamp;
+            } else if (zoomRatio < 5.50f) {
+                threshPx = 10.0f / 255.0f;
+                cohMin = 0.45f;
+                maxAmount = 0.22f * isoDamp;
             } else if (zoomRatio < 12.0f) {
                 threshPx = 8.0f / 255.0f;
                 cohMin = 0.48f;
-                maxAmount = 0.42f;
+                maxAmount = 0.42f * isoDamp;
             } else {
                 threshPx = 9.0f / 255.0f;
                 cohMin = 0.55f;
-                maxAmount = 0.32f;
+                maxAmount = 0.32f * isoDamp;
             }
             float[] yBuf = new float[count];
             for (int i = 0; i < count; i++) {
@@ -489,12 +622,14 @@ public final class AppleStyleToneEngine {
                          + 0.0722f * (p & 255)) * (1.0f / 255.0f);
             }
             final float noiseThresh = threshPx * threshPx;
+            final float flatPatchRange = (zoomRatio < 1.70f ? 10.0f : 8.0f) / 255.0f;
             for (int y = 2; y < effHeight - 2; y++) {
                 int row = y * width;
                 for (int x = 2; x < width - 2; x++) {
                     float jxx = 0f;
                     float jxy = 0f;
                     float jyy = 0f;
+                    float sum3 = 0f;
                     float localMin = 1f;
                     float localMax = 0f;
                     for (int ky = -1; ky <= 1; ky++) {
@@ -502,6 +637,7 @@ public final class AppleStyleToneEngine {
                         for (int kx = -1; kx <= 1; kx++) {
                             int ki = kRow + x + kx;
                             float v = yBuf[ki];
+                            sum3 += v;
                             if (v < localMin) localMin = v;
                             if (v > localMax) localMax = v;
                             float gx = 0.5f * (yBuf[ki + 1] - yBuf[ki - 1]);
@@ -510,6 +646,9 @@ public final class AppleStyleToneEngine {
                             jxy += gx * gy;
                             jyy += gy * gy;
                         }
+                    }
+                    if ((localMax - localMin) < flatPatchRange) {
+                        continue;
                     }
                     jxx *= (1f / 9f);
                     jxy *= (1f / 9f);
@@ -523,22 +662,48 @@ public final class AppleStyleToneEngine {
                     float l1 = 0.5f * (tr + disc);
                     float l2 = 0.5f * (tr - disc);
                     float coh = (l1 - l2) / (l1 + l2 + 1e-8f);
-                    if (coh < cohMin) {
-                        continue;
-                    }
-                    float vx = diff >= 0f ? (diff + disc) : (2f * jxy);
-                    float vy = diff >= 0f ? (2f * jxy) : (disc - diff);
-                    float len = (float) Math.sqrt(vx * vx + vy * vy);
-                    if (len < 1e-6f) {
-                        continue;
-                    }
-                    vx /= len;
-                    vy /= len;
-                    float ym = sampleBilinearY(yBuf, width, effHeight, x - vx, y - vy);
-                    float yp = sampleBilinearY(yBuf, width, effHeight, x + vx, y + vy);
                     float yc = yBuf[row + x];
-                    float detail = yc - 0.5f * (ym + yp);
-                    float amount = maxAmount * smoothstep(cohMin, Math.min(0.95f, cohMin + 0.35f), coh);
+                    float detail;
+                    float amount;
+                    if (wideTextureBand) {
+                        // Wide-angle/1x/2x scenes contain isotropic 2D leaf, stone, and pavement texture
+                        // (low coherence, high gradient energy) as well as straight architectural edges.
+                        float dirWeight = smoothstep(cohMin, Math.min(0.95f, cohMin + 0.45f), coh);
+                        float texWeight = smoothstep(noiseThresh, noiseThresh * 6.0f, tr);
+                        float vx = diff >= 0f ? (diff + disc) : (2f * jxy);
+                        float vy = diff >= 0f ? (2f * jxy) : (disc - diff);
+                        float len = (float) Math.sqrt(vx * vx + vy * vy);
+                        float dirDetail = 0f;
+                        if (len >= 1e-6f) {
+                            vx /= len;
+                            vy /= len;
+                            float ym = sampleBilinearY(yBuf, width, effHeight, x - vx, y - vy);
+                            float yp = sampleBilinearY(yBuf, width, effHeight, x + vx, y + vy);
+                            dirDetail = yc - 0.5f * (ym + yp);
+                        }
+                        float isoDetail = yc - (sum3 * (1f / 9f));
+                        detail = dirDetail * dirWeight + isoDetail * (1f - dirWeight);
+                        amount = maxAmount * Math.max(0.45f * texWeight, dirWeight);
+                    } else {
+                        if (coh < cohMin) {
+                            continue;
+                        }
+                        float vx = diff >= 0f ? (diff + disc) : (2f * jxy);
+                        float vy = diff >= 0f ? (2f * jxy) : (disc - diff);
+                        float len = (float) Math.sqrt(vx * vx + vy * vy);
+                        if (len < 1e-6f) {
+                            continue;
+                        }
+                        vx /= len;
+                        vy /= len;
+                        float ym = sampleBilinearY(yBuf, width, effHeight, x - vx, y - vy);
+                        float yp = sampleBilinearY(yBuf, width, effHeight, x + vx, y + vy);
+                        detail = yc - 0.5f * (ym + yp);
+                        amount = maxAmount * smoothstep(cohMin, Math.min(0.95f, cohMin + 0.35f), coh);
+                    }
+                    if (localMax > 0.90f) {
+                        amount *= 0.25f;
+                    }
                     float yTarget = clamp(yc + amount * detail, localMin, localMax);
                     float delta255 = (yTarget - yc) * 255.0f;
                     if (Math.abs(delta255) < 0.25f) {

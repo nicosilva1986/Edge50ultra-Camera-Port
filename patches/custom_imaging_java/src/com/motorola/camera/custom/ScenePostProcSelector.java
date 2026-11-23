@@ -43,6 +43,7 @@ public final class ScenePostProcSelector {
     /** 12x–100x needs multi-frame denoise. Tetras / ArcSoft super-zoom stays off. */
     private static final float EXTREME_ZOOM = 12.0f;
     /** Lux bands calibrated from OV50H/OV64B/S5KJN1 SM8635 CamX peers. */
+    private static final float BRIGHT_DAYLIGHT_LUX = 145.0f;
     private static final float UW_LOW_LIGHT_LUX = 180.0f;
     private static final float DUSK_HDR_MIN_LUX = 140.0f;
     private static final float TELE_ISZ_MAX_LUX = 260.0f;
@@ -286,8 +287,8 @@ public final class ScenePostProcSelector {
             int uwEdge = luxIdx < LOW_LIGHT_LUX ? EDGE_FAST : EDGE_OFF;
             return pack(SCENE_HAL_FRAME_STACK, NR_HIGH_QUALITY, uwEdge, 1, 0, 0, 0);
         }
-        // Keep optical/daylight 1x and 3x–11.9x on EDGE_OFF + NR_HIGH_QUALITY so hardware still MFNR
-        // cleans chroma/luma grain without CamX +31 luma edge halos or Tetras watercolor.
+        // Keep tele (3x–11.9x) on EDGE_OFF + NR_HIGH_QUALITY (software 3x3-clamped acutance handles crispness);
+        // enable EDGE_FAST on bright daylight 1x/2x (<=145 lux) to recover foliage/stone texture parity with 0.5x.
         if (zoomRatio >= TELE_ZOOM && luxIdx < LOW_LIGHT_LUX) {
             return pack(SCENE_HAL_FRAME_STACK, NR_HIGH_QUALITY, EDGE_OFF, 1, 0, 0, 0);
         }
@@ -295,10 +296,11 @@ public final class ScenePostProcSelector {
             int scene = isHdrScene ? SCENE_KEEP : SCENE_HAL_FRAME_STACK;
             return pack(scene, NR_HIGH_QUALITY, EDGE_OFF, 1, 0, 0, 0);
         }
+        int wideEdge = luxIdx <= BRIGHT_DAYLIGHT_LUX ? EDGE_FAST : EDGE_OFF;
         if (isHdrScene) {
-            return pack(SCENE_RAW_HDR, NR_HIGH_QUALITY, EDGE_OFF, 1, 0, 0, 0);
+            return pack(SCENE_RAW_HDR, NR_HIGH_QUALITY, wideEdge, 1, 0, 0, 0);
         }
-        return pack(SCENE_HAL_FRAME_STACK, NR_HIGH_QUALITY, EDGE_OFF, 1, 0, 0, 0);
+        return pack(SCENE_HAL_FRAME_STACK, NR_HIGH_QUALITY, wideEdge, 1, 0, 0, 0);
     }
 
     private static int[] hold() {

@@ -65,6 +65,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class CustomImagingBridge {
     private static final String TAG = "CustomImagingBridge";
+    private static final String MOD_VERSION = "1.7.0";
     public static final String PREF_KEY = "com.motorola.camera.post_processing_profile";
     private static final int STRIP_HEIGHT = 512;
     private static final int MAX_BAYER_PIXELS = 20_000_000;
@@ -252,7 +253,7 @@ public final class CustomImagingBridge {
         String name = scene != null ? scene.name() : "";
         int profile = getSelectedProfile();
         int[] res = ScenePostProcSelector.resolveExtended(profile, zoom, lux, name, isFlash, isUiSpecial, HTP_RPC_AVAILABLE);
-        String summary = "Edge50Port v1.6.0 p=" + profile
+        String summary = "Edge50Port v" + MOD_VERSION + " p=" + profile
                 + " z=" + (Math.round(zoom * 10f) / 10f)
                 + " lux=" + Math.round(lux)
                 + " act=" + res[0] + " nr=" + res[1] + " edge=" + res[2]
@@ -621,6 +622,20 @@ public final class CustomImagingBridge {
         } catch (Throwable ignored) {}
     }
 
+    private static int readIsoSafe(PhotoMetadata meta) {
+        if (meta == null) return 100;
+        try {
+            String raw = meta.getAttribute("ISOSpeedRatings");
+            if (raw == null || raw.isEmpty()) return 100;
+            int comma = raw.indexOf(',');
+            String token = (comma > 0 ? raw.substring(0, comma) : raw).trim();
+            int val = Integer.parseInt(token);
+            return val > 0 ? val : 100;
+        } catch (Throwable ignored) {
+            return 100;
+        }
+    }
+
     private static int evaluateAutoPostGates(byte[] origBytes) {
         BitmapFactory.Options thumbOpts = new BitmapFactory.Options();
         thumbOpts.inSampleSize = 4;
@@ -639,6 +654,9 @@ public final class CustomImagingBridge {
             }
             if (AppleStyleToneEngine.evaluateAutoHighlightGate(sampleArgb, sampleArgb.length)) {
                 flags |= 2;
+            }
+            if (AppleStyleToneEngine.evaluateAutoBacklitSubjectGate(sampleArgb, sampleArgb.length)) {
+                flags |= 4;
             }
             return flags;
         } finally {
@@ -675,18 +693,24 @@ public final class CustomImagingBridge {
             }
 
             boolean isAutoPost = (profile == ScenePostProcSelector.PROFILE_AUTO_SCENE_ADAPTIVE && lutStyle <= 0);
+            int shotIso = readIsoSafe(origMeta);
             boolean wantLtm = false;
             boolean wantHighlight = false;
+            boolean wantBacklit = false;
             boolean wantZoomSharp = false;
             if (isAutoPost) {
-                wantZoomSharp = (zoom >= 1.70f && zoom < 2.95f && decision.lux < 220f)
-                        || (zoom >= 6.0f && zoom <= 30.0f);
+                wantZoomSharp = shotIso < 800 && (
+                        (zoom >= 0.45f && zoom < 1.70f && decision.lux <= 145.0f)
+                        || (zoom >= 1.70f && zoom < 5.50f && decision.lux < 220.0f)
+                        || (zoom >= 5.50f && zoom <= 30.0f && decision.lux < 240.0f));
                 if (origMeta == null || !origMeta.isUltraHdr()) {
                     int gates = evaluateAutoPostGates(origBytes);
                     wantLtm = (gates & 1) != 0;
                     wantHighlight = (gates & 2) != 0;
+                    wantBacklit = !wantLtm && (gates & 4) != 0
+                            && zoom >= 2.95f && decision.lux < 180.0f && shotIso < 800;
                 }
-                if (!wantLtm && !wantHighlight && !wantZoomSharp) {
+                if (!wantLtm && !wantHighlight && !wantBacklit && !wantZoomSharp) {
                     stampExifDescription(container, origBytes, origMeta, summary);
                     return;
                 }
@@ -745,14 +769,16 @@ public final class CustomImagingBridge {
                     final int fGh = gh;
                     final boolean fLtm = wantLtm && fBase != null;
                     final boolean fHighlight = wantHighlight;
+                    final boolean fBacklit = wantBacklit;
                     final boolean fZoomSharp = wantZoomSharp;
-                    if (!fLtm && !fHighlight && !fZoomSharp) {
+                    if (!fLtm && !fHighlight && !fBacklit && !fZoomSharp) {
                         stampExifDescription(container, origBytes, origMeta, summary);
                         return;
                     }
                     graded = gradeSurfaceInBatches(surface, w, h, STRIP_HEIGHT, 24,
                             (strip, sw, rows, topY) -> AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
-                                    strip, sw, rows, topY, w, h, fBase, fStd, fGw, fGh, fLtm, fHighlight, fZoomSharp, zoom));
+                                    strip, sw, rows, topY, w, h, fBase, fStd, fGw, fGh,
+                                    fLtm, fHighlight, fZoomSharp, zoom, fBacklit, shotIso));
                 } else {
                     graded = gradeSurfaceInBatches(surface, w, h, STRIP_HEIGHT, 24,
                             (strip, sw, rows, topY) -> AppleStyleToneEngine.applyToArgbPixels(
@@ -767,6 +793,7 @@ public final class CustomImagingBridge {
                 byte[] gradedBytes = jpegOut.toByteArray();
                 String finalSummary = summary
                         + (isAutoPost && wantLtm ? " ltm=1" : "")
+                        + (isAutoPost && wantBacklit && !wantLtm ? " backlit=1" : "")
                         + (isAutoPost && wantHighlight && !wantLtm ? " hl=1" : "")
                         + (isAutoPost && wantZoomSharp ? " zsharp=1" : "");
                 if (origMeta != null) {
