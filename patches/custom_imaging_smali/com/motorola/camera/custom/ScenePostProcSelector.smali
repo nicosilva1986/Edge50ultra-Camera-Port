@@ -90,7 +90,7 @@
 .method private static hold()[I
     .locals 7
 
-    .line 307
+    .line 342
     const/4 v5, 0x0
 
     const/4 v6, 0x0
@@ -115,7 +115,7 @@
 .method private static holdExtended()[I
     .locals 13
 
-    .line 311
+    .line 346
     const/4 v11, -0x1
 
     const/4 v12, -0x1
@@ -147,6 +147,63 @@
     move-result-object v0
 
     return-object v0
+.end method
+
+.method public static isContrastFilmLook(I)Z
+    .locals 2
+
+    .line 131
+    const/4 v0, 0x1
+
+    if-eq p0, v0, :cond_1
+
+    const/4 v1, 0x3
+
+    if-eq p0, v1, :cond_1
+
+    const/16 v1, 0x9
+
+    if-lt p0, v1, :cond_0
+
+    const/16 v1, 0xd
+
+    if-gt p0, v1, :cond_0
+
+    goto :goto_0
+
+    :cond_0
+    const/4 v0, 0x0
+
+    :cond_1
+    :goto_0
+    return v0
+.end method
+
+.method public static isDiffusionLook(I)Z
+    .locals 1
+
+    .line 127
+    const/4 v0, 0x7
+
+    if-eq p0, v0, :cond_1
+
+    const/16 v0, 0x8
+
+    if-ne p0, v0, :cond_0
+
+    goto :goto_0
+
+    :cond_0
+    const/4 p0, 0x0
+
+    goto :goto_1
+
+    :cond_1
+    :goto_0
+    const/4 p0, 0x1
+
+    :goto_1
+    return p0
 .end method
 
 .method public static isPreservedSceneName(Ljava/lang/String;)Z
@@ -336,6 +393,37 @@
     return v0
 .end method
 
+.method public static isProtectedProfile(I)Z
+    .locals 1
+
+    .line 121
+    const/4 v0, 0x4
+
+    if-eq p0, v0, :cond_1
+
+    const/16 v0, 0x9
+
+    if-eq p0, v0, :cond_1
+
+    const/16 v0, 0xa
+
+    if-ne p0, v0, :cond_0
+
+    goto :goto_0
+
+    :cond_0
+    const/4 p0, 0x0
+
+    goto :goto_1
+
+    :cond_1
+    :goto_0
+    const/4 p0, 0x1
+
+    :goto_1
+    return p0
+.end method
+
 .method public static isRawHtpSceneName(Ljava/lang/String;)Z
     .locals 2
 
@@ -441,7 +529,7 @@
 .method private static pack(IIIIIII)[I
     .locals 0
 
-    .line 316
+    .line 351
     filled-new-array/range {p0 .. p6}, [I
 
     move-result-object p0
@@ -452,7 +540,7 @@
 .method private static packExtended(IIIIIIIIIIIII)[I
     .locals 0
 
-    .line 323
+    .line 358
     filled-new-array/range {p0 .. p12}, [I
 
     move-result-object p0
@@ -557,12 +645,12 @@
 .method public static resolve(IFFZZZ)[I
     .locals 8
 
-    .line 234
+    .line 269
     const/16 v0, 0x9
 
     if-ne p0, v0, :cond_0
 
-    .line 235
+    .line 270
     const/4 v6, 0x0
 
     const/4 v7, 0x0
@@ -583,7 +671,7 @@
 
     return-object p0
 
-    .line 238
+    .line 273
     :cond_0
     if-nez p5, :cond_3
 
@@ -591,29 +679,29 @@
 
     goto :goto_0
 
-    .line 241
+    .line 276
     :cond_1
     if-nez p0, :cond_2
 
-    .line 242
+    .line 277
     invoke-static {p1, p2, p3}, Lcom/motorola/camera/custom/ScenePostProcSelector;->resolveAuto(FFZ)[I
 
     move-result-object p0
 
     return-object p0
 
-    .line 244
+    .line 279
     :cond_2
     packed-switch p0, :pswitch_data_0
 
-    .line 263
+    .line 298
     invoke-static {}, Lcom/motorola/camera/custom/ScenePostProcSelector;->hold()[I
 
     move-result-object p0
 
     return-object p0
 
-    .line 261
+    .line 296
     :pswitch_0
     const/4 v5, 0x1
 
@@ -635,7 +723,7 @@
 
     return-object p0
 
-    .line 258
+    .line 293
     :pswitch_1
     const/4 v5, 0x3
 
@@ -657,7 +745,7 @@
 
     return-object p0
 
-    .line 256
+    .line 291
     :pswitch_2
     const/4 v5, 0x2
 
@@ -679,7 +767,7 @@
 
     return-object p0
 
-    .line 254
+    .line 289
     :pswitch_3
     const/4 v5, 0x1
 
@@ -701,7 +789,7 @@
 
     return-object p0
 
-    .line 252
+    .line 287
     :pswitch_4
     const/4 v5, 0x0
 
@@ -723,7 +811,7 @@
 
     return-object p0
 
-    .line 250
+    .line 285
     :pswitch_5
     const/4 v5, 0x0
 
@@ -745,7 +833,7 @@
 
     return-object p0
 
-    .line 248
+    .line 283
     :pswitch_6
     const/4 v5, 0x0
 
@@ -767,7 +855,7 @@
 
     return-object p0
 
-    .line 246
+    .line 281
     :pswitch_7
     const/4 v5, 0x0
 
@@ -789,7 +877,7 @@
 
     return-object p0
 
-    .line 239
+    .line 274
     :cond_3
     :goto_0
     invoke-static {}, Lcom/motorola/camera/custom/ScenePostProcSelector;->hold()[I
@@ -816,24 +904,24 @@
 .method private static resolveAuto(FFZ)[I
     .locals 11
 
-    .line 276
+    .line 311
     invoke-static {p0}, Lcom/motorola/camera/custom/ScenePostProcSelector;->sanitizeZoom(F)F
 
     move-result p0
 
-    .line 277
+    .line 312
     invoke-static {p1}, Lcom/motorola/camera/custom/ScenePostProcSelector;->sanitizeLux(F)F
 
     move-result p1
 
-    .line 278
+    .line 313
     const/high16 v0, 0x41f00000    # 30.0f
 
     cmpl-float v0, p0, v0
 
     if-ltz v0, :cond_0
 
-    .line 279
+    .line 314
     const/4 v6, 0x0
 
     const/4 v7, 0x0
@@ -854,7 +942,7 @@
 
     return-object p0
 
-    .line 281
+    .line 316
     :cond_0
     const/high16 v0, 0x41400000    # 12.0f
 
@@ -862,7 +950,7 @@
 
     if-ltz v0, :cond_1
 
-    .line 282
+    .line 317
     const/4 v6, 0x0
 
     const/4 v7, 0x0
@@ -883,7 +971,7 @@
 
     return-object p0
 
-    .line 286
+    .line 321
     :cond_1
     const v0, 0x3f733333    # 0.95f
 
@@ -897,7 +985,7 @@
 
     if-gez v0, :cond_3
 
-    .line 287
+    .line 322
     cmpg-float p0, p1, v3
 
     if-gez p0, :cond_2
@@ -909,7 +997,7 @@
     :cond_2
     move v5, v1
 
-    .line 288
+    .line 323
     :goto_0
     const/4 v8, 0x0
 
@@ -929,7 +1017,7 @@
 
     return-object p0
 
-    .line 292
+    .line 327
     :cond_3
     const v0, 0x403ccccd    # 2.95f
 
@@ -941,7 +1029,7 @@
 
     if-gez p0, :cond_4
 
-    .line 293
+    .line 328
     const/4 v9, 0x0
 
     const/4 v10, 0x0
@@ -962,16 +1050,16 @@
 
     return-object p0
 
-    .line 295
+    .line 330
     :cond_4
     cmpl-float p0, p1, v3
 
     if-ltz p0, :cond_5
 
-    .line 296
+    .line 331
     nop
 
-    .line 297
+    .line 332
     xor-int/lit8 v3, p2, 0x1
 
     const/4 v8, 0x0
@@ -992,7 +1080,7 @@
 
     return-object p0
 
-    .line 299
+    .line 334
     :cond_5
     const/high16 p0, 0x43110000    # 145.0f
 
@@ -1007,11 +1095,11 @@
     :cond_6
     move v5, v1
 
-    .line 300
+    .line 335
     :goto_1
     if-eqz p2, :cond_7
 
-    .line 301
+    .line 336
     const/4 v8, 0x0
 
     const/4 v9, 0x0
@@ -1030,7 +1118,7 @@
 
     return-object p0
 
-    .line 303
+    .line 338
     :cond_7
     const/4 v8, 0x0
 
@@ -1054,7 +1142,7 @@
 .method public static resolveExtended(IFFLjava/lang/String;ZZZ)[I
     .locals 32
 
-    .line 128
+    .line 163
     move/from16 v0, p0
 
     move-object/from16 v6, p3
@@ -1065,7 +1153,7 @@
 
     if-ne v0, v1, :cond_0
 
-    .line 130
+    .line 165
     const/4 v13, -0x1
 
     const/4 v14, 0x0
@@ -1098,7 +1186,7 @@
 
     return-object v0
 
-    .line 133
+    .line 168
     :cond_0
     const/4 v8, 0x1
 
@@ -1119,20 +1207,20 @@
     :cond_1
     move v10, v9
 
-    .line 134
+    .line 169
     :goto_0
     const/16 v1, 0xa
 
     if-ne v0, v1, :cond_6
 
-    .line 135
+    .line 170
     if-nez p4, :cond_5
 
     if-eqz p5, :cond_2
 
     if-eqz v10, :cond_5
 
-    .line 136
+    .line 171
     :cond_2
     invoke-static {v6, v7, v0}, Lcom/motorola/camera/custom/ScenePostProcSelector;->isPreservedSceneName(Ljava/lang/String;ZI)Z
 
@@ -1142,11 +1230,11 @@
 
     goto :goto_1
 
-    .line 139
+    .line 174
     :cond_3
     if-eqz v10, :cond_4
 
-    .line 140
+    .line 175
     const/16 v22, -0x1
 
     const/16 v23, -0x1
@@ -1179,7 +1267,7 @@
 
     return-object v0
 
-    .line 143
+    .line 178
     :cond_4
     invoke-static {}, Lcom/motorola/camera/custom/ScenePostProcSelector;->holdExtended()[I
 
@@ -1187,7 +1275,7 @@
 
     return-object v0
 
-    .line 137
+    .line 172
     :cond_5
     :goto_1
     invoke-static {}, Lcom/motorola/camera/custom/ScenePostProcSelector;->holdExtended()[I
@@ -1196,7 +1284,7 @@
 
     return-object v0
 
-    .line 145
+    .line 180
     :cond_6
     if-nez p4, :cond_29
 
@@ -1204,7 +1292,7 @@
 
     if-eqz v10, :cond_29
 
-    .line 146
+    .line 181
     :cond_7
     invoke-static {v6, v7, v0}, Lcom/motorola/camera/custom/ScenePostProcSelector;->isPreservedSceneName(Ljava/lang/String;ZI)Z
 
@@ -1214,18 +1302,18 @@
 
     goto/16 :goto_11
 
-    .line 149
+    .line 184
     :cond_8
     invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/ScenePostProcSelector;->sanitizeZoom(F)F
 
     move-result v1
 
-    .line 150
+    .line 185
     invoke-static/range {p2 .. p2}, Lcom/motorola/camera/custom/ScenePostProcSelector;->sanitizeLux(F)F
 
     move-result v2
 
-    .line 151
+    .line 186
     if-eqz v6, :cond_9
 
     const-string v3, "HDR"
@@ -1243,7 +1331,7 @@
     :cond_9
     move v3, v9
 
-    .line 152
+    .line 187
     :goto_2
     const/4 v4, 0x0
 
@@ -1253,7 +1341,7 @@
 
     move-result-object v3
 
-    .line 153
+    .line 188
     aget v4, v3, v8
 
     const/4 v5, 0x3
@@ -1266,14 +1354,14 @@
 
     if-ne v4, v11, :cond_a
 
-    .line 154
+    .line 189
     invoke-static {}, Lcom/motorola/camera/custom/ScenePostProcSelector;->holdExtended()[I
 
     move-result-object v0
 
     return-object v0
 
-    .line 156
+    .line 191
     :cond_a
     const/4 v4, 0x2
 
@@ -1289,11 +1377,11 @@
 
     if-eqz v10, :cond_c
 
-    .line 159
+    .line 194
     :cond_b
     aput v8, v3, v9
 
-    .line 161
+    .line 196
     :cond_c
     const/high16 v7, 0x438c0000    # 280.0f
 
@@ -1305,17 +1393,17 @@
 
     if-ltz v12, :cond_d
 
-    .line 164
+    .line 199
     aput v4, v3, v8
 
-    .line 165
+    .line 200
     aput v8, v3, v4
 
-    .line 168
+    .line 203
     :cond_d
     nop
 
-    .line 169
+    .line 204
     const/high16 v12, 0x43820000    # 260.0f
 
     const v13, 0x403ccccd    # 2.95f
@@ -1338,12 +1426,12 @@
 
     if-ne v0, v9, :cond_e
 
-    .line 170
+    .line 205
     move/from16 v26, v17
 
     goto :goto_5
 
-    .line 171
+    .line 206
     :cond_e
     if-eqz v0, :cond_f
 
@@ -1353,7 +1441,7 @@
 
     if-gt v0, v7, :cond_13
 
-    .line 174
+    .line 209
     :cond_f
     const v18, 0x3fd9999a    # 1.7f
 
@@ -1365,7 +1453,7 @@
 
     if-gez v18, :cond_11
 
-    .line 175
+    .line 210
     const/high16 v18, 0x439b0000    # 310.0f
 
     cmpg-float v18, v2, v18
@@ -1384,7 +1472,7 @@
 
     goto :goto_5
 
-    .line 176
+    .line 211
     :cond_11
     cmpl-float v18, v1, v15
 
@@ -1394,7 +1482,7 @@
 
     if-gez v18, :cond_13
 
-    .line 177
+    .line 212
     cmpg-float v18, v2, v12
 
     if-gez v18, :cond_12
@@ -1411,25 +1499,25 @@
 
     goto :goto_5
 
-    .line 181
+    .line 216
     :cond_13
     move/from16 v26, v11
 
     :goto_5
     nop
 
-    .line 182
+    .line 217
     if-eq v0, v9, :cond_1c
 
     if-ne v0, v4, :cond_14
 
     goto :goto_a
 
-    .line 184
+    .line 219
     :cond_14
     if-nez v0, :cond_18
 
-    .line 185
+    .line 220
     cmpl-float v18, v2, p1
 
     if-gez v18, :cond_17
@@ -1468,11 +1556,11 @@
     :goto_6
     move/from16 v12, v16
 
-    .line 188
+    .line 223
     :goto_7
     nop
 
-    .line 189
+    .line 224
     move/from16 v27, v12
 
     goto :goto_b
@@ -1486,13 +1574,13 @@
 
     goto :goto_8
 
-    .line 194
+    .line 229
     :cond_19
     move/from16 v27, v11
 
     goto :goto_b
 
-    .line 191
+    .line 226
     :cond_1a
     :goto_8
     cmpl-float v12, v2, p1
@@ -1511,23 +1599,23 @@
 
     goto :goto_b
 
-    .line 183
+    .line 218
     :cond_1c
     :goto_a
     move/from16 v27, v17
 
-    .line 194
+    .line 229
     :goto_b
     nop
 
-    .line 195
+    .line 230
     if-eq v0, v9, :cond_20
 
     if-ne v0, v4, :cond_1d
 
     goto :goto_c
 
-    .line 197
+    .line 232
     :cond_1d
     if-eqz v0, :cond_1e
 
@@ -1542,48 +1630,48 @@
 
     if-ltz v12, :cond_1f
 
-    .line 200
+    .line 235
     move/from16 v28, v4
 
     goto :goto_d
 
-    .line 203
+    .line 238
     :cond_1f
     move/from16 v28, v11
 
     goto :goto_d
 
-    .line 196
+    .line 231
     :cond_20
     :goto_c
     move/from16 v28, v17
 
-    .line 203
+    .line 238
     :goto_d
     nop
 
-    .line 204
+    .line 239
     if-ne v0, v9, :cond_21
 
-    .line 205
+    .line 240
     move/from16 v29, v17
 
     goto :goto_e
 
-    .line 206
+    .line 241
     :cond_21
     if-ne v0, v5, :cond_22
 
-    .line 207
+    .line 242
     move/from16 v29, v4
 
     goto :goto_e
 
-    .line 208
+    .line 243
     :cond_22
     if-nez v0, :cond_24
 
-    .line 209
+    .line 244
     if-eqz v10, :cond_23
 
     const-string v7, "RAW_HDR"
@@ -1594,39 +1682,39 @@
 
     if-eqz v6, :cond_23
 
-    .line 210
+    .line 245
     move/from16 v29, v4
 
     goto :goto_e
 
-    .line 211
+    .line 246
     :cond_23
     aget v6, v3, v17
 
     if-ne v6, v4, :cond_25
 
-    .line 212
+    .line 247
     move/from16 v29, v16
 
     goto :goto_e
 
-    .line 214
+    .line 249
     :cond_24
     if-lt v0, v8, :cond_25
 
     if-gt v0, v7, :cond_25
 
-    .line 215
+    .line 250
     aget v6, v3, v17
 
     if-ne v6, v4, :cond_25
 
-    .line 216
+    .line 251
     move/from16 v29, v16
 
     goto :goto_e
 
-    .line 220
+    .line 255
     :cond_25
     move/from16 v29, v11
 
@@ -1654,19 +1742,19 @@
     :cond_26
     move/from16 v30, v11
 
-    .line 221
+    .line 256
     :goto_f
     nop
 
-    .line 222
+    .line 257
     if-ne v0, v9, :cond_27
 
-    .line 223
+    .line 258
     move/from16 v31, v17
 
     goto :goto_10
 
-    .line 224
+    .line 259
     :cond_27
     if-nez v0, :cond_28
 
@@ -1676,12 +1764,12 @@
 
     if-ltz v0, :cond_28
 
-    .line 225
+    .line 260
     move/from16 v31, v16
 
     goto :goto_10
 
-    .line 228
+    .line 263
     :cond_28
     move/from16 v31, v11
 
@@ -1708,7 +1796,7 @@
 
     return-object v0
 
-    .line 147
+    .line 182
     :cond_29
     :goto_11
     invoke-static {}, Lcom/motorola/camera/custom/ScenePostProcSelector;->holdExtended()[I
@@ -1718,10 +1806,83 @@
     return-object v0
 .end method
 
+.method public static resolveExtendedWithLook(IFFLjava/lang/String;ZZZII)[I
+    .locals 0
+
+    .line 138
+    invoke-static/range {p0 .. p6}, Lcom/motorola/camera/custom/ScenePostProcSelector;->resolveExtended(IFFLjava/lang/String;ZZZ)[I
+
+    move-result-object p1
+
+    .line 139
+    const/16 p2, 0x8
+
+    const/4 p3, 0x0
+
+    if-ne p0, p2, :cond_0
+
+    .line 141
+    const/4 p2, 0x5
+
+    aput p3, p1, p2
+
+    .line 143
+    :cond_0
+    invoke-static {p0}, Lcom/motorola/camera/custom/ScenePostProcSelector;->isProtectedProfile(I)Z
+
+    move-result p2
+
+    if-eqz p2, :cond_1
+
+    .line 144
+    return-object p1
+
+    .line 146
+    :cond_1
+    const/16 p2, 0x64
+
+    invoke-static {p2, p8}, Ljava/lang/Math;->min(II)I
+
+    move-result p2
+
+    invoke-static {p3, p2}, Ljava/lang/Math;->max(II)I
+
+    move-result p2
+
+    .line 147
+    if-nez p0, :cond_2
+
+    .line 148
+    invoke-static {p7}, Lcom/motorola/camera/custom/ScenePostProcSelector;->isDiffusionLook(I)Z
+
+    move-result p0
+
+    if-eqz p0, :cond_2
+
+    const/16 p0, 0x32
+
+    if-lt p2, p0, :cond_2
+
+    const/4 p0, 0x2
+
+    aget p2, p1, p0
+
+    const/4 p4, 0x1
+
+    if-ne p2, p4, :cond_2
+
+    .line 150
+    aput p3, p1, p0
+
+    .line 152
+    :cond_2
+    return-object p1
+.end method
+
 .method private static sanitizeLux(F)F
     .locals 1
 
-    .line 272
+    .line 307
     invoke-static {p0}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v0
@@ -1744,7 +1905,7 @@
 .method private static sanitizeZoom(F)F
     .locals 1
 
-    .line 268
+    .line 303
     invoke-static {p0}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v0

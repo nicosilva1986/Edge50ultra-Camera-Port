@@ -162,7 +162,36 @@ test('IQ keeps the low-light exposure edits, lowers MFNR throttles, and routes H
   }
   frontMode.hdr_off[0].override_scene = 'HAL_FRAME_STACK';
   frontMode.hdr_auto_off[0].override_scene = 'HAL_FRAME_STACK';
-  assert.equal(frontMode.hdr_auto_on[0].override_scene, 'RAW_HDR');
+  assert.equal(frontMode.hdr_auto_on.length, 1);
+  assert.equal(frontMode.hdr_auto_on[0].lux_range[1].rawJSON, '-1.0');
+  frontMode.hdr_auto_on[0].lux_range[1] = JSON.rawJSON('2.99');
+  const frontBright = cloneConfig(frontMode.hdr_auto_on[0]);
+  frontBright.lux_range[0] = JSON.rawJSON('3.0');
+  frontBright.lux_range[1] = JSON.rawJSON('-1.0');
+  frontBright.override_scene = 'HAL_FRAME_STACK';
+  frontMode.hdr_auto_on.push(frontBright);
+  assert.deepEqual(sceneSignature(frontMode.hdr_auto_on), [
+    { zoom: ['0.0', '-1.0'], lux: ['0.0', '2.99'], scene: 'RAW_HDR' },
+    { zoom: ['0.0', '-1.0'], lux: ['3.0', '-1.0'], scene: 'HAL_FRAME_STACK' },
+  ]);
+
+  const frontBokeh = advanced.FRONT_MAIN.single_bokeh;
+  for (const key of ['hdr_off', 'hdr_auto_off', 'hdr_auto_on']) {
+    assert.deepEqual(sceneSignature(frontBokeh[key]), [
+      { zoom: ['0.0', '-1.0'], lux: ['0.0', '-1.0'], scene: 'RAW_HDR' },
+    ]);
+    assert.equal(frontBokeh[key][0].override_scene, 'RAW_HDR');
+  }
+
+  const frontFlash = advanced.FRONT_MAIN.flash.hdr_default;
+  assert.deepEqual(sceneSignature(frontFlash), [
+    { zoom: ['0.0', '-1.0'], lux: ['0.0', '-1.0'], scene: 'RAW_HDR' },
+  ]);
+  frontFlash[0].override_scene = 'HAL_FRAME_STACK_FLASH';
+  assert.deepEqual(sceneSignature(advanced.FRONT_MAIN.single_bokeh_with_nv.hdr_default), [
+    { zoom: ['0.0', '-1.0'], lux: ['0.0', '2.99'], scene: 'RAW_SUPER_NIGHT' },
+    { zoom: ['0.0', '-1.0'], lux: ['3.0', '-1.0'], scene: 'RAW_HDR' },
+  ]);
 
   const teleStock = [
     { zoom: ['0', '12.1'], lux: ['0.0', '10.0'], scene: 'RAW_SUPER_NIGHT' },
@@ -311,6 +340,8 @@ test('changelog names every Fast / Low-AI edit and its stock token', { skip: !ha
     '`/ctwo/scene_selection_advanced_overrides/default_cam_type/default_mode/hdr_auto_off/1/override_scene` | `RAW_HDR` | `HAL_FRAME_STACK`',
     '`/ctwo/scene_selection_advanced_overrides/FRONT_MAIN/default_mode/hdr_off/0/override_scene` | `RAW_HDR` | `HAL_FRAME_STACK`',
     '`/ctwo/scene_selection_advanced_overrides/FRONT_MAIN/default_mode/hdr_auto_off/0/override_scene` | `RAW_HDR` | `HAL_FRAME_STACK`',
+    '`/ctwo/scene_selection_advanced_overrides/FRONT_MAIN/default_mode/hdr_auto_on` | `[{"zoom_range":[0.0,-1.0],"lux_range":[0.0,-1.0],"override_scene":"RAW_HDR"}]` | `[{"zoom_range":[0.0,-1.0],"lux_range":[0.0,2.99],"override_scene":"RAW_HDR"},{"zoom_range":[0.0,-1.0],"lux_range":[3.0,-1.0],"override_scene":"HAL_FRAME_STACK"}]`',
+    '`/ctwo/scene_selection_advanced_overrides/FRONT_MAIN/flash/hdr_default/0/override_scene` | `RAW_HDR` | `HAL_FRAME_STACK_FLASH`',
     '`/ctwo/scene_selection_advanced_overrides/BACK_MAIN/default_mode/hdr_default`',
     '`/ctwo/scene_selection_advanced_overrides/BACK_MAIN/default_mode/hdr_off`',
     '`/ctwo/scene_selection_advanced_overrides/BACK_MAIN/default_mode/hdr_auto_off`',

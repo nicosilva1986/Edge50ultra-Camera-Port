@@ -14,6 +14,8 @@ import {
   resolveJava,
   resolveToolJar,
 } from './env_paths.mjs';
+import { stagePreviewEffects } from './stage_preview_effects.mjs';
+import { writeLookLuts } from './generate_look_luts.mjs';
 import { decryptMcf, encryptMcf, MCF5_KEY } from './mcf_crypto.mjs';
 
 const BASE = resolveBaseDir();
@@ -53,6 +55,8 @@ function patchExact(file, find, replace, label) {
 console.log('1. Staging MotCamera5_roadstr...');
 fs.rmSync(STAGE, { recursive: true, force: true });
 fs.cpSync(SRC5, STAGE, { recursive: true });
+writeLookLuts(path.join(STAGE, 'assets', 'luts'));
+stagePreviewEffects(STAGE);
 fs.cpSync(HIDDEN_API, path.join(STAGE, 'smali_classes2'), { recursive: true });
 fs.cpSync(CUSTOM_IMAGING, path.join(STAGE, 'smali_classes2'), { recursive: true });
 
@@ -128,11 +132,19 @@ dev4.ctwo['uhdr-camera-mode-configs'] = dev5['uhdr-camera-mode-configs'];
 dev4.ctwo['active-photo-config'] = dev5['active-photo-config'];
 dev4.ctwo['face-beauty-ui'] = dev5['face-beauty-ui'];
 dev4.ctwo['customized-hal-zsl-on-modes'] = ['MODE_PHOTO', 'MODE_MOTION_CAPTURE'];
-for (const cam of ['BACK_MAIN', 'BACK_TELE', 'ZOOM_BLENDING']) {
+for (const cam of ['BACK_MAIN', 'BACK_TELE', 'ZOOM_BLENDING', 'FRONT_MAIN']) {
   const idx = dev4.ctwo['camera-type']?.indexOf(cam) ?? -1;
   if (idx >= 0 && Array.isArray(dev4.ctwo['hq-preview'])) {
     dev4.ctwo['hq-preview'][idx] = false;
   }
+}
+if (Array.isArray(dev4.ctwo['disable-app-zsl-on-scenes'])) {
+  dev4.ctwo['disable-app-zsl-on-scenes'] = [
+    'RAW_HDR',
+    'RAW_SUPER_NIGHT',
+    'RAW_SUPER_RESOLUTION',
+    'SUPER_RESOLUTION_HDR',
+  ];
 }
 if (dev4.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']) {
   dev4.ctwo['in-sensor-crop-logic']['in-sensor-crop-back-main-overrides']['in-sensor-crop-lux-idx-threshold'] = [380, 410];
@@ -143,19 +155,43 @@ if (dev4.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-tele-overrides']) {
 if (dev4.ctwo['remosaic-config']) {
   dev4.ctwo['remosaic-config']['to-high-res-rg-threshold'] = [0.05];
 }
+// Use physical OV50H main camera (index 0 in arcsoft-sfbokeh) for 24/35/50mm single-cam Rear Portrait
+// instead of LOGICAL_DEPTH/LOGICAL_DEPTH3X, which are hidden without HAL privapp allowlisting.
+dev4.ctwo['portrait-lens'] = {
+  'camera-type': ['BACK_MAIN', 'BACK_MAIN', 'BACK_MAIN', ''],
+  'zoom-value': [1, 1.5, 2, 0],
+  'blur-level': [3, 3, 3, 0],
+};
+// Prevent HAL multicam probe from binding LOGICAL_DEPTH/LOGICAL_DEPTH3X on non-privapp builds;
+// otherwise OpenCameraRunnable sets DUAL_CAMERA_MODE=7 in Portrait while active camera is BACK_MAIN,
+// causing McfStartConfigHolderImpl to resolve getMainPhysicalCameraId() -> null.
+if (Array.isArray(dev4.ctwo['camera-type']) && Array.isArray(dev4.ctwo['camera-mapping'])) {
+  for (const depthType of ['LOGICAL_DEPTH', 'LOGICAL_DEPTH3X']) {
+    const dIdx = dev4.ctwo['camera-type'].indexOf(depthType);
+    if (dIdx >= 0 && dev4.ctwo['camera-mapping'][dIdx]) {
+      dev4.ctwo['camera-mapping'][dIdx]['sensor-name'] = ['disabled_logical_depth'];
+      dev4.ctwo['camera-mapping'][dIdx]['sensor-name-override'] = ['disabled_logical_depth'];
+    }
+  }
+}
 fs.writeFileSync(path.join(assetsDir, 'config_device_ctwo'), JSON.stringify(dev4));
 
 fs.copyFileSync(path.join(CTWO_CFG, 'cms_config_ctwo'), path.join(assetsDir, 'cms_config_ctwo'));
 
 const feat4 = JSON.parse(fs.readFileSync(path.join(CTWO_CFG, 'app_feature_ctwo'), 'utf8'));
 feat4.fs = feat4.fs.filter(
-  (x) => x.f !== 'REMOVE_HDR_SETTING_UI' && x.f !== 'SET_EXTRA_FREE_REPEATEDLY',
+  (x) =>
+    x.f !== 'REMOVE_HDR_SETTING_UI'
+    && x.f !== 'SET_EXTRA_FREE_REPEATEDLY'
+    && x.f !== 'DEPTH_ENABLED',
 );
 const featNames = new Set(feat4.fs.map((x) => x.f));
 for (const extra of [
   { f: 'APP_ACCELERATE' },
   { f: 'BG_SERVICE_PROCESSING_SAME_PROCESS' },
   { f: 'PANTONE' },
+  { f: 'PORTRAIT_LENS_DEFAULT_OPTION', value: '35' },
+  { f: 'SINGLE_REAR_BOKEH' },
   { f: 'VIDEO_AUTO_FPS', value: '6' },
   { f: 'VIDEO_FILTERS', value: '1920' },
   { f: 'VIDEO_HDR10' },
@@ -194,6 +230,18 @@ for (const camObj of Object.values(iq4.ctwo.scene_selection_advanced_overrides |
       aur.hdr_on ??= structuredClone(cleanDef);
     }
   }
+}
+const singleBokehRow = [{ zoom_range: [0, -1], lux_range: [0.0, -1.0], override_scene: 'RAW_HDR' }];
+for (const camKey of ['BACK_MAIN', 'FRONT_MAIN']) {
+  const camObj = iq4.ctwo.scene_selection_advanced_overrides?.[camKey];
+  if (!camObj) continue;
+  const sb = camObj.single_bokeh || {};
+  for (const hdrKey of ['hdr_off', 'hdr_auto_off', 'hdr_auto_on', 'hdr_on']) {
+    if (!Array.isArray(sb[hdrKey]) || sb[hdrKey][0]?.override_scene === 'HAL_FRAME_STACK') {
+      sb[hdrKey] = structuredClone(singleBokehRow);
+    }
+  }
+  camObj.single_bokeh = sb;
 }
 if (Array.isArray(iq4.ctwo.qc_mfnr_settings?.default)) {
   // Replace the 255 (-1 signed) sentinel so MFNR blends 6 ringbuffer frames consistently across rapid shots.
@@ -368,6 +416,38 @@ if (mcf4.ctwo['beauty-shot-fotonation']) {
   mcf4.ctwo['beauty-shot-fotonation'].enable = rep(false);
   mcf4.ctwo['beauty-shot-fotonation']['default-beauty-level'] = 0;
 }
+if (Array.isArray(mcf4.ctwo['arcsoft-sfbokeh-preview']?.enable)) {
+  mcf4.ctwo['arcsoft-sfbokeh-preview'].enable[0] = true;
+}
+if (Array.isArray(mcf4.ctwo['arcsoft-sfbokeh-preview']?.['low-light-lux'])) {
+  mcf4.ctwo['arcsoft-sfbokeh-preview']['low-light-lux'][0] = 0.2;
+  mcf4.ctwo['arcsoft-sfbokeh-preview']['low-light-lux'][1] = 0.2;
+}
+if (Array.isArray(mcf4.ctwo['arcsoft-sfbokeh-preview']?.['face-detection-optional'])) {
+  mcf4.ctwo['arcsoft-sfbokeh-preview']['face-detection-optional'][0] = true;
+  mcf4.ctwo['arcsoft-sfbokeh-preview']['face-detection-optional'][1] = true;
+}
+if (mcf4.ctwo['arcsoft-sfbokeh-capture']) {
+  if (Array.isArray(mcf4.ctwo['arcsoft-sfbokeh-capture'].enable)) {
+    mcf4.ctwo['arcsoft-sfbokeh-capture'].enable[0] = true;
+  }
+  if (Array.isArray(mcf4.ctwo['arcsoft-sfbokeh-capture']['generate-depthmap'])) {
+    mcf4.ctwo['arcsoft-sfbokeh-capture']['generate-depthmap'][0] = true;
+  }
+  if (Array.isArray(mcf4.ctwo['arcsoft-sfbokeh-capture']['ptFocus-override'])) {
+    mcf4.ctwo['arcsoft-sfbokeh-capture']['ptFocus-override'][0] = true;
+  }
+  if (Array.isArray(mcf4.ctwo['arcsoft-sfbokeh-capture']['face-detection-optional'])) {
+    mcf4.ctwo['arcsoft-sfbokeh-capture']['face-detection-optional'][0] = true;
+    mcf4.ctwo['arcsoft-sfbokeh-capture']['face-detection-optional'][1] = true;
+  }
+}
+if (mcf4.ctwo['state-machine']?.['hal-frame-stack'] && !mcf4.ctwo['state-machine']['hal-frame-stack-sf-bokeh']) {
+  mcf4.ctwo['state-machine']['hal-frame-stack-sf-bokeh'] = {
+    ...structuredClone(mcf4.ctwo['state-machine']['hal-frame-stack']),
+    enable: rep(true),
+  };
+}
 
 const removedSMs = new Set([
   'MCF_AL_SUPER_RESOLUTION_STATE_MACHINE',
@@ -409,12 +489,21 @@ if (mcf4.ctwo['state-machine-to-algorithms-map']) {
       cleanMap[sm] = structuredClone(mcf5['state-machine-to-algorithms-map'][sm]);
     }
   }
-  for (const uhdrSm of ['MCF_RAW_HDR_STATE_MACHINE', 'MCF_RAW_SUPER_RESOLUTION_STATE_MACHINE', 'MCF_AS_TF_RAW_NV_STATE_MACHINE']) {
+  for (const uhdrSm of [
+    'MCF_RAW_HDR_STATE_MACHINE',
+    'MCF_RAW_SUPER_RESOLUTION_STATE_MACHINE',
+    'MCF_AS_TF_RAW_NV_STATE_MACHINE',
+    'MCF_HAL_FRAME_STACK_SF_BOKEH_STATE_MACHINE',
+  ]) {
     const list = cleanMap[uhdrSm];
     if (Array.isArray(list) && !list.includes('MCF_UHDR_ALG')) {
       const idx = list.indexOf('MCF_MEISHE_NV_EFFECTS_CAPTURE_ALG');
       if (idx >= 0) list.splice(idx, 0, 'MCF_UHDR_ALG');
-      else list.push('MCF_UHDR_ALG');
+      else {
+        const bokehIdx = list.indexOf('MCF_ARCSOFT_SF_BOKEH_CAPTURE_ALG');
+        if (bokehIdx >= 0) list.splice(bokehIdx, 0, 'MCF_UHDR_ALG');
+        else list.push('MCF_UHDR_ALG');
+      }
     }
   }
   cleanMap.MCF_HAL_FRAME_STACK_STATE_MACHINE = [

@@ -31,6 +31,8 @@ public final class CaptureRequest {
     public static final Key<Integer> FLASH_MODE = new Key<>("android.flash.mode", Integer.class);
     public static final Key<Integer> CONTROL_AE_MODE = new Key<>("android.control.aeMode", Integer.class);
 
+    public Object getTag() { return null; }
+
     public static final class Builder {
         private final Map<String, Object> values = new HashMap<>();
 

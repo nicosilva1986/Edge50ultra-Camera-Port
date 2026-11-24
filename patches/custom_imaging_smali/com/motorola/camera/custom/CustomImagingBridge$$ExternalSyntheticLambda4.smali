@@ -50,7 +50,7 @@
 
     move v6, p4
 
-    invoke-static/range {v0 .. v6}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$gradePixelBufferStrips$3(III[IIII)V
+    invoke-static/range {v0 .. v6}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$gradePixelBufferStrips$5(III[IIII)V
 
     return-void
 .end method

@@ -117,6 +117,41 @@ public final class ScenePostProcSelector {
         return new int[] {ext[0], ext[1], ext[2], ext[3], ext[4], ext[5], ext[6]};
     }
 
+    public static boolean isProtectedProfile(int profile) {
+        return profile == PROFILE_PURE_ISP
+                || profile == PROFILE_DISABLE_POST_PROCESSING
+                || profile == PROFILE_AUTO_STOCK;
+    }
+
+    public static boolean isDiffusionLook(int lookPreset) {
+        return lookPreset == 7 || lookPreset == 8;
+    }
+
+    public static boolean isContrastFilmLook(int lookPreset) {
+        return lookPreset == 1 || lookPreset == 3 || (lookPreset >= 9 && lookPreset <= 13);
+    }
+
+    public static int[] resolveExtendedWithLook(int profile, float zoomRatio, float luxIdx,
+                                                String origSceneName, boolean isFlash,
+                                                boolean isUiSpecialMode, boolean htpAvailable,
+                                                int lookPreset, int lookIntensity) {
+        int[] ext = resolveExtended(profile, zoomRatio, luxIdx, origSceneName, isFlash, isUiSpecialMode, htpAvailable);
+        if (profile == PROFILE_CLEAN_RAW_BAYER) {
+            // Clean RAW Bayer exports stay ungraded by default; explicit Looks apply in Clean RAW export.
+            ext[5] = 0;
+        }
+        if (isProtectedProfile(profile)) {
+            return ext;
+        }
+        int clampedIntensity = Math.max(0, Math.min(100, lookIntensity));
+        if (profile == PROFILE_AUTO_SCENE_ADAPTIVE
+                && isDiffusionLook(lookPreset) && clampedIntensity >= 50
+                && ext[2] == EDGE_FAST) {
+            ext[2] = EDGE_OFF;
+        }
+        return ext;
+    }
+
     /**
      * Full v1.4.0 policy vector:
      * {sceneAction, nrMode, edgeMode, enableMfnr, superZoom, lutStyle, rawProcess,

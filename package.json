@@ -1,6 +1,6 @@
 {
   "name": "edge50ultra-camera-port",
-  "version": "1.0.0",
+  "version": "1.9.1",
   "description": "Clean-room patcher, Moto Camera 5 port, Fast / Low-AI config generator, and GCam XML profiles for Motorola Edge 50 Ultra (ctwo, SM8635)",
   "type": "module",
   "license": "MIT",

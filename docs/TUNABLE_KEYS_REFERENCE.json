@@ -1,0 +1,1387 @@
+{
+  "schema_version": 1,
+  "source": {
+    "app": "MotCamera4_v3",
+    "version_annotation": "MotCamera4-v9.1.22.52_release",
+    "device": "ctwo",
+    "device_product": "Motorola Edge 50 Ultra",
+    "manifest_package": "com.motorola.camera3",
+    "requested_mod_package": "com.motorola.camera3.mod",
+    "package_note": "Broadcast action strings are literals under com.motorola.camera3. A package rename to com.motorola.camera3.mod does not rewrite them.",
+    "manifest_line": 2,
+    "version_line": 25
+  },
+  "developer_menu": {
+    "gate": {
+      "symbol": "com.motorola.camera.instrumentreport.DeveloperMenu.isMenuEnabled",
+      "source": "smali/com/motorola/camera/instrumentreport/DeveloperMenu.smali",
+      "method_line": 11,
+      "dead_read": {
+        "symbol": "com.motorola.camera.Util.USERDEBUG_BUILD",
+        "line": 22,
+        "observation": "The sget-boolean result is overwritten by the next sget-object before it is used."
+      },
+      "properties": [
+        {
+          "enum": "PROPERTY_KEY_IS_PRODUCTION",
+          "property": "ro.product.is_production",
+          "line": 330
+        },
+        {
+          "enum": "SECURE_DEVICE",
+          "property": "ro.boot.secure_hardware",
+          "line": 64
+        },
+        {
+          "enum": "ROOTED_DEVICE",
+          "property": "persist.qe",
+          "line": 84,
+          "equals": "qe 1/1"
+        }
+      ],
+      "enabled_when": [
+        "ro.product.is_production equals \"false\", ignoring case",
+        "CameraApp.isUserAMonkey() is false",
+        "persist.qe equals \"qe 1/1\" together with ro.boot.secure_hardware == 1 leaves the cached flag false; every other non-production combination caches true"
+      ],
+      "settings_entry_removed_when_disabled": {
+        "file": "smali/com/motorola/camera/ui/controls_2020/settings/fragment/GeneralSettingsFragment.smali",
+        "line": 1100,
+        "preference_string_id": "0x7f120496",
+        "preference_key": {
+          "name": "settings_list_about_debug_key",
+          "id": "0x7f120496",
+          "value": "settings_list_about_debug_key"
+        }
+      }
+    },
+    "entry": {
+      "title": {
+        "name": "main_setting_debug_ui",
+        "id": "0x7f1202a6",
+        "value": "Debug"
+      },
+      "preference_key": {
+        "name": "settings_list_about_debug_key",
+        "id": "0x7f120496",
+        "value": "settings_list_about_debug_key"
+      },
+      "fragment": "com.motorola.camera.ui.controls_2020.settings.fragment.DebugPreferencesFragment",
+      "root_xml": "res/xml/settings_list_root_preferences.xml",
+      "root_xml_line": 41,
+      "debug_xml": "res/xml/settings_list_debug_preferences.xml",
+      "debug_xml_resource": {
+        "name": "settings_list_debug_preferences",
+        "id": "0x7f150005",
+        "decimal": 2132082693
+      },
+      "debug_fragment_line": 31,
+      "preference_class": "com.motorola.camera.ui.controls_2020.settings.preferences.DebugUiPreference",
+      "layout_key": {
+        "name": "settings_list_about_debug_layout_key",
+        "id": "0x7f120497",
+        "value": "settings_list_about_debug_layout_key"
+      },
+      "layout": {
+        "name": "developer_menu",
+        "id": "0x7f0d005b",
+        "decimal": 2131558491
+      }
+    },
+    "layout_ids": {
+      "debug_menu_layout": {
+        "name": "debug_menu_layout",
+        "id": "0x7f0a0137",
+        "decimal": 2131362103
+      },
+      "debug_ui_tab_layout": {
+        "name": "debug_ui_tab_layout",
+        "id": "0x7f0a013b",
+        "decimal": 2131362107
+      },
+      "debug_ui_pager": {
+        "name": "debug_ui_pager",
+        "id": "0x7f0a0139",
+        "decimal": 2131362105
+      },
+      "debug_ui_search": {
+        "name": "debug_ui_search",
+        "id": "0x7f0a013a",
+        "decimal": 2131362106
+      },
+      "debug_ui_commend": {
+        "name": "debug_ui_commend",
+        "id": "0x7f0a0138",
+        "decimal": 2131362104
+      },
+      "settings_manager_list": {
+        "name": "settings_manager_list",
+        "id": "0x7f0a03b8",
+        "decimal": 2131362744
+      },
+      "container_layout": {
+        "name": "settings_manager_container",
+        "id": "0x7f0d00fd",
+        "decimal": 2131558653
+      }
+    },
+    "tabs": {
+      "filter_source": "smali/com/motorola/camera/ui/controls_2020/settings/preferences/DebugUiPreference.smali",
+      "on_bind_line": 187,
+      "auto_test_symbol": "com.motorola.camera.Util.AUTO_TEST",
+      "auto_test_line": 144,
+      "normal_tabs": [
+        {
+          "id": "app",
+          "title": {
+            "name": "settings_app_tab_label",
+            "id": "0x7f12048f",
+            "value": "App"
+          },
+          "fragment": "com.motorola.camera.fragments.SettingsManagerFragment",
+          "bundle_mcf": false,
+          "filter": "mName contains \".debug_\" OR mName contains \"dump_\" OR mName equals PREVIEW_SIZE, ACTIVITY_TIMEOUT, or COMPOSITION_GUIDE",
+          "filter_lines": [
+            374,
+            384
+          ]
+        },
+        {
+          "id": "mcf_algorithm",
+          "title": {
+            "name": "settings_mcf_algorithm_tab_label",
+            "id": "0x7f1204df",
+            "value": "MCF&Algorithm"
+          },
+          "fragment": "com.motorola.camera.fragments.SettingsManagerFragment",
+          "bundle_mcf": true,
+          "filter": "mName contains \"mcf_debug_\" OR mName contains \"ai_debug_\"",
+          "shows_mcf_override_hint": true
+        },
+        {
+          "id": "iq",
+          "title": {
+            "name": "settings_iq_tab_label",
+            "id": "0x7f120490",
+            "value": "IQ"
+          },
+          "fragment": "com.motorola.camera.fragments.SettingsManagerFragment",
+          "bundle_mcf": false,
+          "filter": "mName contains \"tuning_debug_\""
+        },
+        {
+          "id": "kpi",
+          "title": {
+            "name": "kpi_tab_label",
+            "id": "0x7f120231",
+            "value": "KPI (msec)"
+          },
+          "fragment": "com.motorola.camera.fragments.KpiReportFragment",
+          "extra_message": "KpiReportFragment"
+        },
+        {
+          "id": "camera_info",
+          "title": {
+            "name": "debug_camera_info",
+            "id": "0x7f12011c",
+            "value": "CAMERA INFO"
+          },
+          "fragment": "com.motorola.camera.fragments.CalibrationDataFragment"
+        }
+      ],
+      "auto_test_tabs": [
+        {
+          "id": "app",
+          "title": {
+            "name": "settings_app_tab_label",
+            "id": "0x7f12048f",
+            "value": "App"
+          },
+          "fragment": "com.motorola.camera.fragments.SettingsManagerFragment",
+          "bundle_mcf": false,
+          "filter": "every key in SettingsManager.mSettingsMap"
+        },
+        {
+          "id": "kpi",
+          "title": {
+            "name": "kpi_tab_label",
+            "id": "0x7f120231",
+            "value": "KPI (msec)"
+          },
+          "fragment": "com.motorola.camera.fragments.KpiReportFragment"
+        },
+        {
+          "id": "camera_info",
+          "title": {
+            "name": "debug_camera_info",
+            "id": "0x7f12011c",
+            "value": "CAMERA INFO"
+          },
+          "fragment": "com.motorola.camera.fragments.CalibrationDataFragment"
+        }
+      ]
+    },
+    "row_controls": {
+      "source": "smali/com/motorola/camera/fragments/SettingsManagerFragment.smali",
+      "method": "getKeyViewType",
+      "method_line": 40,
+      "boolean_is_switch": true,
+      "switch_widget": "androidx.appcompat.widget.SwitchCompat",
+      "search_key": "LAST_DEBUG_UI_SETTING_SEARCH_QUERY"
+    },
+    "scene_debug_overlay": {
+      "layout": "res/layout/scene_mode_debug_menu.xml",
+      "stub_id": {
+        "name": "scene_debug_stub",
+        "id": "0x7f0a0382",
+        "decimal": 2131362690
+      },
+      "spinner_id": {
+        "name": "current_scene_picker",
+        "id": "0x7f0a0129",
+        "decimal": 2131362089
+      },
+      "default_visibility": "gone",
+      "created_when": "DeveloperMenu.isMenuEnabled() and FeaturesUtil.SUPPORT_AI",
+      "factory_line": 710
+    }
+  },
+  "debug_broadcast": {
+    "helper": "com.motorola.camera.ui.controls_2020.settings.helper.DebugBroadcastHelper",
+    "action": "com.motorola.camera3.DEBUG",
+    "extra": "com.motorola.camera3.EXTRA_ACTION",
+    "delivery": "androidx.localbroadcastmanager.content.LocalBroadcastManager",
+    "register_line": 50,
+    "action_line": 44,
+    "receiver": "com.motorola.camera.SecureCamera$1",
+    "receiver_class_id_decimal": 17,
+    "receiver_line": 130,
+    "adb_reaches_helper": false,
+    "adb_reason": "The helper registers with LocalBroadcastManager. AndroidManifest.xml has no receiver for com.motorola.camera3.DEBUG. Context.sendBroadcast from DebugUiPreference and adb shell am broadcast are process-global broadcasts, so they do not invoke this receiver.",
+    "adb_commands_that_reach_helper": [],
+    "in_process_intents": [
+      {
+        "sender": "DebugUiPreference.onAttached",
+        "line": 163,
+        "action": "com.motorola.camera3.DEBUG",
+        "extra": "com.motorola.camera3.EXTRA_ACTION",
+        "extra_value": 0,
+        "transport": "Context.sendBroadcast",
+        "helper_effect_if_delivered_locally": "invokes enteringAction"
+      },
+      {
+        "sender": "DebugUiPreference.onDetached",
+        "line": 714,
+        "action": "com.motorola.camera3.DEBUG",
+        "extra": "com.motorola.camera3.EXTRA_ACTION",
+        "extra_value": 1,
+        "transport": "Context.sendBroadcast",
+        "helper_effect_if_delivered_locally": "invokes exitingAction"
+      }
+    ],
+    "local_receiver_effects": [
+      {
+        "extra_value": 0,
+        "callback": "enteringAction"
+      },
+      {
+        "extra_value": 1,
+        "callback": "exitingAction"
+      },
+      {
+        "extra_value": "any other int, default -1",
+        "callback": "ignored"
+      }
+    ],
+    "observed_callback_bodies": [
+      {
+        "owner": "DebugBroadcastStateChangeListener$1.invoke",
+        "observation": "Both $r8$classId branches call getClass() and return Unit. No setting write is present in this decompile."
+      },
+      {
+        "owner": "DebugIdComponent",
+        "observation": "Constructor passes a null enteringAction and a non-null exitingAction. The helper does not itself toggle a SettingsManager key."
+      }
+    ],
+    "unrelated_extra_action_user": {
+      "action": "com.motorola.camera3.CLI_CONTENT_ACTION_RECEIVER",
+      "observation": "CameraPreview, TimerCountdown, GalleryThumbnailChangeController, and CliContentManager reuse the extra name with this other action. DebugBroadcastHelper does not register that action."
+    }
+  },
+  "settings_keys": {
+    "static_key_count": 401,
+    "factory_key_count": 381,
+    "explicit_app_names": [
+      "com.motorola.camera.activity_timeout",
+      "com.motorola.camera.composition_guide",
+      "com.motorola.camera.preview_size"
+    ],
+    "tabs": {
+      "app": [
+        {
+          "field": "ACTIVITY_TIMEOUT",
+          "name": "com.motorola.camera.activity_timeout",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2914
+        },
+        {
+          "field": "COMPOSITION_GUIDE",
+          "name": "com.motorola.camera.composition_guide",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 2348
+        },
+        {
+          "field": "DEBUG_AI_SCENE_ADJUSTMENT_SHOW_PILL",
+          "name": "com.motorola.camera.debug_ai_scene_adjustment_show_pill",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3788
+        },
+        {
+          "field": "DEBUG_ALWAYS_LOG_SHUTTER_LAG",
+          "name": "com.motorola.camera.debug_always_log_shutter_lag",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3220
+        },
+        {
+          "field": "APP_INFO",
+          "name": "com.motorola.camera.debug_app_info",
+          "type": "java.lang.Boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2292
+        },
+        {
+          "field": "MEMORY_STATS",
+          "name": "com.motorola.camera.debug_app_info_memory_stats",
+          "type": "java.lang.Boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2300
+        },
+        {
+          "field": "AUTO_DISPLAY_FLASH_TURN_OFF_LUX",
+          "name": "com.motorola.camera.debug_auto_display_flash_turn_off_lux",
+          "type": "float",
+          "control": "float_dialog",
+          "view_type": 2,
+          "settings_manager_line": 3990
+        },
+        {
+          "field": "AUTO_DISPLAY_FLASH_TURN_ON_LUX",
+          "name": "com.motorola.camera.debug_auto_display_flash_turn_on_lux",
+          "type": "float",
+          "control": "float_dialog",
+          "view_type": 2,
+          "settings_manager_line": 3982
+        },
+        {
+          "field": "DEBUG_AUTO_ENHANCE_KEEP_FILE",
+          "name": "com.motorola.camera.debug_auto_enhance_keep_file",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4362
+        },
+        {
+          "field": "DEBUG_CAMERA_ID",
+          "name": "com.motorola.camera.debug_camera_id",
+          "type": "java.lang.String",
+          "control": "string_dialog",
+          "view_type": 3,
+          "settings_manager_line": 3076
+        },
+        {
+          "field": "DEBUG_CAMERA_ID_ENABLE",
+          "name": "com.motorola.camera.debug_camera_id_enable",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3068
+        },
+        {
+          "field": "CINEMAGRAPH_DEBUG",
+          "name": "com.motorola.camera.debug_cinemagraph",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3036
+        },
+        {
+          "field": "CMS_ENABLE",
+          "name": "com.motorola.camera.debug_cms_enable",
+          "type": "java.lang.Boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4436
+        },
+        {
+          "field": "DEBUG_DISABLE_BG_SERVICE",
+          "name": "com.motorola.camera.debug_disable_bg_service",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3228
+        },
+        {
+          "field": "DEBUG_DISABLE_BRIGHTNESS_BUMP",
+          "name": "com.motorola.camera.debug_disable_brightness_bump",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4412
+        },
+        {
+          "field": "DUAL_CAMERA_MODE_SHOW_SLAVE",
+          "name": "com.motorola.camera.debug_dual_camera_show_slave",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2938
+        },
+        {
+          "field": "DUAL_RT_DEPTH",
+          "name": "com.motorola.camera.debug_dual_rt_depth",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2946
+        },
+        {
+          "field": "DEBUG_DUMP_PREVIEW_ON_SHUTTER_UP",
+          "name": "com.motorola.camera.debug_dump_preview_on_shutter_up",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3204
+        },
+        {
+          "field": "FACE_DETECT_ALWAYS_SHOW",
+          "name": "com.motorola.camera.debug_face_detect_always_show",
+          "type": "java.lang.Boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 1584
+        },
+        {
+          "field": "DEBUG_INITIAL_PREVIEW",
+          "name": "com.motorola.camera.debug_initial_preview",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3188
+        },
+        {
+          "field": "DEBUG_INITIAL_PREVIEW_MAX_COUNT",
+          "name": "com.motorola.camera.debug_initial_preview_max_count",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 3196
+        },
+        {
+          "field": "DEBUG_ISP_HIDL",
+          "name": "com.motorola.camera.debug_isp_hidl",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4378
+        },
+        {
+          "field": "LIMIT_SURFACE_SIZE",
+          "name": "com.motorola.camera.debug_limit_surface_size",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3212
+        },
+        {
+          "field": "DEBUG_OFFLINE_POSTPROC",
+          "name": "com.motorola.camera.debug_offline_postproc",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4386
+        },
+        {
+          "field": "PANO_ANTI_FLICKER_MODE",
+          "name": "com.motorola.camera.debug_pano_anti_flicker_mode",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 3404
+        },
+        {
+          "field": "DEBUG_PREVIEW_ERROR_DELAY_TIME",
+          "name": "com.motorola.camera.debug_preview_error_delay_time",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 4306
+        },
+        {
+          "field": "AE_FPS_DEBUG_ENABLE",
+          "name": "com.motorola.camera.debug_preview_fps_enable",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2192
+        },
+        {
+          "field": "PREVIEW_SIZE_DEBUG_ENABLE",
+          "name": "com.motorola.camera.debug_preview_size_enable",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2090
+        },
+        {
+          "field": "QCFA_DEBUG_FORCE_SINGLE_SESSION_REMOSAIC_MODE",
+          "name": "com.motorola.camera.debug_qcfa_force_single_session_remosaic",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3436
+        },
+        {
+          "field": "QCFA_DEBUG_FORCE_FOUR_STREAMS_QCFA",
+          "name": "com.motorola.camera.debug_qcfa_four_streams_mode",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3452
+        },
+        {
+          "field": "QCFA_DEBUG_IGNORE_SHOT_CONDITIONS",
+          "name": "com.motorola.camera.debug_qcfa_ignore_shot_conditions",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3444
+        },
+        {
+          "field": "SCAN_SLIDE_ROW_ENABLE",
+          "name": "com.motorola.camera.debug_scan_slide_row_enable",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4146
+        },
+        {
+          "field": "SELFIE_ANIMATION_ENABLE",
+          "name": "com.motorola.camera.debug_selfie_animation_enable",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4122
+        },
+        {
+          "field": "SELFIE_ANIMATION_SCALE",
+          "name": "com.motorola.camera.debug_selfie_animation_scale",
+          "type": "java.lang.Integer",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 4130
+        },
+        {
+          "field": "DEBUG_SHDR_ENABLE",
+          "name": "com.motorola.camera.debug_shdr_enable",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4258
+        },
+        {
+          "field": "DEBUG_SHDR_MANUAL_CONTROL",
+          "name": "com.motorola.camera.debug_shdr_manual_control",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4250
+        },
+        {
+          "field": "DEBUG_HDR_SETTING",
+          "name": "com.motorola.camera.debug_show_hdr_setting",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4428
+        },
+        {
+          "field": "DEBUG_SMOOTH_ZOOM_JUMP",
+          "name": "com.motorola.camera.debug_smooth_zoom_jump",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4322
+        },
+        {
+          "field": "DEBUG_SUPER_SLOW_MOTION_KEEP_FILE",
+          "name": "com.motorola.camera.debug_super_slow_motion_keep_file",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4186
+        },
+        {
+          "field": "DEBUG_VIDEO_HDR_STATE_ENABLE",
+          "name": "com.motorola.camera.debug_vhdr_state_enable",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4266
+        },
+        {
+          "field": "DEBUG_VSTAB_IHC_3_OPTIONS",
+          "name": "com.motorola.camera.debug_vstab_ihc_3_options",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4274
+        },
+        {
+          "field": "DUMP_CAPTURE_INFO",
+          "name": "com.motorola.camera.dump_capture_info",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3084
+        },
+        {
+          "field": "DUMP_FACE_DETECT_INFO_PER_FRAME",
+          "name": "com.motorola.camera.dump_face_detect_info_per_frame",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3092
+        },
+        {
+          "field": "PANO_DUMP_INPUT_IMAGE",
+          "name": "com.motorola.camera.dump_pano_input_image",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3332
+        },
+        {
+          "field": "PANO_SELFIE_DUMP_INPUT_IMAGE",
+          "name": "com.motorola.camera.dump_pano_selfie_input_image",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3388
+        },
+        {
+          "field": "PREVIEW_SIZE",
+          "name": "com.motorola.camera.preview_size",
+          "type": "android.util.Size",
+          "control": "size_dialog",
+          "view_type": 4,
+          "settings_manager_line": 2082
+        }
+      ],
+      "mcf_algorithm": [
+        {
+          "field": "AI_SCENE_DETECTION_DEBUG",
+          "name": "com.motorola.camera.ai_debug_scene_detection",
+          "type": "java.lang.Boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 3564
+        },
+        {
+          "field": "MCF_ALLOW",
+          "name": "com.motorola.camera.mcf_debug_allow",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2842
+        },
+        {
+          "field": "MCF_DEBUG_LOGAD_MASK",
+          "name": "com.motorola.camera.mcf_debug_logad_mask",
+          "type": "java.lang.String",
+          "control": "string_dialog",
+          "view_type": 3,
+          "settings_manager_line": 2882
+        },
+        {
+          "field": "MCF_DEBUG_LOGDD_MASK",
+          "name": "com.motorola.camera.mcf_debug_logdd_mask",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 2874
+        },
+        {
+          "field": "MCF_DEBUG_LOGML_MASK",
+          "name": "com.motorola.camera.mcf_debug_logml_mask",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 2890
+        },
+        {
+          "field": "MCF_DEBUG_MASK0",
+          "name": "com.motorola.camera.mcf_debug_mask0",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 2850
+        },
+        {
+          "field": "MCF_DEBUG_MASK1",
+          "name": "com.motorola.camera.mcf_debug_mask1",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 2858
+        },
+        {
+          "field": "MCF_DEBUG_MASK2",
+          "name": "com.motorola.camera.mcf_debug_mask2",
+          "type": "int",
+          "control": "integer_dialog",
+          "view_type": 1,
+          "settings_manager_line": 2866
+        },
+        {
+          "field": "MCF_DEBUG_RAW_HDR",
+          "name": "com.motorola.camera.mcf_debug_raw_hdr",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4394
+        },
+        {
+          "field": "REPROC_ALLOW",
+          "name": "com.motorola.camera.mcf_debug_reproc_allow",
+          "type": "boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 2768
+        },
+        {
+          "field": "MCF_DEBUG_TETRAS_PORTRAIT_REPAIR_MODE",
+          "name": "com.motorola.camera.mcf_debug_tetras_portrait_repair_mode",
+          "type": "java.lang.Boolean",
+          "control": "switch",
+          "view_type": 0,
+          "settings_manager_line": 4226
+        }
+      ],
+      "iq": [
+        {
+          "field": "FACE_BEAUTY_REGION_CONFIG",
+          "name": "com.motorola.camera.tuning_debug_face_beauty_region",
+          "type": "java.lang.String",
+          "control": "string_dialog",
+          "view_type": 3,
+          "settings_manager_line": 2414
+        },
+        {
+          "field": "DEBUG_TO_HIGH_RES_RG_THRESHOLD",
+          "name": "com.motorola.camera.tuning_debug_to_high_res_rg_threshold",
+          "type": "java.lang.Float",
+          "control": "float_dialog",
+          "view_type": 2,
+          "settings_manager_line": 4330
+        },
+        {
+          "field": "DEBUG_TO_NORMAL_RES_RG_THRESHOLD",
+          "name": "com.motorola.camera.tuning_debug_to_normal_res_rg_threshold",
+          "type": "java.lang.Float",
+          "control": "float_dialog",
+          "view_type": 2,
+          "settings_manager_line": 4338
+        }
+      ]
+    },
+    "tab_counts": {
+      "app": 46,
+      "mcf_algorithm": 11,
+      "iq": 3
+    }
+  },
+  "ctwo": {
+    "app_features": {
+      "device": "ctwo",
+      "count": 92,
+      "features": [
+        {
+          "feature": "ADOBE_SCAN"
+        },
+        {
+          "feature": "AI_CAMERA_CUSTOMIZED_LIMITED_TYPE1"
+        },
+        {
+          "feature": "ARC_LONG_EXPOSURE"
+        },
+        {
+          "feature": "ARC_LONG_EXPOSURE_STAR_TRAILS"
+        },
+        {
+          "feature": "AUDIO_SMART_NOISE_CANCELLATION"
+        },
+        {
+          "feature": "AUDIO_ZOOM"
+        },
+        {
+          "feature": "AUDIO_ZOOM_DEFAULT_OFF"
+        },
+        {
+          "feature": "AUTO_FOV_SWITCH",
+          "value": "1.4"
+        },
+        {
+          "feature": "AUTO_NV_FOR_DEPTH"
+        },
+        {
+          "feature": "AUTO_NV_FOR_SCBOKEH"
+        },
+        {
+          "feature": "AUTO_SMILE_CAPTURE"
+        },
+        {
+          "feature": "BG_SERVICE_PROCESSING_SAME_PROCESS"
+        },
+        {
+          "feature": "CAPTURE_BAR_LAYOUT_2023"
+        },
+        {
+          "feature": "DEPTH_ENABLED"
+        },
+        {
+          "feature": "DISABLE_REPROC"
+        },
+        {
+          "feature": "DISPLAY_FLASH_DEFAULT",
+          "value": "2"
+        },
+        {
+          "feature": "DUAL_CAPTURE_AUDIO_LENS_SWITCH"
+        },
+        {
+          "feature": "DUAL_CAPTURE_PHOTO"
+        },
+        {
+          "feature": "DUAL_CAPTURE_REAR_REAR"
+        },
+        {
+          "feature": "DUAL_CAPTURE_VIDEO"
+        },
+        {
+          "feature": "DUAL_DEPTH_ALL_SIZES"
+        },
+        {
+          "feature": "DYNAMIC_DEPTH_XMP"
+        },
+        {
+          "feature": "EDITOR_LAYER"
+        },
+        {
+          "feature": "EXTERNAL_MIC"
+        },
+        {
+          "feature": "FACE_BEAUTY_MANUAL_MULTI"
+        },
+        {
+          "feature": "FACE_BEAUTY_VIDEO"
+        },
+        {
+          "feature": "FLASH_DEFAULT",
+          "value": "0"
+        },
+        {
+          "feature": "FULL_FACE_DETECT_HIDDEN"
+        },
+        {
+          "feature": "GAO_DING",
+          "region": "cn"
+        },
+        {
+          "feature": "GESTURE_CAPTURE"
+        },
+        {
+          "feature": "GOOGLE_AUTO_ENHANCE_LOW_PERFORMANCE"
+        },
+        {
+          "feature": "HEVC_FOR_ALL_RESOLUTIONS"
+        },
+        {
+          "feature": "HIGH_ASPECT_TOLERANCE"
+        },
+        {
+          "feature": "LAUNCH_GALLERY_CUSTOMER_ANIMATION"
+        },
+        {
+          "feature": "LONG_EXPOSURE"
+        },
+        {
+          "feature": "MACRO_MODE_WITH_WIDE",
+          "value": "1.803523"
+        },
+        {
+          "feature": "MCF_SN_TRIGGER",
+          "value": "-1"
+        },
+        {
+          "feature": "MOTION_CAPTURE",
+          "value": "20"
+        },
+        {
+          "feature": "NON_STANDARD_PREVIEW_ASPECT",
+          "value": "1.387"
+        },
+        {
+          "feature": "PANORAMA_360_VIEW_DISABLE"
+        },
+        {
+          "feature": "PHOTO_BOOTH"
+        },
+        {
+          "feature": "PHOTO_PREVIEW_EIS"
+        },
+        {
+          "feature": "PRESS_KEY_SWITCH_MODE"
+        },
+        {
+          "feature": "QC_MFNR_BURST",
+          "value": "21"
+        },
+        {
+          "feature": "QCFA_FOUR_STREAMS"
+        },
+        {
+          "feature": "QCFA_SINGLE_SESSION_WITH_MCF"
+        },
+        {
+          "feature": "REMOVE_HDR_SETTING_UI"
+        },
+        {
+          "feature": "ROI_BRACKET_SIZE_FACTOR",
+          "value": "0.143"
+        },
+        {
+          "feature": "SCAN_DOCUMENT"
+        },
+        {
+          "feature": "SCAN_DOCUMENT_SHADOW_REMOVAL"
+        },
+        {
+          "feature": "SCAN_EDITOR"
+        },
+        {
+          "feature": "SCAN_SLIDE"
+        },
+        {
+          "feature": "SCREEN_BRIGHTNESS_ADJUSTMENT_OFFSET",
+          "value": "0.0"
+        },
+        {
+          "feature": "SEC_FRONT_PHOTO_SIZE_WIDTH",
+          "value": "-1"
+        },
+        {
+          "feature": "SEC_PHOTO_SIZE_WIDTH",
+          "value": "-1"
+        },
+        {
+          "feature": "SELECTIVE_COLOR"
+        },
+        {
+          "feature": "SELECTIVE_COLOR_VIDEO"
+        },
+        {
+          "feature": "SENSOR_RATIO_SAME_TO_PREVIEW"
+        },
+        {
+          "feature": "SLIDER_ADOBE_SCAN"
+        },
+        {
+          "feature": "SLIDER_DEFAULT_SCAN"
+        },
+        {
+          "feature": "SMART_HIGH_RES_DEFAULT_OFF"
+        },
+        {
+          "feature": "SMOOTH_ZOOM_JUMP"
+        },
+        {
+          "feature": "SQUARE_ASPECT_RATIO"
+        },
+        {
+          "feature": "SUPER_NIGHT"
+        },
+        {
+          "feature": "SUPER_NIGHT_UW"
+        },
+        {
+          "feature": "SUPER_PORTRAIT"
+        },
+        {
+          "feature": "SUPER_SLOW_MOTION"
+        },
+        {
+          "feature": "SUPER_ZOOM"
+        },
+        {
+          "feature": "SUPER_ZOOM_ASSISTANT_WINDOW",
+          "value": "0.05"
+        },
+        {
+          "feature": "SUPER_ZOOM_EXTENDED_MAX_ZOOM"
+        },
+        {
+          "feature": "SUPER_ZOOM_MCX"
+        },
+        {
+          "feature": "SUPPORT_P3"
+        },
+        {
+          "feature": "TILT_SHIFT"
+        },
+        {
+          "feature": "ULTRA_RES_NO_ZOOM"
+        },
+        {
+          "feature": "ULTRA_RES_STANDARD_ONLY"
+        },
+        {
+          "feature": "ULTRA_RES_WITH_HDR"
+        },
+        {
+          "feature": "USE_POST_VIEW_AS_BACKUP",
+          "value": "1"
+        },
+        {
+          "feature": "VIDEO_FACE_DETECTION",
+          "array": [
+            true,
+            true
+          ]
+        },
+        {
+          "feature": "VIDEO_FOCUS_TRACKING_AUTO_MODE"
+        },
+        {
+          "feature": "VIDEO_HDR10_FHD"
+        },
+        {
+          "feature": "VIDEO_HDR10_PLUS"
+        },
+        {
+          "feature": "VIDEO_HDR10_PLUS_WITH_STABILIZATION"
+        },
+        {
+          "feature": "VIDEO_LOW_LIGHT_LUX",
+          "value": "5"
+        },
+        {
+          "feature": "VIDEO_SHDR"
+        },
+        {
+          "feature": "VIDEO_SIZE_LIMIT_WIDTH",
+          "value": "1920"
+        },
+        {
+          "feature": "VIDEO_SNAPSHOT_WITH_ALL_SURFACES"
+        },
+        {
+          "feature": "VIDEO_TIMELAPSE"
+        },
+        {
+          "feature": "VIDEO_TIMELAPSE_WITH_MACRO"
+        },
+        {
+          "feature": "VSTAB_IHC_LOW_LIGHT_LUX",
+          "value": "9000"
+        },
+        {
+          "feature": "ZOOM_BLENDING_VIDEO"
+        },
+        {
+          "feature": "ZOOM_RATIO_CONTROL"
+        },
+        {
+          "feature": "ZOOM_TELE_EXTRA",
+          "value": "6.0"
+        }
+      ]
+    },
+    "iq": {
+      "device_key": "ctwo",
+      "top_level_keys": [
+        "auto_slow_capture",
+        "lp-star-exp-schedule",
+        "lp-star-tele-exp-schedule",
+        "lux-idx-to-std-params",
+        "panorama",
+        "qc_mfnr_settings",
+        "scene_selection_advanced_overrides",
+        "software_flash",
+        "time_estimates",
+        "uhdr_settings",
+        "video_nv_prompt_lux",
+        "zsl_settings"
+      ],
+      "scene_selection_cameras": [
+        "BACK_MAIN",
+        "BACK_TELE",
+        "BACK_WIDE",
+        "FRONT_MAIN",
+        "default_cam_type"
+      ],
+      "override_scenes": [
+        "HAL_FRAME_STACK",
+        "HAL_FRAME_STACK_FLASH",
+        "MOTION_CAPTURE",
+        "RAW_HDR",
+        "RAW_HDR_PORTRAIT",
+        "RAW_NV_PORTRAIT",
+        "RAW_SUPER_NIGHT",
+        "RAW_SUPER_NIGHT_DEDICATED",
+        "SUPER_RESOLUTION"
+      ],
+      "zsl_modes": [
+        "HAL_FRAME_STACK_FLASH",
+        "HDR_ADVANCED",
+        "RAW_HDR",
+        "RAW_SUPER_RESOLUTION",
+        "SUPER_REMOSAIC",
+        "SUPER_REMOSAIC_HDR",
+        "SUPER_RESOLUTION",
+        "SUPER_RESOLUTION_HDR",
+        "default"
+      ],
+      "uhdr_modes": [
+        "RAW_HDR",
+        "RAW_SUPER_NIGHT",
+        "default"
+      ],
+      "qc_mfnr_keys": [
+        "default",
+        "exposure_schedule_lowlight",
+        "flash",
+        "mfnr_shutter_delay_enable"
+      ],
+      "sensors": [
+        "mot_ov50h",
+        "mot_s5kjns",
+        "mot_ov64b",
+        "mot_s5kjn1",
+        "mot_s5kjn1_macro",
+        "mot_depth",
+        "mot_depth_3x",
+        "mot_zoom"
+      ],
+      "video_nv_prompt_lux": {
+        "show_turn_on_tips": 5,
+        "show_turn_off_tips": 10
+      },
+      "software_flash": {
+        "color": "#FFFFECD0",
+        "alpha": "0.8f",
+        "lux_range": [
+          3,
+          15
+        ],
+        "flash_torch_enable": true
+      }
+    },
+    "mcf_override": {
+      "ui_hint": "mcf_override_config\n-> adb shell setprop log.tag.mcf.override.config D",
+      "ui_hint_line": 646,
+      "ui_hint_visible_when": "SettingsManagerFragment arguments boolean \"mcf\" is true (MCF&Algorithm tab)",
+      "log_tag": "mcf.override.config",
+      "log_level": "Log.DEBUG (3)",
+      "property_enum": "DeviceProperties.DEV_PROP_INT.MCF_OVERRIDE",
+      "property": "persist.camera.mot.mcf_override",
+      "property_line": 110,
+      "test_build_symbol": "com.motorola.camera.Util.TEST_BUILD",
+      "test_build_line": 70,
+      "test_build_means": "android.os.Build.TAGS contains \"test-keys\"",
+      "decision_line": 49,
+      "decision": "Override is requested only when TEST_BUILD is true and either Log.isLoggable(\"mcf.override.config\", DEBUG) or getInt(MCF_OVERRIDE) == 1. Otherwise McfJsonConfig passes false to readMcfConfig.",
+      "override_reader": "McfUtil.readOverrideMcfConfig",
+      "override_directory": "Context.getFilesDir()",
+      "override_filename_prefix": "mcf_config_ plus stripVariant(platform)",
+      "ctwo_prefix": "mcf_config_ctwo",
+      "override_file_rule": "listFiles keeps files whose names start with that prefix. The method accepts exactly 1 or 2 matches, parses them as JSON, consolidates them, then parses a sibling mcf_config_base_*_sensor file from the same directory and merges common-device onto the device object.",
+      "missing_override_error": "IOException \"MCF config override file not found\", wrapped by McfJsonConfig as IllegalArgumentException \"MCF configuration is invalid\"",
+      "baked_reader": "McfUtil.decryptJSonConfig",
+      "baked_asset_name": "mcf_config_<feasible device>, which is mcf_config_ctwo when that asset exists",
+      "baked_transform": "Cipher.getInstance(\"Blowfish\") init mode 2 (DECRYPT_MODE), then GZIPInputStream over CipherInputStream of AssetManager.open(assetName)",
+      "baked_key_line": 307,
+      "baked_cipher_line": 304,
+      "iq_loader": "JsonConfig.getAssetConfig plaintext asset iq_config_<stripVariant(device)>, then JSONObject.getJSONObject(device)",
+      "iq_line": 8203,
+      "app_feature_loader": "AppFeatures loads plaintext asset app_feature_<device> and reads the fs array",
+      "tuning_reader": "McfUtil.readTuningMcfConfig",
+      "tuning_result": "UTF-8 bytes of \"{}\" after TuningProviderHelper.WHITE_LIST (an EmptySet) is consulted. This build does not load a tuning JSON from assets in that method.",
+      "analysis_copies": {
+        "encrypted_asset_copy": "C:\\Users\\soled\\.gemini\\antigravity\\scratch\\moto-camera-re\\configs\\mcf_config_ctwo",
+        "encrypted_byte_length": 14240,
+        "decrypted_analysis_copy": "C:\\Users\\soled\\.gemini\\antigravity\\scratch\\moto-camera-re\\configs\\mcf_config_ctwo.decrypted.json",
+        "decrypted_root_keys": [
+          "ctwo"
+        ],
+        "decrypted_ctwo_keys": [
+          "AR-distortion-correction",
+          "AR-face-restoration",
+          "AR-lowlight-ai-portrait",
+          "AR-raw-supernight",
+          "AR-raw-supernight-auto",
+          "AR-raw-superportrait-auto",
+          "AR-supernight",
+          "AR-supernight-auto",
+          "AR-superportrait",
+          "McfEVConfig",
+          "ai-scene-detect",
+          "ai-scene-detect-capture",
+          "al-super-resolution-as-hdr",
+          "al-super-resolution-bst-hdr",
+          "almalence-super-resolution",
+          "arcsoft-depth-render",
+          "arcsoft-drsd",
+          "arcsoft-hdr",
+          "arcsoft-hdr4",
+          "arcsoft-hdrscbokeh",
+          "arcsoft-low-light-shot",
+          "arcsoft-miniature-bokeh",
+          "arcsoft-multiframe-bokeh",
+          "arcsoft-offline-postproc",
+          "arcsoft-rt-bokeh",
+          "arcsoft-sfbokeh-capture",
+          "arcsoft-sfbokeh-preview",
+          "arcsoft-tf-depth-render",
+          "arcsoft-tf-drsd",
+          "arcsoft-tf-rt-bokeh",
+          "arcsoft-turbo-fusion-motion-capture",
+          "arcsoft-turbo-fusion-raw-hdr",
+          "arcsoft-turbo-fusion-raw-nv",
+          "as-banding-detect",
+          "as-mfnr-hdr-bokeh",
+          "assume-isc-without-isc-vendor-tag",
+          "auto-capture",
+          "base-frame-selector",
+          "basezoom",
+          "beauty-shot-fotonation",
+          "best-shot-video",
+          "bestshot",
+          "blacksesame-distortioncorrection",
+          "blacksesame-dslr-capture",
+          "blacksesame-dslr-preview",
+          "blacksesame-purplefringe",
+          "blink-avoidance",
+          "bst-drsd",
+          "bst-llshot",
+          "bst-multihdr",
+          "camera-type",
+          "cds-support",
+          "composition",
+          "default-process-estimates",
+          "depth-dual-mode-config",
+          "dis",
+          "doc-scan",
+          "dual-mode-config",
+          "face-utilities",
+          "fast-init",
+          "flash",
+          "flash-eye",
+          "focus-config",
+          "frame-stat",
+          "fullframe-config",
+          "hdr-depth",
+          "imagers",
+          "jg-drsd",
+          "jiigan-bokeh-capture",
+          "jiigan-bokeh-preview",
+          "jiigan-raw-hdr",
+          "jiigan-supernight",
+          "lens-stain-detection",
+          "machine-learning-models",
+          "machine-learning-training",
+          "mcf-utils",
+          "meishe-effects",
+          "mfnr-bst-hdr-as-bokeh",
+          "mfnr-hdr-jiigan-bokeh",
+          "ml-model-aidoc",
+          "ml-model-aiist",
+          "ml-model-ails",
+          "ml-model-ails-preview",
+          "ml-model-aislide",
+          "ml-model-eye-contour",
+          "ml-model-gesture-mv1",
+          "ml-model-scene-detection",
+          "ml-model-smile-detection",
+          "morpho-image-refiner-hdr",
+          "morpho-image-refiner-hdr-advanced",
+          "morpho-image-refiner-ll",
+          "mot-criteria-change-check",
+          "mot-device-motion",
+          "mot-drsd",
+          "mot-drsdv2",
+          "mot-nv-trigger",
+          "mot-sensor-detect",
+          "mot-subject-motion",
+          "mp-hdsuper-resolution",
+          "mt-imagecropscaler",
+          "normal-mode-config",
+          "offline-face-det",
+          "post-view-frame-selector",
+          "preview-processed-frame-queue-size",
+          "rb-entry-lifetime-ms",
+          "rt-bokeh-bs",
+          "scene-classifer",
+          "selective-color",
+          "sensor-data-type",
+          "smile-capture",
+          "state-machine",
+          "state-machine-to-algorithms-map",
+          "super-resolution",
+          "test-blur",
+          "tetras-raw-sr",
+          "tetras-sense-PR",
+          "tetras-super-resolution",
+          "tetras-super-resolution-bst-hdr",
+          "tflite-gpu-delegate-lib-name",
+          "tuning-version",
+          "use-control-enable-zsl",
+          "zsl-depth-dual-mode-config"
+        ],
+        "runtime_note": "The camera process reads the asset named by McfUtil.getFeasibleDeviceName, not this configs directory."
+      }
+    }
+  },
+  "layout_files_read": [
+    "res/layout/developer_menu.xml",
+    "res/layout/scene_mode_debug_menu.xml",
+    "res/layout/settings_manager_container.xml",
+    "res/xml/settings_list_debug_preferences.xml",
+    "res/xml/settings_list_root_preferences.xml"
+  ],
+  "layout_evidence": {
+    "developer_menu_ids": [
+      "debug_menu_layout",
+      "debug_ui_tab_layout",
+      "debug_ui_pager"
+    ],
+    "scene_debug_ids": [
+      "current_scene_picker"
+    ],
+    "container_ids": [
+      "debug_ui_search",
+      "debug_ui_commend",
+      "settings_manager_list"
+    ],
+    "debug_preference_class": true
+  }
+}

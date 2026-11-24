@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: MIT
 package com.motorola.camera.custom;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Gainmap;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
@@ -13,7 +18,10 @@ import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.ColorSpaceTransform;
 import android.hardware.camera2.params.LensShadingMap;
 import android.hardware.camera2.params.RggbChannelVector;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Range;
 import android.util.Rational;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -23,9 +31,11 @@ import com.motorola.camera.capturedmediadata.CapturedImageMediaData;
 import com.motorola.camera.fsm.camera.modes.RequestBuilderHelper;
 import com.motorola.camera.fsm.camera.record.CaptureRecord;
 import com.motorola.camera.fsm.camera.record.ImageCaptureRecord;
+import com.motorola.camera.fsm.camera.record.SequenceIdentifier;
 import com.motorola.camera.mcf.Mcf;
 import com.motorola.camera.mcfmanagers.SceneModeManager;
 import com.motorola.camera.photometadata.PhotoMetadata;
+import com.motorola.camera.saving.CaptureHolder;
 import com.motorola.camera.saving.SaveImageService;
 import com.motorola.camera.settings.CameraType;
 import com.motorola.camera.settings.PersistBehavior;
@@ -38,9 +48,13 @@ import com.motorola.camera.storage.backend.MediaStoreFile;
 import com.motorola.camera.utility.ExifUtility;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,6 +69,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -65,8 +80,53 @@ import java.util.concurrent.TimeUnit;
  */
 public final class CustomImagingBridge {
     private static final String TAG = "CustomImagingBridge";
-    private static final String MOD_VERSION = "1.7.0";
+    private static final String MOD_VERSION = "1.9.1";
     public static final String PREF_KEY = "com.motorola.camera.post_processing_profile";
+    public static final String LOOK_PRESET = "com.motorola.camera.look_preset";
+    public static final String LOOK_INTENSITY = "com.motorola.camera.look_intensity";
+    public static final String BOKEH_STYLE = "com.motorola.camera.bokeh_style";
+    private static final Semaphore JPEG_GRADING = new Semaphore(1);
+    private static volatile Context application;
+    private static int loadedLook;
+    private static LookFilterEngine cachedLook;
+
+    public static void initializeEffects(Context context) {
+        application = context;
+        LiveLookPreview.setProfilePaused(ScenePostProcSelector.isProtectedProfile(getSelectedProfile()));
+        java.io.File directory = context.getFilesDir();
+        java.io.File marker = new java.io.File(directory, "look-shader-v2-" + MOD_VERSION);
+        if (!marker.exists()) {
+            java.io.File cache = new java.io.File(directory, "shader-cache.bin");
+            try {
+                if (!cache.exists() || cache.delete()) marker.createNewFile();
+            } catch (java.io.IOException ignored) {
+                // An unwritable cache can be retried on the next startup.
+            }
+        }
+    }
+
+    static int effectPreference(String key, int fallback, int maximum) {
+        try {
+            SharedPreferences prefs = PersistBehavior.getPreferences();
+            int value = Integer.parseInt(prefs.getString(key, String.valueOf(fallback)));
+            return value >= 0 && value <= maximum ? value : fallback;
+        } catch (RuntimeException ignored) {
+            return fallback;
+        }
+    }
+
+    static synchronized LookFilterEngine loadLook(int look) throws java.io.IOException {
+        Context context = application;
+        if (look == 0 || context == null) return null;
+        if (loadedLook != look) {
+            try (InputStream input = context.getAssets().open("luts/" + look + ".clut")) {
+                cachedLook = LookFilterEngine.read(input);
+                loadedLook = look;
+            }
+        }
+        return cachedLook;
+    }
+
     private static final int STRIP_HEIGHT = 512;
     private static final int MAX_BAYER_PIXELS = 20_000_000;
     private static final int MAX_SHOT_CACHE = 512;
@@ -121,13 +181,22 @@ public final class CustomImagingBridge {
         final int profile;
         final float zoom;
         final float lux;
+        final int look;
+        final int intensity;
+        final int bokeh;
+        final boolean lookPaused;
 
-        ShotDecision(int[] resolved, String summary, int profile, float zoom, float lux) {
+        ShotDecision(int[] resolved, String summary, int profile, float zoom, float lux,
+                     int look, int intensity, int bokeh, boolean lookPaused) {
             this.resolved = resolved;
             this.summary = summary;
             this.profile = profile;
             this.zoom = zoom;
             this.lux = lux;
+            this.look = look;
+            this.intensity = intensity;
+            this.bokeh = bokeh;
+            this.lookPaused = lookPaused;
         }
     }
 
@@ -146,15 +215,23 @@ public final class CustomImagingBridge {
         "Minimal ISP (NR Minimal / Edge Off)",
         "Detail HDR (RAW HDR / Low Halo)",
         "Pure ISP (MFNR Off / NR Off)",
-        "iPhone Natural (Apple Style LUT)",
-        "iPhone Rich Contrast (Apple Style)",
-        "iPhone Amber (Warm Photonic LUT)",
         "Clean RAW Bayer (DNG -> Clean JPG)",
         "Disable Post Processing (MCF Off / Direct HAL)"
     };
 
+    private static final String[] LOOK_DISPLAY_NAMES = {
+        "Original", "Leica Authentic", "Leica Vibrant", "Leica B&W HC", "Zeiss Natural",
+        "Zeiss T* Textured", "Google HDR+", "Black Pro-Mist 1/4", "CineStill 800T",
+        "Fujifilm Classic Chrome", "Fujifilm Nostalgic Neg.", "Kodak Portra 400",
+        "Ricoh GR Positive", "Y2K CCD"
+    };
+
+    private static final String[] BOKEH_DISPLAY_NAMES = {
+        "Stock", "Biotar Swirl", "Planar", "Sonnar Creamy", "Anamorphic Oval", "Triangular B-Speed"
+    };
+
     private static final CharSequence[] PROFILE_VALUES = {
-        "0", "10", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+        "0", "10", "1", "2", "3", "4", "8", "9"
     };
 
     private CustomImagingBridge() {}
@@ -174,14 +251,52 @@ public final class CustomImagingBridge {
         try {
             ListPreference pref = (ListPreference) fragment.findPreference(PREF_KEY);
             if (pref == null) return;
-            pref.setEntries(PROFILE_LABELS);
+            Context ctx = fragment.getContext() != null ? fragment.getContext() : application;
+            CharSequence[] entries = PROFILE_LABELS;
+            if (ctx != null) {
+                Resources res = ctx.getResources();
+                int arrId = res != null ? res.getIdentifier("port_postproc_entries", "array", ctx.getPackageName()) : 0;
+                if (arrId != 0) {
+                    String[] localized = res.getStringArray(arrId);
+                    if (localized != null && localized.length == PROFILE_VALUES.length) {
+                        entries = localized;
+                    }
+                }
+            }
+            pref.setEntries(entries);
             pref.mEntryValues = PROFILE_VALUES;
             SharedPreferences prefs = PersistBehavior.getPreferences();
-            String current = String.valueOf(parseProfileIndex(prefs != null ? prefs.getString(PREF_KEY, "0") : "0"));
-            pref.setValue(current);
+            int profile = parseProfileIndex(prefs != null ? prefs.getString(PREF_KEY, "0") : "0");
+            pref.setValue(String.valueOf(profile));
+            LiveLookPreview.setProfilePaused(ScenePostProcSelector.isProtectedProfile(profile));
         } catch (Throwable t) {
             Log.w(TAG, "initPostProcPreference failed", t);
         }
+    }
+
+    static String getProfileShortLabel(Context context, int profile) {
+        Context ctx = context != null ? context : application;
+        int idx = 0;
+        String val = String.valueOf(profile);
+        for (int i = 0; i < PROFILE_VALUES.length; i++) {
+            if (PROFILE_VALUES[i].equals(val)) {
+                idx = i;
+                break;
+            }
+        }
+        if (ctx != null) {
+            Resources res = ctx.getResources();
+            int arrId = res != null ? res.getIdentifier("port_profile_shorts", "array", ctx.getPackageName()) : 0;
+            if (arrId != 0) {
+                String[] shorts = res.getStringArray(arrId);
+                if (shorts != null && idx < shorts.length) {
+                    return shorts[idx];
+                }
+            }
+        }
+        String raw = PROFILE_LABELS[idx].toString();
+        int paren = raw.indexOf('(');
+        return (paren > 0 ? raw.substring(0, paren) : raw).trim();
     }
 
     public static int getSelectedProfile() {
@@ -252,8 +367,21 @@ public final class CustomImagingBridge {
 
         String name = scene != null ? scene.name() : "";
         int profile = getSelectedProfile();
-        int[] res = ScenePostProcSelector.resolveExtended(profile, zoom, lux, name, isFlash, isUiSpecial, HTP_RPC_AVAILABLE);
-        String summary = "Edge50Port v" + MOD_VERSION + " p=" + profile
+        boolean protectedProfile = ScenePostProcSelector.isProtectedProfile(profile);
+        int rawLook = effectPreference(LOOK_PRESET, 0, 13);
+        int rawIntensity = effectPreference(LOOK_INTENSITY, 100, 100);
+        int rawBokeh = effectPreference(BOKEH_STYLE, 0, 5);
+        int effectiveLook = protectedProfile ? 0 : rawLook;
+        int effectiveIntensity = (protectedProfile || effectiveLook == 0) ? 0 : rawIntensity;
+        int effectiveBokeh = protectedProfile ? 0 : rawBokeh;
+        boolean lookPaused = protectedProfile && (rawLook > 0 || rawBokeh > 0);
+        int[] res = ScenePostProcSelector.resolveExtendedWithLook(
+                profile, zoom, lux, name, isFlash, isUiSpecial, HTP_RPC_AVAILABLE,
+                effectiveLook, effectiveIntensity);
+        String lookTag = effectiveLook > 0 && effectiveLook < LOOK_DISPLAY_NAMES.length && effectiveIntensity > 0
+                ? ("Look: " + LOOK_DISPLAY_NAMES[effectiveLook] + " (" + effectiveIntensity + "%) | ")
+                : (lookPaused ? "Look: Paused | " : "");
+        String summary = "Edge50Port v" + MOD_VERSION + " | " + lookTag + "p=" + profile
                 + " z=" + (Math.round(zoom * 10f) / 10f)
                 + " lux=" + Math.round(lux)
                 + " act=" + res[0] + " nr=" + res[1] + " edge=" + res[2]
@@ -268,18 +396,24 @@ public final class CustomImagingBridge {
                 + (profile == ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING ? " mcf=0" : "")
                 + (!HTP_RPC_AVAILABLE ? " htp=0" : "")
                 + (name.isEmpty() ? "" : " in=" + name)
-                + (isFlash ? " flash=1" : "");
-        return new ShotDecision(res, summary, profile, zoom, lux);
+                + (isFlash ? " flash=1" : "")
+                + (lookPaused ? " fxPause=1" : "");
+        return new ShotDecision(res, summary + " fx=" + effectiveLook + "@" + effectiveIntensity,
+                profile, zoom, lux, effectiveLook, effectiveIntensity, effectiveBokeh, lookPaused);
     }
 
-    private static int[] resolveActiveScene(boolean isFlash) {
+    private static ShotDecision resolveDecisionForActiveScene(boolean isFlash) {
         boolean flash = isFlash || isFlashExpectedSafe();
         boolean uiSpecial = isUiSpecialModeSafe();
         Mcf.SceneMode scene = null;
         try {
             scene = SceneModeManager.getCurrentScene();
         } catch (Throwable ignored) {}
-        return resolveDecision(scene, flash, uiSpecial).resolved;
+        return resolveDecision(scene, flash, uiSpecial);
+    }
+
+    private static int[] resolveActiveScene(boolean isFlash) {
+        return resolveDecisionForActiveScene(isFlash).resolved;
     }
 
     private static ShotDecision getOrComputeDecision(CaptureRecord record, Mcf.SceneMode sceneOverride,
@@ -460,6 +594,12 @@ public final class CustomImagingBridge {
      * preview fails WalkAllExtSinkLinks when HDRFeatureMode=2 is forced on SDR sessions.
      */
     public static void applySessionParameterOverrides(String cameraId, CaptureRequest.Builder builder) {
+        try {
+            TelemetryCollector.onCameraActive(application, cameraId, SettingsHelper.isCurrentFrontCamera());
+            CompassHudController.onModeChanged();
+        } catch (Throwable t) {
+            Log.w(TAG, "TelemetryCollector.onCameraActive skipped", t);
+        }
         if (builder == null || cameraId == null) return;
         try {
             int profile = getSelectedProfile();
@@ -595,31 +735,64 @@ public final class CustomImagingBridge {
         }
     }
 
+    private static boolean shouldSkipStockColorTone(ShotDecision decision) {
+        if (decision == null) return false;
+        if (decision.profile == ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING) return true;
+        if (ScenePostProcSelector.isProtectedProfile(decision.profile)) return false;
+        return decision.resolved[5] > 0 || (decision.look > 0 && decision.intensity > 0);
+    }
+
     public static boolean isCustomLutActive() {
-        return resolveActiveScene(false)[5] > 0;
+        return shouldSkipStockColorTone(resolveDecisionForActiveScene(false));
     }
 
     public static boolean isCustomLutActive(SaveImageService.ImageContainer container) {
         if (container != null && container.mMediaData != null && container.mMediaData.isRawData()) {
             return false;
         }
-        return getOrResolveForContainer(container).resolved[5] > 0;
+        return shouldSkipStockColorTone(getOrResolveForContainer(container));
+    }
+
+    private static void stampCompassExif(PhotoMetadata origMeta, TelemetryCollector.CompassSnapshot compass) {
+        if (origMeta == null || compass == null || compass.accuracy == null || compass.accuracy.intValue() < 2) {
+            return;
+        }
+        Float dir = compass.trueHeadingDeg != null ? compass.trueHeadingDeg : compass.headingDeg;
+        if (dir == null || !Float.isFinite(dir.floatValue())) return;
+        String exifDir = CompassSolarHelper.formatExifDirection(dir.doubleValue());
+        if (exifDir == null) return;
+        String existing = origMeta.getAttribute("GPSImgDirection");
+        if (existing == null || existing.isEmpty()) {
+            origMeta.setAttribute("GPSImgDirection", exifDir);
+            origMeta.setAttribute("GPSImgDirectionRef", compass.trueHeadingDeg != null ? "T" : "M");
+        }
     }
 
     private static void stampExifDescription(SaveImageService.ImageContainer container, byte[] jpegBytes,
                                              PhotoMetadata origMeta, String summary) {
+        stampExifDescription(container, jpegBytes, origMeta, summary, null);
+    }
+
+    private static void stampExifDescription(SaveImageService.ImageContainer container, byte[] jpegBytes,
+                                             PhotoMetadata origMeta, String summary,
+                                             TelemetryCollector.CompassSnapshot compass) {
         try {
-            if (origMeta != null && !origMeta.isUltraHdr() && summary != null && !summary.isEmpty()) {
+            if (origMeta != null && summary != null && !summary.isEmpty()) {
                 origMeta.setAttribute("ImageDescription", summary);
-                ByteArrayOutputStream exifOut = new ByteArrayOutputStream(jpegBytes.length + 1024);
+                origMeta.setAttribute("UserComment", summary);
+                stampCompassExif(origMeta, compass);
+                ByteArrayOutputStream exifOut = new ByteArrayOutputStream(jpegBytes.length + 2048);
                 origMeta.saveJpegAttributes(new ByteArrayInputStream(jpegBytes), exifOut, false);
-                byte[] stamped = exifOut.toByteArray();
-                if (stamped.length > 64) {
+                byte[] rewritten = exifOut.toByteArray();
+                byte[] stamped = origMeta.isUltraHdr() ? GainmapJpeg.withExif(jpegBytes, rewritten) : rewritten;
+                if (stamped != null && stamped.length > 64) {
                     container.mMediaData.setByteBuffer(ByteBuffer.wrap(stamped));
                 }
                 Log.i(TAG, "Shot diag: " + summary);
             }
-        } catch (Throwable ignored) {}
+        } catch (Throwable t) {
+            Log.w(TAG, "stampExifDescription skipped", t);
+        }
     }
 
     private static int readIsoSafe(PhotoMetadata meta) {
@@ -669,15 +842,24 @@ public final class CustomImagingBridge {
             return;
         }
         ShotDecision decision = getOrResolveForContainer(container);
-        String summary = decision.summary;
+        String telemetryNote = recordShotTelemetry(container, null, null, decision, "vendor", null);
+        TelemetryCollector.CompassSnapshot shotCompass = latestCompassForContainer(container, "vendor", null);
+        if (decision.profile == ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING) {
+            return;
+        }
+        CaptureRecord record = container.mMediaData.mCaptureRecord;
+        boolean portrait = record instanceof ImageCaptureRecord && SettingsHelper.isPortraitMode(record.mCaptureMode);
+        ImageCaptureRecord portraitRecord = portrait ? (ImageCaptureRecord) record : null;
+        String summary = decision.summary + (telemetryNote.isEmpty() ? "" : " " + telemetryNote);
         int lutStyle = decision.resolved[5];
         int profile = decision.profile;
         float zoom = decision.zoom;
-        ByteBuffer buf = container.mMediaData.getByteBuffer();
-        if (buf == null) {
-            return;
-        }
+        boolean protectedProfile = ScenePostProcSelector.isProtectedProfile(profile);
+        EffectsUiController.dismiss();
+        JPEG_GRADING.acquireUninterruptibly();
         try {
+            ByteBuffer buf = container.mMediaData.getByteBuffer();
+            if (buf == null) return;
             byte[] origBytes = toByteArray(buf);
             if (origBytes.length < 16) return;
 
@@ -692,56 +874,112 @@ public final class CustomImagingBridge {
                 return;
             }
 
+            LookFilterEngine look = (!protectedProfile && decision.look > 0 && decision.intensity > 0)
+                    ? loadLook(decision.look) : null;
+            boolean wantBokeh = portrait && !protectedProfile && decision.bokeh > 0;
+            ByteBuffer depthOriginal = wantBokeh ? PortraitBokeh.original(portraitRecord) : null;
+            Bitmap rendered = null;
+            String bokehSource = null;
+            if (wantBokeh && depthOriginal != null && (origMeta == null || !origMeta.isUltraHdr())) {
+                rendered = renderPortrait(depthOriginal, portraitRecord, decision.bokeh,
+                        container.mWidth, container.mHeight);
+                if (rendered != null) bokehSource = "orig";
+            }
             boolean isAutoPost = (profile == ScenePostProcSelector.PROFILE_AUTO_SCENE_ADAPTIVE && lutStyle <= 0);
             int shotIso = readIsoSafe(origMeta);
             boolean wantLtm = false;
             boolean wantHighlight = false;
             boolean wantBacklit = false;
             boolean wantZoomSharp = false;
+            float clarityScale = 1.0f;
+            float lookLtmScale = 1.0f;
             if (isAutoPost) {
                 wantZoomSharp = shotIso < 800 && (
                         (zoom >= 0.45f && zoom < 1.70f && decision.lux <= 145.0f)
                         || (zoom >= 1.70f && zoom < 5.50f && decision.lux < 220.0f)
                         || (zoom >= 5.50f && zoom <= 30.0f && decision.lux < 240.0f));
+                if (look != null && ScenePostProcSelector.isDiffusionLook(decision.look)
+                        && decision.intensity >= 40) {
+                    wantZoomSharp = false;
+                }
                 if (origMeta == null || !origMeta.isUltraHdr()) {
                     int gates = evaluateAutoPostGates(origBytes);
                     wantLtm = (gates & 1) != 0;
                     wantHighlight = (gates & 2) != 0;
-                    wantBacklit = !wantLtm && (gates & 4) != 0
-                            && zoom >= 2.95f && decision.lux < 180.0f && shotIso < 800;
+                    boolean physicalSolarBacklit = shotCompass != null && shotCompass.physicalOutdoorBacklit;
+                    wantBacklit = !wantLtm && (gates & 4) != 0 && shotIso < 800
+                            && ((zoom >= 2.95f && decision.lux < 180.0f) || physicalSolarBacklit);
+                    if (look != null) {
+                        if (ScenePostProcSelector.isContrastFilmLook(decision.look)
+                                && decision.intensity >= 40) {
+                            wantLtm = false;
+                            wantBacklit = false;
+                        }
+                        if (decision.look == 6) {
+                            wantHighlight = true;
+                            if (wantLtm) {
+                                lookLtmScale = 0.40f;
+                            }
+                        }
+                    }
                 }
-                if (!wantLtm && !wantHighlight && !wantBacklit && !wantZoomSharp) {
-                    stampExifDescription(container, origBytes, origMeta, summary);
+                if (!wantLtm && !wantHighlight && !wantBacklit && !wantZoomSharp && look == null && !wantBokeh) {
+                    stampExifDescription(container, origBytes, origMeta, summary, shotCompass);
                     return;
                 }
-            } else if (lutStyle <= 0) {
-                stampExifDescription(container, origBytes, origMeta, summary);
+            } else if (lutStyle <= 0 && look == null && !wantBokeh) {
+                stampExifDescription(container, origBytes, origMeta, summary, shotCompass);
                 return;
+            }
+            if (look != null && decision.look == 5 && wantZoomSharp) {
+                clarityScale = 0.50f;
             }
 
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inMutable = true;
             opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            Bitmap bmp = BitmapFactory.decodeByteArray(origBytes, 0, origBytes.length, opts);
+            Bitmap bmp = rendered != null ? rendered
+                    : BitmapFactory.decodeByteArray(origBytes, 0, origBytes.length, opts);
             if (bmp == null) return;
 
             try {
                 if (!bmp.isMutable()) return;
+                Gainmap gainmap = bmp.hasGainmap() ? bmp.getGainmap() : null;
+                if (gainmap == null && origMeta != null && origMeta.isUltraHdr()) {
+                    stampExifDescription(container, origBytes, origMeta, summary, shotCompass);
+                    return;
+                }
                 int w = bmp.getWidth();
                 int h = bmp.getHeight();
                 if (w <= 0 || h <= 0) return;
 
-                final PixelSurface surface = new PixelSurface() {
-                    @Override
-                    public void readRows(int srcY, int rows, int[] dst, int dstOff) {
-                        bmp.getPixels(dst, dstOff, w, 0, srcY, w, rows);
+                if (wantBokeh && rendered == null) {
+                    String camId = extractCameraId(container, null);
+                    CameraCharacteristics bokehChars = null;
+                    if (camId != null) {
+                        try { bokehChars = SettingsManager.getCharacteristics(camId); } catch (Throwable ignored) {}
                     }
+                    boolean frontCam = isFrontCameraId(camId);
+                    bokehSource = PortraitBokeh.renderSingleCam(
+                            bmp, portraitRecord, extractCaptureResult(container), bokehChars, frontCam, decision.bokeh);
+                }
+                int appliedBokeh = bokehSource == null ? 0 : decision.bokeh;
+                String bokehNameTag = appliedBokeh > 0 && appliedBokeh < BOKEH_DISPLAY_NAMES.length
+                        ? (" Bokeh: " + BOKEH_DISPLAY_NAMES[appliedBokeh]) : "";
+                summary += portrait
+                        ? (" bokeh=" + appliedBokeh + (bokehSource != null ? ("(" + bokehSource + ")") : "") + bokehNameTag)
+                        : "";
+                if (isAutoPost && !wantLtm && !wantHighlight && !wantBacklit && !wantZoomSharp
+                        && look == null && appliedBokeh == 0) {
+                    stampExifDescription(container, origBytes, origMeta, summary, shotCompass);
+                    return;
+                }
+                if (!isAutoPost && lutStyle <= 0 && look == null && appliedBokeh == 0) {
+                    stampExifDescription(container, origBytes, origMeta, summary, shotCompass);
+                    return;
+                }
 
-                    @Override
-                    public void writeRows(int dstY, int rows, int[] src, int srcOff) {
-                        bmp.setPixels(src, srcOff, w, 0, dstY, w, rows);
-                    }
-                };
+                PixelSurface surface = bitmapSurface(bmp, w);
 
                 boolean graded;
                 if (isAutoPost) {
@@ -771,22 +1009,33 @@ public final class CustomImagingBridge {
                     final boolean fHighlight = wantHighlight;
                     final boolean fBacklit = wantBacklit;
                     final boolean fZoomSharp = wantZoomSharp;
-                    if (!fLtm && !fHighlight && !fBacklit && !fZoomSharp) {
-                        stampExifDescription(container, origBytes, origMeta, summary);
+                    if (!fLtm && !fHighlight && !fBacklit && !fZoomSharp && look == null && rendered == null) {
+                        stampExifDescription(container, origBytes, origMeta, summary, shotCompass);
                         return;
                     }
-                    graded = gradeSurfaceInBatches(surface, w, h, STRIP_HEIGHT, 24,
-                            (strip, sw, rows, topY) -> AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
-                                    strip, sw, rows, topY, w, h, fBase, fStd, fGw, fGh,
-                                    fLtm, fHighlight, fZoomSharp, zoom, fBacklit, shotIso));
-                } else {
+                    graded = !fLtm && !fHighlight && !fBacklit && !fZoomSharp ? true
+                            : gradeSurfaceInBatches(surface, w, h, STRIP_HEIGHT, 24,
+                                    (strip, sw, rows, topY) -> AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
+                                            strip, sw, rows, topY, w, h, fBase, fStd, fGw, fGh,
+                                            fLtm, fHighlight, fZoomSharp, zoom, fBacklit, shotIso));
+                } else if (lutStyle > 0) {
                     graded = gradeSurfaceInBatches(surface, w, h, STRIP_HEIGHT, 24,
                             (strip, sw, rows, topY) -> AppleStyleToneEngine.applyToArgbPixels(
                                     strip, sw, rows, lutStyle, w, h, topY));
+                } else {
+                    graded = true;
                 }
                 if (!graded) return;
+                if (look != null && !applyLook(surface, w, h, look, decision.look, decision.intensity,
+                        clarityScale, lookLtmScale)) {
+                    return;
+                }
 
                 ByteArrayOutputStream jpegOut = new ByteArrayOutputStream(origBytes.length);
+                if (look != null) {
+                    adaptGainmap(gainmap, decision.look, decision.intensity);
+                    if (gainmap != null) bmp.setGainmap(gainmap);
+                }
                 if (!bmp.compress(Bitmap.CompressFormat.JPEG, JPEG_SAVE_QUALITY, jpegOut)) {
                     return;
                 }
@@ -799,10 +1048,19 @@ public final class CustomImagingBridge {
                 if (origMeta != null) {
                     if (finalSummary != null && !finalSummary.isEmpty()) {
                         origMeta.setAttribute("ImageDescription", finalSummary);
+                        origMeta.setAttribute("UserComment", finalSummary);
                     }
+                    stampCompassExif(origMeta, shotCompass);
                     ByteArrayOutputStream exifOut = new ByteArrayOutputStream(gradedBytes.length + 65536);
                     origMeta.saveJpegAttributes(new ByteArrayInputStream(gradedBytes), exifOut, false);
-                    gradedBytes = exifOut.toByteArray();
+                    byte[] rewritten = exifOut.toByteArray();
+                    gradedBytes = gainmap == null ? rewritten : GainmapJpeg.withExif(gradedBytes, rewritten);
+                }
+                if (depthOriginal != null && look != null) {
+                    byte[] aux = gradeDepthOriginal(depthOriginal, look, decision.look, decision.intensity);
+                    if (aux == null) return;
+                    portraitRecord.mAuxImages.put(ImageCaptureRecord.AuxiliaryImage.DEPTH_RENDER_ORIGINAL,
+                            ByteBuffer.wrap(aux));
                 }
                 container.mMediaData.setByteBuffer(ByteBuffer.wrap(gradedBytes));
                 Log.i(TAG, "Applied post-pass p=" + profile + " lut=" + lutStyle + " bytes=" + gradedBytes.length + " " + finalSummary);
@@ -811,10 +1069,140 @@ public final class CustomImagingBridge {
             }
         } catch (Throwable t) {
             Log.w(TAG, "applyCustomLutIfEnabled failed, keeping original JPEG", t);
+        } finally {
+            JPEG_GRADING.release();
         }
     }
 
-    private interface PixelSurface {
+    private static Bitmap renderPortrait(ByteBuffer original, ImageCaptureRecord record, int style,
+                                         int width, int height) {
+        Bitmap bitmap = decodeMutable(toByteArray(original));
+        if (bitmap == null) return null;
+        boolean rendered = false;
+        try {
+            if (!bitmap.isMutable() || bitmap.hasGainmap() || (width > 0 && bitmap.getWidth() != width)
+                    || (height > 0 && bitmap.getHeight() != height)
+                    || (long) bitmap.getWidth() * bitmap.getHeight() > MAX_BAYER_PIXELS) return null;
+            rendered = PortraitBokeh.render(bitmap, record, style);
+            return rendered ? bitmap : null;
+        } catch (RuntimeException ex) {
+            Log.w(TAG, "Using stock portrait rendering", ex);
+            return null;
+        } finally {
+            if (!rendered) bitmap.recycle();
+        }
+    }
+
+    private static void adaptGainmap(Gainmap gainmap, int preset, int intensity) {
+        float amount = intensity / 100f;
+        if (gainmap == null || amount <= 0) return;
+        if (preset == 3) {
+            Bitmap original = gainmap.getGainmapContents();
+            int width = original.getWidth(), height = original.getHeight();
+            if (original.getConfig() != Bitmap.Config.ALPHA_8 && (long) width * height <= 4_000_000) {
+                int[] pixels = new int[width * height];
+                original.getPixels(pixels, 0, width, 0, 0, width, height);
+                for (int i = 0; i < pixels.length; i++) {
+                    int rgb = pixels[i], r = rgb >>> 16 & 255, g = rgb >>> 8 & 255, b = rgb & 255;
+                    float gray = 0.2126f * r + 0.7152f * g + 0.0722f * b;
+                    pixels[i] = (rgb & 0xff000000) | Math.round(r + (gray - r) * amount) << 16
+                            | Math.round(g + (gray - g) * amount) << 8 | Math.round(b + (gray - b) * amount);
+                }
+                gainmap.setGainmapContents(Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888));
+            }
+            float[] min = gainmap.getRatioMin(), max = gainmap.getRatioMax(), gamma = gainmap.getGamma();
+            float[] sdr = gainmap.getEpsilonSdr(), hdr = gainmap.getEpsilonHdr();
+            neutralize(min, amount); neutralize(max, amount); neutralize(gamma, amount);
+            neutralize(sdr, amount); neutralize(hdr, amount);
+            gainmap.setRatioMin(min[0], min[1], min[2]);
+            gainmap.setRatioMax(max[0], max[1], max[2]);
+            gainmap.setGamma(gamma[0], gamma[1], gamma[2]);
+            gainmap.setEpsilonSdr(sdr[0], sdr[1], sdr[2]);
+            gainmap.setEpsilonHdr(hdr[0], hdr[1], hdr[2]);
+        } else if (preset == 1 || preset == 6) {
+            float[] max = gainmap.getRatioMax();
+            float[] min = gainmap.getRatioMin();
+            float scale = preset == 6 ? 1 + 0.08f * amount : 1 - 0.13f * amount;
+            gainmap.setRatioMax(Math.max(min[0], 1 + (max[0] - 1) * scale),
+                    Math.max(min[1], 1 + (max[1] - 1) * scale),
+                    Math.max(min[2], 1 + (max[2] - 1) * scale));
+        }
+    }
+
+    private static void neutralize(float[] channels, float fraction) {
+        float gray = 0.2126f * channels[0] + 0.7152f * channels[1] + 0.0722f * channels[2];
+        for (int i = 0; i < 3; i++) channels[i] += (gray - channels[i]) * fraction;
+    }
+
+    private static Bitmap decodeMutable(byte[] bytes) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inMutable = true;
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+    }
+
+    private static byte[] gradeDepthOriginal(ByteBuffer original, LookFilterEngine look, int preset, int intensity)
+            throws java.io.IOException {
+        byte[] bytes = toByteArray(original);
+        Bitmap bitmap = decodeMutable(bytes);
+        if (bitmap == null) return null;
+        try {
+            if (!bitmap.isMutable()) return null;
+            Gainmap gainmap = bitmap.hasGainmap() ? bitmap.getGainmap() : null;
+            int width = bitmap.getWidth(), height = bitmap.getHeight();
+            if (!applyLook(bitmapSurface(bitmap, width), width, height, look, preset, intensity, 1.0f, 1.0f)) return null;
+            adaptGainmap(gainmap, preset, intensity);
+            if (gainmap != null) bitmap.setGainmap(gainmap);
+            ByteArrayOutputStream encoded = new ByteArrayOutputStream(bytes.length);
+            if (!bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_SAVE_QUALITY, encoded)) return null;
+            byte[] jpeg = encoded.toByteArray();
+            PhotoMetadata metadata = new PhotoMetadata(new ByteArrayInputStream(bytes));
+            ByteArrayOutputStream exif = new ByteArrayOutputStream(jpeg.length);
+            metadata.saveJpegAttributes(new ByteArrayInputStream(jpeg), exif, false);
+            return gainmap == null ? exif.toByteArray() : GainmapJpeg.withExif(jpeg, exif.toByteArray());
+        } finally {
+            bitmap.recycle();
+        }
+    }
+
+    private static boolean applyLook(PixelSurface surface, int width, int height,
+                                     LookFilterEngine look, int preset, int intensity,
+                                     float clarityScale, float ltmScale) {
+        if (!gradeSurfaceInBatches(surface, width, height, STRIP_HEIGHT, 0,
+                (strip, w, rows, top) -> look.apply(strip, 0, w * rows, intensity))) {
+            return false;
+        }
+        if (!LookOptics.needsPass(preset)) {
+            return true;
+        }
+        LookOptics optics = LookOptics.prepare(surface, width, height, preset, intensity, clarityScale, ltmScale);
+        return gradeSurfaceInBatches(surface, width, height, STRIP_HEIGHT, 0,
+                (strip, w, rows, top) -> optics.apply(strip, rows, top));
+    }
+
+    private static PixelSurface bitmapSurface(Bitmap bitmap, int width) {
+        return new PixelSurface() {
+            @Override public void readRows(int y, int rows, int[] dst, int offset) {
+                bitmap.getPixels(dst, offset, width, 0, y, width, rows);
+            }
+            @Override public void writeRows(int y, int rows, int[] src, int offset) {
+                bitmap.setPixels(src, offset, width, 0, y, width, rows);
+            }
+        };
+    }
+
+    private static PixelSurface arraySurface(int[] pixels, int width) {
+        return new PixelSurface() {
+            @Override public void readRows(int y, int rows, int[] dst, int offset) {
+                System.arraycopy(pixels, y * width, dst, offset, rows * width);
+            }
+            @Override public void writeRows(int y, int rows, int[] src, int offset) {
+                System.arraycopy(src, offset, pixels, y * width, rows * width);
+            }
+        };
+    }
+
+    interface PixelSurface {
         void readRows(int srcY, int rows, int[] dst, int dstOff);
         void writeRows(int dstY, int rows, int[] src, int srcOff);
     }
@@ -920,6 +1308,126 @@ public final class CustomImagingBridge {
             }
         }, w, h, stripHeight, pad, (strip, sw, rows, topY) ->
                 AppleStyleToneEngine.applyToArgbPixels(strip, sw, rows, lutStyle, w, h, topY));
+    }
+
+    public static void noteZslCaptureCompleted(CaptureRequest request, TotalCaptureResult result) {
+        if (result == null) return;
+        try {
+            Long tsObj = result.get(CaptureResult.SENSOR_TIMESTAMP);
+            Long expObj = result.get(CaptureResult.SENSOR_EXPOSURE_TIME);
+            Integer isoObj = result.get(CaptureResult.SENSOR_SENSITIVITY);
+            Float flObj = result.get(CaptureResult.LENS_FOCAL_LENGTH);
+            if (tsObj == null || expObj == null || isoObj == null || flObj == null) return;
+            long ts = tsObj.longValue();
+            long exp = expObj.longValue();
+            int iso = isoObj.intValue();
+            float flPx = flObj.floatValue() > 0f ? flObj.floatValue() * 500f : 0f;
+            float gyroExc = TelemetryCollector.latestGyroExcursionRad(ts, exp);
+            long seqId = ts;
+            if (request != null && request.getTag() instanceof SequenceIdentifier) {
+                seqId = ((SequenceIdentifier) request.getTag()).mSeqId;
+            }
+            MultiFrameBurstController.noteMetadata(
+                    ts, exp, iso, flPx, gyroExc, seqId, false, exp > 0L && iso > 0);
+            Float apObj = result.get(CaptureResult.LENS_APERTURE);
+            float aperture = (apObj != null && Float.isFinite(apObj.floatValue()) && apObj.floatValue() > 0f)
+                    ? apObj.floatValue() : 1.6f;
+            double ev100 = CompassSolarHelper.computeEv100(exp, iso, aperture);
+            if (Double.isFinite(ev100)) {
+                CompassHudController.updateLatestEv100(ev100);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    public static void noteRawImageAvailable(long timestampNs, ByteBuffer buffer) {
+        if (timestampNs <= 0L || buffer == null) return;
+        try {
+            ByteBuffer dup = buffer.duplicate();
+            int rem = dup.remaining();
+            if (rem <= 0 || rem > 32 * 1024 * 1024) return;
+            byte[] copy = new byte[rem];
+            dup.get(copy);
+            float gyroExc = TelemetryCollector.latestGyroExcursionRad(timestampNs, 33_333_333L);
+            MultiFrameBurstController.offer(
+                    timestampNs, 0L, 0, 0f, gyroExc, timestampNs, copy, false, false);
+        } catch (Throwable ignored) {}
+    }
+
+    private static MultiFrameRawEngine.Result tryMultiFrameRawMerge(
+            byte[] anchorRawBytes, int width, int height, int cfa, float[] black4, float white,
+            TotalCaptureResult result, ShotDecision decision, String cameraId) {
+        try {
+            int minRaw10 = (int) ((long) width * height * 5L / 4L);
+            int minRaw16 = (int) ((long) width * height * 2L);
+            int maxBytes = Math.max(minRaw16 + width * 16, minRaw10 + width * 16);
+            MultiFrameBurstController.BurstFrameSnapshot[] ringFrames =
+                    MultiFrameBurstController.snapshotMatchingFrames(minRaw10, maxBytes, 5);
+            if (ringFrames.length < 1) return null;
+
+            int engineMode = MultiFrameRawEngine.MODE_HDR_PLUS;
+            if ("3".equals(cameraId)) {
+                engineMode = MultiFrameRawEngine.MODE_FOCUS_STACK;
+            } else if (decision != null && decision.zoom >= 1.45f && decision.look != 6) {
+                engineMode = MultiFrameRawEngine.MODE_SUPER_RES;
+            }
+            int maxFrames = engineMode == MultiFrameRawEngine.MODE_SUPER_RES ? 8 : 6;
+            MultiFrameRawEngine engine = new MultiFrameRawEngine(engineMode, maxFrames);
+
+            long anchorTs = 0L;
+            long anchorExp = 10_000_000L;
+            int anchorIso = 100;
+            float anchorFlPx = 3000f;
+            if (result != null) {
+                Long tsObj = result.get(CaptureResult.SENSOR_TIMESTAMP);
+                Long expObj = result.get(CaptureResult.SENSOR_EXPOSURE_TIME);
+                Integer isoObj = result.get(CaptureResult.SENSOR_SENSITIVITY);
+                Float flObj = result.get(CaptureResult.LENS_FOCAL_LENGTH);
+                if (tsObj != null && tsObj.longValue() > 0L) anchorTs = tsObj.longValue();
+                if (expObj != null && expObj.longValue() > 0L) anchorExp = expObj.longValue();
+                if (isoObj != null && isoObj.intValue() > 0) anchorIso = isoObj.intValue();
+                if (flObj != null && flObj.floatValue() > 0f) anchorFlPx = flObj.floatValue() * 500f;
+            }
+
+            long lastTs = -1L;
+            int added = 0;
+            for (MultiFrameBurstController.BurstFrameSnapshot f : ringFrames) {
+                if (f.timestampNs <= lastTs || (anchorTs > 0L && f.timestampNs == anchorTs)) continue;
+                int[] frameUnpacked = unpackRawAuto(f.raw, width, height, minRaw10, minRaw16);
+                if (frameUnpacked == null) continue;
+                long exp = f.exposureNs > 0L ? f.exposureNs : anchorExp;
+                int iso = f.iso > 0 ? f.iso : anchorIso;
+                float flPx = f.focalLengthPx > 0f ? f.focalLengthPx : anchorFlPx;
+                float gyro = f.gyroExcursionRad >= 0f ? f.gyroExcursionRad : 0f;
+                engine.addFrame(new MultiFrameRawEngine.FrameInput(
+                        frameUnpacked, width, height, cfa, black4, white, f.timestampNs, exp, iso, gyro, flPx));
+                lastTs = f.timestampNs;
+                added++;
+            }
+            if (added == 0) return null;
+            int[] anchorUnpacked = unpackRawAuto(anchorRawBytes, width, height, minRaw10, minRaw16);
+            if (anchorUnpacked == null) return null;
+            long finalAnchorTs = anchorTs > lastTs ? anchorTs : (lastTs + 1L);
+            float anchorGyro = TelemetryCollector.latestGyroExcursionRad(finalAnchorTs, anchorExp);
+            if (anchorGyro < 0f) anchorGyro = 0f;
+            engine.addFrame(new MultiFrameRawEngine.FrameInput(
+                    anchorUnpacked, width, height, cfa, black4, white, finalAnchorTs, anchorExp, anchorIso,
+                    anchorGyro, anchorFlPx));
+            return engine.size() >= 2 ? engine.merge() : null;
+        } catch (Throwable t) {
+            Log.w(TAG, "MultiFrameRaw merge skipped (singleRaw fallback)", t);
+            return null;
+        }
+    }
+
+    private static int[] unpackRawAuto(byte[] bytes, int width, int height, int minRaw10, int minRaw16) {
+        if (bytes == null || height <= 0) return null;
+        if (bytes.length >= minRaw16) {
+            return CleanBayerRawProcessor.unpackRaw16ToInt(bytes, width, height, bytes.length / height, true);
+        }
+        if (bytes.length >= minRaw10) {
+            return CleanBayerRawProcessor.unpackRaw10ToInt(bytes, width, height, bytes.length / height);
+        }
+        return null;
     }
 
     public static void exportCleanBayerJpeg(ByteBuffer rawBuffer, TotalCaptureResult result,
@@ -1044,9 +1552,27 @@ public final class CustomImagingBridge {
                 }
             } catch (Throwable ignored) {}
 
-            int[] argb = CleanBayerRawProcessor.processRawToArgb(
-                    unpacked, width, height, cfa, black4, white, wb, ccm, 0.25f,
-                    lscGrid, lscCols, lscRows, isoSensitivity);
+            int[] argb;
+            String captureMethod = "singleRaw";
+            String burstSummary = "";
+            MultiFrameRawEngine.Result merged = tryMultiFrameRawMerge(
+                    rawBytes, width, height, cfa, black4, white, result, decision, cameraId);
+            if (merged != null) {
+                width = merged.width;
+                height = merged.height;
+                cfa = merged.cfaPattern;
+                black4 = merged.blackLevel4;
+                white = merged.whiteLevel;
+                captureMethod = "rawBurst";
+                burstSummary = " rawBurst=" + merged.acceptedFrames + (merged.superResolved ? " sr=1" : "");
+                argb = CleanBayerRawProcessor.processRawToArgb(
+                        merged.raw, width, height, cfa, black4, white, wb, ccm, 0.25f,
+                        lscGrid, lscCols, lscRows, isoSensitivity);
+            } else {
+                argb = CleanBayerRawProcessor.processRawToArgb(
+                        unpacked, width, height, cfa, black4, white, wb, ccm, 0.25f,
+                        lscGrid, lscCols, lscRows, isoSensitivity);
+            }
             int lutStyle = decision.resolved[5];
             if (lutStyle > 0) {
                 if (!gradePixelBufferStrips(argb, width, height, STRIP_HEIGHT, 24, lutStyle)) {
@@ -1054,6 +1580,10 @@ public final class CustomImagingBridge {
                     return;
                 }
             }
+
+            LookFilterEngine look = (decision.look > 0 && decision.intensity > 0) ? loadLook(decision.look) : null;
+            if (look != null && !applyLook(arraySurface(argb, width), width, height,
+                    look, decision.look, decision.intensity, 1.0f, 1.0f)) return;
 
             Bitmap bmp = Bitmap.createBitmap(argb, width, height, Bitmap.Config.ARGB_8888);
             if (bmp == null) return;
@@ -1068,12 +1598,20 @@ public final class CustomImagingBridge {
 
             jpegBytes = ExifUtility.appendExifToJpeg(jpegBytes, result, null, cameraId, null);
             try {
-                String summary = decision.summary;
+                String telemetryNote = recordShotTelemetry(null, result, cameraId, decision, captureMethod, cleanName);
+                TelemetryCollector.CompassSnapshot rawCompass = latestCompassForContainer(null, captureMethod, cleanName);
+                String summary = decision.summary + (telemetryNote.isEmpty() ? "" : " " + telemetryNote);
                 if (jpegBytes != null) {
                     PhotoMetadata meta = new PhotoMetadata(new ByteArrayInputStream(jpegBytes));
                     boolean changed = false;
+                    if (rawCompass != null) {
+                        stampCompassExif(meta, rawCompass);
+                        changed = true;
+                    }
                     if (summary != null && !summary.isEmpty()) {
-                        meta.setAttribute("ImageDescription", summary + " cleanBayer=1");
+                        String cleanSummary = summary + " cleanBayer=1" + burstSummary;
+                        meta.setAttribute("ImageDescription", cleanSummary);
+                        meta.setAttribute("UserComment", cleanSummary);
                         changed = true;
                     }
                     if (meta.getAttribute("FocalLength") == null) {
@@ -1223,5 +1761,325 @@ public final class CustomImagingBridge {
     public static void configureGalleryIntent(Intent intent, boolean isPrc) {
         if (intent == null || isPrc) return;
         intent.putExtra("exit_on_swipe", false);
+    }
+
+    public static void onCameraActivityResumed() {
+        try {
+            CompassHudController.onResume();
+        } catch (Throwable ignored) {}
+    }
+
+    public static void onCameraPaused() {
+        try {
+            CompassHudController.onPause();
+        } catch (Throwable ignored) {}
+        try {
+            TelemetryCollector.onCameraPaused();
+        } catch (Throwable ignored) {}
+    }
+
+    public static void onSessionResetKeepLastModeOff() {
+        try {
+            SharedPreferences prefs = PersistBehavior.getPreferences();
+            if (prefs != null) {
+                prefs.edit()
+                        .putString(LOOK_PRESET, "0")
+                        .putString(BOKEH_STYLE, "0")
+                        .putString(LOOK_INTENSITY, "100")
+                        .apply();
+            }
+            LiveLookPreview.select(0, 100);
+            LiveLookPreview.setCompare(false);
+            EffectsUiController.refreshPreview();
+            CompassHudController.refreshVisibility();
+        } catch (Throwable ignored) {}
+    }
+
+    public static void onFactoryResetPreferences() {
+        onSessionResetKeepLastModeOff();
+        try {
+            SharedPreferences prefs = PersistBehavior.getPreferences();
+            if (prefs != null) {
+                prefs.edit()
+                        .putString(PREF_KEY, "0")
+                        .putBoolean(CompassHudController.PREF_KEY_ENABLED, true)
+                        .apply();
+            }
+            LiveLookPreview.setProfilePaused(false);
+            CompassHudController.refreshVisibility();
+        } catch (Throwable ignored) {}
+    }
+
+    public static boolean isHdr10AvailableForCurrentFps() {
+        try {
+            Class<?> sm = SettingsManager.class;
+            java.lang.reflect.Field fpsKeyField = sm.getField("VIDEO_FRAME_RATE");
+            Object key = fpsKeyField.get(null);
+            Object setting = sm.getMethod("get", key.getClass()).invoke(null, key);
+            if (setting != null) {
+                Object val = setting.getClass().getField("mValue").get(setting);
+                if (val instanceof Integer) {
+                    return !VideoConfigHelper.shouldDisableHdr10ForFps(((Integer) val).intValue());
+                }
+            }
+        } catch (Throwable ignored) {}
+        return true;
+    }
+
+    public static void clearStockMeishePhotoFilter() {
+        try {
+            Class<?> sm = SettingsManager.class;
+            Object photoLutKey = sm.getField("MEISHE_PHOTO_LUT_FILE_NAME").get(null);
+            Object photoFxKey = sm.getField("MCF_MEISHE_EFFECTS_MODE_PHOTO").get(null);
+            java.lang.reflect.Method set = sm.getMethod("set", photoLutKey.getClass(), Object.class);
+            set.invoke(null, photoLutKey, "Original");
+            set.invoke(null, photoFxKey, Boolean.FALSE);
+        } catch (Throwable ignored) {}
+    }
+
+    public static void onFrontAfCaptureStart() {
+        FrontAfHelper.beginCapture();
+    }
+
+    public static void onFrontAfCaptureEnd() {
+        FrontAfHelper.endCapture();
+    }
+
+    /**
+     * Evaluates FRONT_MAIN CAF completion against the 12-frame budget.
+     * Returns 0 for stock behavior (non-front, non-CAF, or budget expired without lock),
+     * 1 to defer timeout while CAF is still scanning, or 2 when CAF converged (AF state 2 or 4).
+     */
+    public static int evaluateFrontAfTimeout(String cameraId, TotalCaptureResult result) {
+        try {
+            boolean isFrontMain = SettingsHelper.isCurrentFrontCamera();
+            if (!isFrontMain || result == null) return 0;
+            Integer modeObj = result.get(CaptureResult.CONTROL_AF_MODE);
+            Integer stateObj = result.get(CaptureResult.CONTROL_AF_STATE);
+            int afMode = modeObj != null ? modeObj.intValue() : 0;
+            int afState = stateObj != null ? stateObj.intValue() : 0;
+            if (!FrontAfHelper.applies(true, afMode)) return 0;
+            FrontAfHelper.noteResult(true, afMode);
+            if (!FrontAfHelper.shouldCompleteCurrent(true, afMode, afState)) {
+                return 1;
+            }
+            return (afState == FrontAfHelper.AF_STATE_PASSIVE_FOCUSED
+                    || afState == FrontAfHelper.AF_STATE_FOCUSED_LOCKED) ? 2 : 0;
+        } catch (Throwable ignored) {
+            return 0;
+        }
+    }
+
+    public static int resolveVideoBitrate(int sizeBitrate, int upperFps, boolean isHevc) {
+        return VideoConfigHelper.resolveVideoBitrate(sizeBitrate, upperFps, isHevc);
+    }
+
+    public static boolean shouldDisableHdr10ForFps(int upperFps) {
+        return VideoConfigHelper.shouldDisableHdr10ForFps(upperFps);
+    }
+
+    public static boolean shouldThermalStepDownFps(int thermalLevel, int upperFps) {
+        return VideoConfigHelper.shouldThermalStepDownFps(thermalLevel, upperFps);
+    }
+
+    public static Range<Integer> pickPreferredHfrRange(Range<Integer>[] ranges, Range<Integer> current) {
+        if (ranges == null || ranges.length == 0 || current == null || current.getUpper() == null) {
+            return current;
+        }
+        int targetFps = current.getUpper().intValue();
+        int[][] pairs = new int[ranges.length][];
+        for (int i = 0; i < ranges.length; i++) {
+            Range<Integer> r = ranges[i];
+            if (r == null || r.getLower() == null || r.getUpper() == null) continue;
+            pairs[i] = new int[] { r.getLower().intValue(), r.getUpper().intValue() };
+        }
+        int[] chosen = VideoConfigHelper.pickPreferredHfrRange(targetFps, pairs);
+        if (chosen == null) return current;
+        for (Range<Integer> r : ranges) {
+            if (r != null && r.getLower() != null && r.getUpper() != null
+                    && r.getLower().intValue() == chosen[0]
+                    && r.getUpper().intValue() == chosen[1]) {
+                return r;
+            }
+        }
+        return current;
+    }
+
+    private static TotalCaptureResult extractCaptureResult(SaveImageService.ImageContainer container) {
+        if (container == null || container.mMediaData == null) return null;
+        if (container.mMediaData.mImageDataHolder != null && container.mMediaData.mImageDataHolder.mResult != null) {
+            return container.mMediaData.mImageDataHolder.mResult;
+        }
+        CaptureRecord record = container.mMediaData.mCaptureRecord;
+        if (record instanceof ImageCaptureRecord) {
+            ImageCaptureRecord imgRec = (ImageCaptureRecord) record;
+            if (imgRec.mCaptureHolders != null) {
+                for (int i = imgRec.mCaptureHolders.size() - 1; i >= 0; i--) {
+                    CaptureHolder holder = imgRec.mCaptureHolders.get(i);
+                    if (holder != null && holder.mResult != null) return holder.mResult;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String extractCameraId(SaveImageService.ImageContainer container, String fallbackCameraId) {
+        if (fallbackCameraId != null && !fallbackCameraId.isEmpty()) return fallbackCameraId;
+        if (container == null || container.mMediaData == null) return null;
+        if (container.mMediaData.mImageDataHolder != null && container.mMediaData.mImageDataHolder.mCameraId != null) {
+            return container.mMediaData.mImageDataHolder.mCameraId;
+        }
+        CaptureRecord record = container.mMediaData.mCaptureRecord;
+        if (record != null && record.mCameraId != null) return record.mCameraId;
+        try {
+            return SettingsManager.getCurrentCameraId();
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static final Map<String, String> TELEMETRY_NOTE_CACHE = Collections.synchronizedMap(
+            new LinkedHashMap<String, String>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+                    return size() > 16;
+                }
+            });
+
+    private static boolean isFrontCameraId(String cameraId) {
+        if ("1".equals(cameraId)) return true;
+        try {
+            return SettingsHelper.isCurrentFrontCamera();
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isRealtimeTimestampClock(String cameraId) {
+        if (cameraId == null) return false;
+        try {
+            CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
+            if (chars == null) return false;
+            Integer src = chars.get(CameraCharacteristics.SENSOR_INFO_TIMESTAMP_SOURCE);
+            return src != null && src.intValue() == 1;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static void writePublicTelemetrySidecar(Context ctx, String safeStem, String json) {
+        if (ctx == null || json == null || json.isEmpty()) return;
+        ContentResolver resolver = null;
+        try {
+            resolver = ctx.getContentResolver();
+        } catch (Throwable ignored) {}
+        if (resolver != null) {
+            Uri pendingUri = null;
+            try {
+                Uri table = MediaStore.Files.getContentUri("external_primary");
+                if (table != null) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, safeStem + ".telemetry.json");
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Documents/Edge50Telemetry");
+                    values.put(MediaStore.MediaColumns.IS_PENDING, Integer.valueOf(1));
+                    pendingUri = resolver.insert(table, values);
+                    if (pendingUri != null) {
+                        try (OutputStream os = resolver.openOutputStream(pendingUri)) {
+                            if (os != null) {
+                                os.write(json.getBytes(StandardCharsets.UTF_8));
+                                os.flush();
+                            }
+                        }
+                        values.clear();
+                        values.put(MediaStore.MediaColumns.IS_PENDING, Integer.valueOf(0));
+                        resolver.update(pendingUri, values, null, null);
+                    }
+                }
+            } catch (Throwable t) {
+                if (pendingUri != null) {
+                    try { resolver.delete(pendingUri, null, null); } catch (Throwable ignored) {}
+                }
+                Log.w(TAG, "Public telemetry MediaStore write skipped", t);
+            }
+        }
+        File baseDir = ctx.getExternalFilesDir("telemetry");
+        if (baseDir != null && (baseDir.exists() || baseDir.mkdirs())) {
+            File out = new File(baseDir, safeStem + ".telemetry.json");
+            TelemetryCollector.writeSidecarJsonIfEnabled(out, json);
+        }
+    }
+
+    private static final Map<String, TelemetryCollector.CompassSnapshot> TELEMETRY_COMPASS_CACHE =
+            Collections.synchronizedMap(new LinkedHashMap<String, TelemetryCollector.CompassSnapshot>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, TelemetryCollector.CompassSnapshot> eldest) {
+                    return size() > 16;
+                }
+            });
+
+    private static String extractTelemetryShotId(SaveImageService.ImageContainer container, String explicitShotId) {
+        String fileName = explicitShotId;
+        if ((fileName == null || fileName.isEmpty()) && container != null && container.mFileName != null) {
+            fileName = container.mFileName.getName();
+        }
+        if ((fileName == null || fileName.isEmpty()) && container != null && container.mMediaData != null
+                && container.mMediaData.mCaptureRecord != null
+                && container.mMediaData.mCaptureRecord.mFileName != null) {
+            fileName = container.mMediaData.mCaptureRecord.mFileName.getName();
+        }
+        return fileName;
+    }
+
+    private static TelemetryCollector.CompassSnapshot latestCompassForContainer(
+            SaveImageService.ImageContainer container, String captureMethod, String explicitShotId) {
+        String shotId = extractTelemetryShotId(container, explicitShotId);
+        if (shotId == null || shotId.isEmpty()) return null;
+        return TELEMETRY_COMPASS_CACHE.get(captureMethod + ":" + shotId);
+    }
+
+    private static String recordShotTelemetry(SaveImageService.ImageContainer container,
+                                              TotalCaptureResult directResult,
+                                              String directCameraId,
+                                              ShotDecision decision,
+                                              String captureMethod,
+                                              String explicitShotId) {
+        try {
+            TotalCaptureResult result = directResult != null ? directResult : extractCaptureResult(container);
+            String cameraId = extractCameraId(container, directCameraId);
+            String fileName = extractTelemetryShotId(container, explicitShotId);
+            String shotId = (fileName != null && !fileName.isEmpty())
+                    ? fileName
+                    : ("shot_" + System.currentTimeMillis());
+            String cacheKey = captureMethod + ":" + shotId;
+            String cachedNote = TELEMETRY_NOTE_CACHE.get(cacheKey);
+            if (cachedNote != null) {
+                return cachedNote;
+            }
+            boolean portraitShot = container != null && container.mMediaData != null
+                    && container.mMediaData.mCaptureRecord != null
+                    && SettingsHelper.isPortraitMode(container.mMediaData.mCaptureRecord.mCaptureMode);
+            Float lux = decision != null && Float.isFinite(decision.lux) ? Float.valueOf(decision.lux) : null;
+            boolean realtimeClock = isRealtimeTimestampClock(cameraId);
+            TelemetryCollector.ShotMetadata meta = TelemetryCollector.shotMetadata(shotId, lux, realtimeClock);
+            int lookId = decision != null ? decision.look : 0;
+            int bokehId = (portraitShot && decision != null) ? decision.bokeh : 0;
+            int profileId = decision != null ? decision.profile : getSelectedProfile();
+            TelemetryCollector.CompassSnapshot compass = TelemetryCollector.sampleCompass(result, meta);
+            if (compass != null) {
+                TELEMETRY_COMPASS_CACHE.put(cacheKey, compass);
+            }
+            String json = TelemetryCollector.buildShotTelemetryJson(
+                    result, meta, captureMethod, lookId, bokehId, profileId, compass);
+            String safeStem = shotId.replaceAll("[^a-zA-Z0-9._-]", "_");
+            writePublicTelemetrySidecar(application, safeStem, json);
+            String note = TelemetryCollector.buildConciseExifNote(
+                    result, meta, captureMethod, lookId, bokehId, profileId);
+            TELEMETRY_NOTE_CACHE.put(cacheKey, note);
+            return note;
+        } catch (Throwable t) {
+            Log.w(TAG, "recordShotTelemetry skipped", t);
+            return "";
+        }
     }
 }

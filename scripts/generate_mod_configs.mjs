@@ -168,6 +168,48 @@ retargetScene(
   fastScene,
 );
 assert.equal(frontMode.hdr_auto_on[0].override_scene, 'RAW_HDR', keepScene);
+assert.equal(frontMode.hdr_auto_on.length, 1, 'FRONT_MAIN hdr_auto_on rows');
+assert.equal(frontMode.hdr_auto_on[0].lux_range[0].rawJSON, '0.0');
+assert.equal(frontMode.hdr_auto_on[0].lux_range[1].rawJSON, '-1.0');
+const frontAutoOnPointer = '/ctwo/scene_selection_advanced_overrides/FRONT_MAIN/default_mode/hdr_auto_on';
+const frontAutoOnBefore = JSON.stringify(frontMode.hdr_auto_on);
+frontMode.hdr_auto_on[0].lux_range[1] = JSON.rawJSON('2.99');
+const frontBright = cloneConfig(frontMode.hdr_auto_on[0]);
+frontBright.lux_range[0] = JSON.rawJSON('3.0');
+frontBright.lux_range[1] = JSON.rawJSON('-1.0');
+frontBright.override_scene = 'HAL_FRAME_STACK';
+frontMode.hdr_auto_on.push(frontBright);
+assert.deepEqual(sceneSignature(frontMode.hdr_auto_on), [
+  { zoom: ['0.0', '-1.0'], lux: ['0.0', '2.99'], scene: 'RAW_HDR' },
+  { zoom: ['0.0', '-1.0'], lux: ['3.0', '-1.0'], scene: 'HAL_FRAME_STACK' },
+]);
+changes.push({
+  file: iqName,
+  pointer: frontAutoOnPointer,
+  before: frontAutoOnBefore,
+  after: JSON.stringify(frontMode.hdr_auto_on),
+  rationale: 'Keep RAW_HDR for front HDR-auto only on the dark lux row 0.0–2.99, the same cutoff as FRONT_MAIN single_bokeh_with_nv. Lux 3.0 and above uses HAL_FRAME_STACK.',
+});
+
+const frontBokeh = advanced.FRONT_MAIN.single_bokeh;
+for (const key of ['hdr_off', 'hdr_auto_off', 'hdr_auto_on']) {
+  assert.deepEqual(sceneSignature(frontBokeh[key]), [
+    { zoom: ['0.0', '-1.0'], lux: ['0.0', '-1.0'], scene: 'RAW_HDR' },
+  ], 'FRONT_MAIN single_bokeh ' + key);
+}
+assert.equal(frontBokeh.hdr_off[0].override_scene, 'RAW_HDR', keepScene);
+assert.equal(frontBokeh.hdr_auto_off[0].override_scene, 'RAW_HDR', keepScene);
+assert.equal(frontBokeh.hdr_auto_on[0].override_scene, 'RAW_HDR', keepScene);
+
+const frontFlash = advanced.FRONT_MAIN.flash.hdr_default;
+assert.deepEqual(sceneSignature(frontFlash), [
+  { zoom: ['0.0', '-1.0'], lux: ['0.0', '-1.0'], scene: 'RAW_HDR' },
+]);
+retargetScene(
+  frontFlash, 0, 'RAW_HDR', 'HAL_FRAME_STACK_FLASH', iqName,
+  '/ctwo/scene_selection_advanced_overrides/FRONT_MAIN/flash/hdr_default/0/override_scene',
+  'Route front flash to HAL_FRAME_STACK_FLASH so the flash ZSL row can apply front_camera_use_zsl.',
+);
 
 function replaceHdrDefault(camType, stockScenes, offScenes, rationale) {
   const mode = advanced[camType].default_mode;
@@ -352,7 +394,7 @@ const changelog = [
   '- IQ uses the low-light timing hint when the static schedule applies. Camera-characteristics hints take precedence. The app uses the hint for estimates and a delayed handler callback on applicable bracketed captures. The HAL controls exposure and frame acquisition.',
   '- `QcMfnrSetting` reads `shutter_throttle_time` with `getInt`. `IqConfigManager.mfnrShutterThrottle` walks `qc_mfnr_settings.default` and returns the first row whose `number_of_frames` byte equals the looked-up frame count. `BracketingCaptureRequestRunnable` stores that long in `ShutterThrottle.mDuration`. All five stock rows use frame-count token 255, which is -1 as a signed byte, so a matching walk returns row 0. Rows 1–4 are still lowered. The 255 token stays in place.',
   '- `IqConfigManager.getFinalSettingAccordingToHDR` reads `com.motorola.camera.hdr`. `PostCaptureImageEvent.getHdrMode` labels 0 as off, 1 as on, and 2 as auto, and the settings factory stores 2 by default. The method selects `hdr_off` for 0 and `hdr_on` for 1. Every other value uses `hdr_auto_on` when the incoming scene `isHdr()`, or `hdr_auto_on_nv_auto_on` when that key exists and auto night vision with zero exposure compensation is active. A non-HDR scene uses `hdr_auto_off`, with the night-vision and flash key names when those entries exist. A null result then uses `hdr_default`. `getIqJsonOverrideScene` reads the current camera `default_mode` and then `default_cam_type.default_mode`. `SceneOverrideSetting` requires `zoom_range`, `lux_range`, and an `override_scene` name from `Mcf.SceneMode`. `HAL_FRAME_STACK` is one of those names.',
-  '- `default_cam_type` and `FRONT_MAIN` already have the off and auto keys. Only their `RAW_HDR` cells under `hdr_off` and `hdr_auto_off` change to `HAL_FRAME_STACK`. `SUPER_RESOLUTION`, `RAW_SUPER_NIGHT`, `hdr_auto_on`, and `hdr_auto_on_nv_auto_on` stay on the stock scenes. `BACK_MAIN` and `BACK_WIDE` replace the single `hdr_default` row with `hdr_off`, `hdr_auto_off`, and `hdr_auto_on`. `BACK_TELE` does the same split: zoom 0–12.1 and lux above 10.1 becomes `HAL_FRAME_STACK` for off and auto-off, the dark zoom 0–12.1 row stays `RAW_SUPER_NIGHT`, zoom above 12.1 stays stock, and auto-on keeps the stock table. HDR on looks up `hdr_on` and then `hdr_default`. Those keys are absent after the split, so MotCamera4 keeps the scene it already selected.',
+  '- `default_cam_type` already has the off and auto keys. Only its `RAW_HDR` cells under `hdr_off` and `hdr_auto_off` change to `HAL_FRAME_STACK`. `SUPER_RESOLUTION`, `RAW_SUPER_NIGHT`, `hdr_auto_on`, and `hdr_auto_on_nv_auto_on` stay on the stock scenes. `FRONT_MAIN` `hdr_off` and `hdr_auto_off` become `HAL_FRAME_STACK`. `FRONT_MAIN` `hdr_auto_on` keeps `RAW_HDR` for lux 0.0–2.99 and uses `HAL_FRAME_STACK` from lux 3.0 up, the same cutoff as `single_bokeh_with_nv`. `FRONT_MAIN` `single_bokeh` (`hdr_off`, `hdr_auto_off`, and `hdr_auto_on`) stays on `RAW_HDR` so ArcSoft SF Bokeh executes reliably in Front Portrait. `FRONT_MAIN` flash `hdr_default` becomes `HAL_FRAME_STACK_FLASH`. `BACK_MAIN` and `BACK_WIDE` replace the single `hdr_default` row with `hdr_off`, `hdr_auto_off`, and `hdr_auto_on`. `BACK_TELE` does the same split: zoom 0–12.1 and lux above 10.1 becomes `HAL_FRAME_STACK` for off and auto-off, the dark zoom 0–12.1 row stays `RAW_SUPER_NIGHT`, zoom above 12.1 stays stock, and auto-on keeps the stock table. HDR on looks up `hdr_on` and then `hdr_default`. Those keys are absent after the split, so MotCamera4 keeps the scene it already selected.',
   '- The three rear fallback RAW HDR brackets move their darkest EV from -24.0 to -26.0. That offset targets highlight clipping and can make the short frame noisier. Dynamic HDR exposure selection, night and flash tables, and the other state machines stay stock, so an auto-on `RAW_HDR` capture still has its stock algorithm list.',
   '- `fast-init.hold-startup-handle-for-algo.algorithms` is an eight-slot list aligned with `imagers` and `camera-type`. Every slot is now empty. Stock named ArcSoft TF motion capture on all eight, Tetras RAW SR on the tele and zoom slots, and ArcSoft TF refocus on both depth slots. `ai-scene-detect.enable` and `tetras-raw-sr.enable` are false on all eight slots. `beauty-shot-fotonation.enable` is false on all eight slots and `default-beauty-level` is 0.',
   '- `MCF_HAL_FRAME_STACK_STATE_MACHINE` keeps `MCF_BST_PURPLE_FRINGE_CAPTURE_ALG`, `MCF_ARCSOFT_DISTORTION_CORREC_CAPTURE_ALG`, and `MCF_MEISHE_NV_EFFECTS_CAPTURE_ALG` in that stock order. Tetras SensePR, FotoNation beauty, ArcSoft low-light AI portrait, selective color, miniature bokeh, DSLR, composition, the CUD model, and the BST distortion corrector are removed from this path only.',

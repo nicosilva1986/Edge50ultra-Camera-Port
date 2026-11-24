@@ -14,7 +14,8 @@ test('smali_patches_cam5.json loads cleanly and defines valid unique patch entri
   const data = JSON.parse(fs.readFileSync(PATCHES_PATH, 'utf8'));
   assert.equal(data.targetPackage, 'com.motorola.camera5');
   assert.equal(data.targetVersion, '10.0.44.42');
-  assert.ok(Array.isArray(data.patches) && data.patches.length === 28);
+  assert.ok(Array.isArray(data.patches));
+  assert.equal(data.patches.length, 62);
 
   const galleryPatchIds = data.patches.filter((p) => p.category === 'gallery').map((p) => p.id);
   assert.deepEqual(galleryPatchIds, [
@@ -23,7 +24,14 @@ test('smali_patches_cam5.json loads cleanly and defines valid unique patch entri
     'gallery_disable_exit_on_swipe_for_gphotos',
   ]);
 
-  for (const name of ['CustomImagingBridge', 'ScenePostProcSelector', 'AppleStyleToneEngine', 'CleanBayerRawProcessor']) {
+  const customClasses = [
+    'AppleStyleToneEngine', 'BokehKernel', 'CleanBayerRawProcessor', 'CompassHudController',
+    'CompassSolarHelper', 'CustomImagingBridge', 'EffectsUiController', 'FrontAfHelper',
+    'GainmapJpeg', 'LiveLookPreview', 'LookFilterEngine', 'LookOptics',
+    'MultiFrameBurstController', 'MultiFrameRawEngine', 'OffscreenBokeh',
+    'PortraitBokeh', 'ScenePostProcSelector', 'TelemetryCollector', 'VideoConfigHelper',
+  ];
+  for (const name of customClasses) {
     const sp = path.join(REPO_ROOT, 'patches', 'custom_imaging_smali', 'com', 'motorola', 'camera', 'custom', `${name}.smali`);
     assert.ok(fs.existsSync(sp), `Missing compiled custom smali: ${sp}`);
   }
@@ -63,11 +71,12 @@ test(
   { skip: !fs.existsSync(path.join(STAGE_CAM5, 'assets', 'config_device_ctwo')) || !fs.existsSync(resolveConfigsDir()) },
   () => {
     const dev = JSON.parse(fs.readFileSync(path.join(STAGE_CAM5, 'assets', 'config_device_ctwo'), 'utf8'));
-    for (const cam of ['BACK_MAIN', 'BACK_TELE', 'ZOOM_BLENDING']) {
+    for (const cam of ['BACK_MAIN', 'BACK_TELE', 'ZOOM_BLENDING', 'FRONT_MAIN']) {
       const idx = dev.ctwo['camera-type'].indexOf(cam);
       assert.ok(idx >= 0, `Missing camera-type ${cam}`);
       assert.equal(dev.ctwo['hq-preview'][idx], false, `Expected hq-preview=false for ${cam}`);
     }
+    assert.equal(dev.ctwo['disable-app-zsl-on-scenes'].includes('ALL_SCENES'), false);
     assert.deepEqual(
       dev.ctwo['in-sensor-crop-logic']?.['in-sensor-crop-back-main-overrides']?.['in-sensor-crop-lux-idx-threshold'],
       [380, 410],
@@ -77,6 +86,17 @@ test(
       [250, 280],
     );
     assert.ok((dev.ctwo['remosaic-config']?.['to-high-res-rg-threshold']?.[0] ?? 9) <= 0.1);
+    assert.deepEqual(dev.ctwo['portrait-lens'], {
+      'camera-type': ['BACK_MAIN', 'BACK_MAIN', 'BACK_MAIN', ''],
+      'zoom-value': [1, 1.5, 2, 0],
+      'blur-level': [3, 3, 3, 0],
+    });
+    for (const depthType of ['LOGICAL_DEPTH', 'LOGICAL_DEPTH3X']) {
+      const dIdx = dev.ctwo['camera-type'].indexOf(depthType);
+      assert.ok(dIdx >= 0, `Expected ${depthType} slot preserved for table alignment`);
+      assert.deepEqual(dev.ctwo['camera-mapping'][dIdx]['sensor-name'], ['disabled_logical_depth']);
+      assert.deepEqual(dev.ctwo['camera-mapping'][dIdx]['sensor-name-override'], ['disabled_logical_depth']);
+    }
 
     const iq = JSON.parse(fs.readFileSync(path.join(STAGE_CAM5, 'assets', 'iq_config_ctwo'), 'utf8'));
     assert.equal(
@@ -101,6 +121,19 @@ test(
       false,
       'SET_EXTRA_FREE_REPEATEDLY must be omitted from Camera 5 app_feature_ctwo',
     );
+    assert.equal(
+      feat.fs.some((entry) => entry.f === 'DEPTH_ENABLED'),
+      false,
+      'DEPTH_ENABLED must be omitted on non-privapp ctwo so Rear Portrait uses SINGLE_REAR_BOKEH',
+    );
+    assert.equal(
+      feat.fs.some((entry) => entry.f === 'SINGLE_REAR_BOKEH'),
+      true,
+      'SINGLE_REAR_BOKEH must be enabled in app_feature_ctwo for Rear Portrait mode 18',
+    );
+    assert.ok(fs.existsSync(path.join(STAGE_CAM5, 'res', 'values-b+es+419', 'port_effects.xml')));
+    assert.ok(fs.existsSync(path.join(STAGE_CAM5, 'res', 'values-es', 'port_effects.xml')));
+    assert.ok(fs.existsSync(path.join(STAGE_CAM5, 'res', 'drawable', 'port_logo_leica.xml')));
 
     const mcf = JSON.parse(decryptMcf(fs.readFileSync(path.join(STAGE_CAM5, 'assets', 'mcf_config_ctwo')), MCF5_KEY).toString('utf8'));
     assert.ok(mcf.ctwo['tetras-raw-sr']?.enable.every((v) => v === false));
@@ -110,6 +143,21 @@ test(
     assert.equal(mcf.ctwo['fullframe-config']?.color?.skipPattern?.[3], 'skip-1');
     assert.equal(mcf.ctwo['state-machine']?.['hal-super-resolution']?.enable?.[2], true);
     assert.equal(mcf.ctwo['scene-classifer']?.['super-resolution']?.enable?.[2], true);
+    assert.equal(mcf.ctwo['arcsoft-sfbokeh-preview']?.enable?.[0], true);
+    assert.equal(mcf.ctwo['arcsoft-sfbokeh-preview']?.enable?.[1], true);
+    assert.equal(mcf.ctwo['arcsoft-sfbokeh-preview']?.['face-detection-optional']?.[1], true);
+    assert.equal(mcf.ctwo['arcsoft-sfbokeh-capture']?.enable?.[0], true);
+    assert.equal(mcf.ctwo['arcsoft-sfbokeh-capture']?.enable?.[1], true);
+    assert.equal(mcf.ctwo['state-machine']?.['hal-frame-stack-sf-bokeh']?.enable?.[1], true);
+    for (const camKey of ['BACK_MAIN', 'FRONT_MAIN']) {
+      for (const hdrKey of ['hdr_off', 'hdr_auto_off', 'hdr_auto_on']) {
+        assert.equal(
+          iq.ctwo.scene_selection_advanced_overrides?.[camKey]?.single_bokeh?.[hdrKey]?.[0]?.override_scene,
+          'RAW_HDR',
+          `${camKey}.single_bokeh.${hdrKey} must keep RAW_HDR for SF Bokeh`,
+        );
+      }
+    }
     assert.ok(
       mcf.ctwo['state-machine-to-algorithms-map']?.MCF_HAL_FRAME_STACK_STATE_MACHINE?.includes('MCF_MOT_SELECTIVE_COLOR_CAPTURE_ALG'),
       'MCF_HAL_FRAME_STACK_STATE_MACHINE should preserve OpenCL/Moto capture modes',
@@ -140,5 +188,32 @@ test(
         `${sec}.grf-lib-api-version must pin SM8635 V1 instead of roadstr V3`,
       );
     }
+
+    const rootSettingsXml = fs.readFileSync(path.join(STAGE_CAM5, 'res', 'xml', 'settings_list_root_preferences.xml'), 'utf8');
+    assert.equal(rootSettingsXml.includes('settings_list_general_camera_feedback_key'), false);
+    assert.equal(rootSettingsXml.includes('settings_list_about_help_key'), false);
+    assert.equal(rootSettingsXml.includes('settings_list_about_reset_key'), true);
+
+    const assistXml = fs.readFileSync(path.join(STAGE_CAM5, 'res', 'xml', 'settings_list_capture_assistant_preferences.xml'), 'utf8');
+    assert.equal(assistXml.includes('android:key="port_compass_hud"'), true);
+    assert.equal(assistXml.includes('@string/port_compass_hud_title'), true);
+    const esPortEffects = fs.readFileSync(path.join(STAGE_CAM5, 'res', 'values-es', 'port_effects.xml'), 'utf8');
+    assert.equal(esPortEffects.includes('port_compass_hud_title'), true);
+
+    const cameraSmali = fs.readFileSync(path.join(STAGE_CAM5, 'smali', 'com', 'motorola', 'camera', 'Camera.smali'), 'utf8');
+    assert.equal(cameraSmali.includes('CustomImagingBridge;->onCameraActivityResumed()V'), true);
+    assert.equal(cameraSmali.includes('CustomImagingBridge;->onSessionResetKeepLastModeOff()V'), true);
+    const settingsSmali = fs.readFileSync(path.join(STAGE_CAM5, 'smali', 'com', 'motorola', 'camera', 'settings', 'SettingsManager.smali'), 'utf8');
+    assert.equal(settingsSmali.includes(':cond_meishe_vid_off'), true);
+    const resetSmali = fs.readFileSync(
+      path.join(STAGE_CAM5, 'smali', 'com', 'motorola', 'camera', 'ui', 'controls_2020', 'settings', 'fragment', 'GeneralSettingsFragment$resetDialogClickListener$1$1.smali'),
+      'utf8',
+    );
+    assert.equal(resetSmali.includes('CustomImagingBridge;->onFactoryResetPreferences()V'), true);
+    const panelSmali = fs.readFileSync(
+      path.join(STAGE_CAM5, 'smali', 'com', 'motorola', 'camera', 'ui', 'controls_2020', 'ControlPanelHelper.smali'),
+      'utf8',
+    );
+    assert.equal(panelSmali.includes('CustomImagingBridge;->isHdr10AvailableForCurrentFps()Z'), true);
   },
 );

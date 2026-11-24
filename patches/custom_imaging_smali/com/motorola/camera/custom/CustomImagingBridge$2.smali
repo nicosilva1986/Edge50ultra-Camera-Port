@@ -8,7 +8,7 @@
 
 # annotations
 .annotation system Ldalvik/annotation/EnclosingMethod;
-    value = Lcom/motorola/camera/custom/CustomImagingBridge;->applyCustomLutIfEnabled(Lcom/motorola/camera/saving/SaveImageService$ImageContainer;)V
+    value = Lcom/motorola/camera/custom/CustomImagingBridge;->bitmapSurface(Landroid/graphics/Bitmap;I)Lcom/motorola/camera/custom/CustomImagingBridge$PixelSurface;
 .end annotation
 
 .annotation system Ldalvik/annotation/InnerClass;
@@ -18,9 +18,9 @@
 
 
 # instance fields
-.field final synthetic val$bmp:Landroid/graphics/Bitmap;
+.field final synthetic val$bitmap:Landroid/graphics/Bitmap;
 
-.field final synthetic val$w:I
+.field final synthetic val$width:I
 
 
 # direct methods
@@ -32,10 +32,10 @@
         }
     .end annotation
 
-    .line 734
-    iput-object p1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bmp:Landroid/graphics/Bitmap;
+    .line 1184
+    iput-object p1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bitmap:Landroid/graphics/Bitmap;
 
-    iput p2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$w:I
+    iput p2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$width:I
 
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
@@ -47,14 +47,14 @@
 .method public readRows(II[II)V
     .locals 8
 
-    .line 737
-    iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bmp:Landroid/graphics/Bitmap;
+    .line 1186
+    iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bitmap:Landroid/graphics/Bitmap;
 
-    iget v3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$w:I
+    iget v3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$width:I
 
     const/4 v4, 0x0
 
-    iget v6, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$w:I
+    iget v6, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$width:I
 
     move v5, p1
 
@@ -66,21 +66,21 @@
 
     invoke-virtual/range {v0 .. v7}, Landroid/graphics/Bitmap;->getPixels([IIIIIII)V
 
-    .line 738
+    .line 1187
     return-void
 .end method
 
 .method public writeRows(II[II)V
     .locals 8
 
-    .line 742
-    iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bmp:Landroid/graphics/Bitmap;
+    .line 1189
+    iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$bitmap:Landroid/graphics/Bitmap;
 
-    iget v3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$w:I
+    iget v3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$width:I
 
     const/4 v4, 0x0
 
-    iget v6, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$w:I
+    iget v6, p0, Lcom/motorola/camera/custom/CustomImagingBridge$2;->val$width:I
 
     move v5, p1
 
@@ -92,6 +92,6 @@
 
     invoke-virtual/range {v0 .. v7}, Landroid/graphics/Bitmap;->setPixels([IIIIIII)V
 
-    .line 743
+    .line 1190
     return-void
 .end method

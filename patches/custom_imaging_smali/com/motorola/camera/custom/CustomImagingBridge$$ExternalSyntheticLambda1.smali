@@ -54,7 +54,7 @@
 
     iget v4, p0, Lcom/motorola/camera/custom/CustomImagingBridge$$ExternalSyntheticLambda1;->f$4:I
 
-    invoke-static {v0, v1, v2, v3, v4}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$gradeSurfaceInBatches$2(Lcom/motorola/camera/custom/CustomImagingBridge$StripPixelProcessor;[IIII)V
+    invoke-static {v0, v1, v2, v3, v4}, Lcom/motorola/camera/custom/CustomImagingBridge;->lambda$gradeSurfaceInBatches$4(Lcom/motorola/camera/custom/CustomImagingBridge$StripPixelProcessor;[IIII)V
 
     return-void
 .end method

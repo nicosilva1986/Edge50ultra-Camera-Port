@@ -9,7 +9,7 @@
       "file": "smali/com/motorola/camera/CameraApp.smali",
       "description": "Exempt ART hidden APIs on process startup via LSPosed HiddenApiBypass so libmcf-jni.so can resolve Camera2 hidden fields cleanly.",
       "find": ".method public final onCreate()V\n    .locals 5\n\n    invoke-super {p0}, Landroid/app/Application;->onCreate()V",
-      "replace": ".method public final onCreate()V\n    .locals 5\n\n    const/4 v0, 0x1\n\n    new-array v0, v0, [Ljava/lang/String;\n\n    const/4 v1, 0x0\n\n    const-string v2, \"L\"\n\n    aput-object v2, v0, v1\n\n    invoke-static {v0}, Lorg/lsposed/hiddenapibypass/HiddenApiBypass;->addHiddenApiExemptions([Ljava/lang/String;)Z\n\n    invoke-super {p0}, Landroid/app/Application;->onCreate()V"
+      "replace": ".method public final onCreate()V\n    .locals 5\n\n    const/4 v0, 0x1\n\n    new-array v0, v0, [Ljava/lang/String;\n\n    const/4 v1, 0x0\n\n    const-string v2, \"L\"\n\n    aput-object v2, v0, v1\n\n    invoke-static {v0}, Lorg/lsposed/hiddenapibypass/HiddenApiBypass;->addHiddenApiExemptions([Ljava/lang/String;)Z\n\n    invoke-super {p0}, Landroid/app/Application;->onCreate()V\n\n    invoke-static {p0}, Lcom/motorola/camera/custom/CustomImagingBridge;->initializeEffects(Landroid/content/Context;)V"
     },
     {
       "id": "camera5_feature_to_camera3",
@@ -81,7 +81,7 @@
       "file": "res/xml/settings_list_root_preferences.xml",
       "description": "Add live Post-processing profile selector under Photos in Camera Settings using DisableAppearanceListPreference.",
       "find": "        <com.motorola.camera.ui.controls_2020.settings.preferences.IntSettingListPreference android:title=\"@string/main_setting_ai_Lens\" android:key=\"@string/settings_list_ai_lens_key\" />\n    </PreferenceCategory>",
-      "replace": "        <com.motorola.camera.ui.controls_2020.settings.preferences.IntSettingListPreference android:title=\"@string/main_setting_ai_Lens\" android:key=\"@string/settings_list_ai_lens_key\" />\n        <com.motorola.camera.ui.controls_2020.settings.preferences.generic.DisableAppearanceListPreference android:title=\"Post-processing profile\" android:key=\"com.motorola.camera.post_processing_profile\" android:summary=\"%s\" />\n    </PreferenceCategory>"
+      "replace": "        <com.motorola.camera.ui.controls_2020.settings.preferences.IntSettingListPreference android:title=\"@string/main_setting_ai_Lens\" android:key=\"@string/settings_list_ai_lens_key\" />\n        <com.motorola.camera.ui.controls_2020.settings.preferences.generic.DisableAppearanceListPreference android:title=\"@string/port_pref_postproc_title\" android:key=\"com.motorola.camera.post_processing_profile\" android:summary=\"%s\" />\n    </PreferenceCategory>"
     },
     {
       "id": "settings_fragment_postproc_profile",
@@ -226,6 +226,278 @@
       "description": "Set exit_on_swipe=false on non-PRC ACTION_REVIEW intents so Google Photos preserves left-to-right pager swiping instead of exiting on swipe.",
       "find": "    if-eqz v12, :cond_5\n\n    invoke-static {v11, v7, v2, v3}, Lcom/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask;->setGalleryPackage(Landroid/content/Intent;ZZZ)V",
       "replace": "    if-eqz v12, :cond_5\n\n    invoke-static {v11, v7}, Lcom/motorola/camera/custom/CustomImagingBridge;->configureGalleryIntent(Landroid/content/Intent;Z)V\n\n    invoke-static {v11, v7, v2, v3}, Lcom/motorola/camera/ui/widgets/gl/photoroll/LaunchGalleryTask;->setGalleryPackage(Landroid/content/Intent;ZZZ)V"
+    },
+  {
+      "id": "attach_effects_selector",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/Camera.smali",
+      "description": "Attach effects selector.",
+      "find": "    const v7, 0x7f0d0025\n\n    invoke-virtual {v0, v7}, Landroidx/activity/ComponentActivity;->setContentView(I)V",
+      "replace": "    const v7, 0x7f0d0025\n\n    invoke-virtual {v0, v7}, Landroidx/activity/ComponentActivity;->setContentView(I)V\n\n    invoke-static {v0}, Lcom/motorola/camera/custom/EffectsUiController;->attach(Landroid/app/Activity;)V"
+    },
+    {
+      "id": "dismiss_effects_on_pause",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/Camera.smali",
+      "description": "Dismiss effects and stop hardware telemetry sensor listeners on pause.",
+      "find": ".method public final onPauseTasks()V\n    .locals 9",
+      "replace": ".method public final onPauseTasks()V\n    .locals 9\n\n    invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->onCameraPaused()V\n\n    invoke-static {}, Lcom/motorola/camera/custom/EffectsUiController;->dismiss()V"
+    },
+    {
+      "id": "show_effects_shortcut",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/controls_2020/ControlPanelHelper.smali",
+      "description": "Show effects shortcut.",
+      "find": "    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isPhotoMode()Z\n\n    move-result v4\n\n    if-eqz v4, :cond_2\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isCurrentBackCamera()Z\n\n    move-result v4\n\n    if-eqz v4, :cond_2\n\n    invoke-static {v6}, Lcom/motorola/camera/settings/SettingsManager;->get(Lcom/motorola/camera/settings/SettingsManager$Key;)Lcom/motorola/camera/settings/Setting;\n\n    move-result-object v4\n\n    iget-object v4, v4, Lcom/motorola/camera/settings/Setting;->mValue:Ljava/lang/Object;\n\n    check-cast v4, Ljava/lang/Boolean;\n\n    invoke-virtual {v4}, Ljava/lang/Boolean;->booleanValue()Z\n\n    move-result v4\n\n    if-eqz v4, :cond_2\n\n    sget-object v4, Lcom/motorola/camera/utility/lens/LensApiHelper;->INSTANCE:Lcom/motorola/camera/utility/lens/LensApiHelper;\n\n    invoke-virtual {v4}, Lcom/motorola/camera/utility/lens/LensApiHelper;->isGoogleLensAvailable()Z\n\n    move-result v4\n\n",
+      "replace": "    invoke-static {}, Lcom/motorola/camera/custom/EffectsUiController;->showsInCurrentMode()Z\n\n    move-result v4\n\n"
+    },
+    {
+      "id": "open_effects_instead_of_google_lens",
+      "category": "effects",
+      "file": "smali/kotlin/text/Regex$$ExternalSyntheticLambda0.smali",
+      "description": "Open effects instead of google lens.",
+      "find": "    new-instance v0, Lcom/motorola/camera/Util$ActivityLaunchRequestInfo;\n\n    const/16 v1, 0x8\n\n    const/4 v2, 0x0\n\n    invoke-direct {v0, v6, v1, v2, v6}, Lcom/motorola/camera/Util$ActivityLaunchRequestInfo;-><init>(Landroid/content/Intent;IILandroid/os/Bundle;)V\n\n    invoke-virtual {p0, v0}, Lcom/motorola/camera/ui/UIManager;->startActivity(Lcom/motorola/camera/Util$ActivityLaunchRequestInfo;)V\n\n",
+      "replace": "    invoke-static {}, Lcom/motorola/camera/custom/EffectsUiController;->toggleSelector()V\n\n"
+    },
+    {
+      "id": "remove_viewfinder_lens_availability_check",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/controls_2020/controlbar/ControlBarComposeComponentViewModel.smali",
+      "description": "Remove viewfinder lens availability check.",
+      "find": "    sget-object p1, Lcom/motorola/camera/utility/lens/LensApiHelper;->INSTANCE:Lcom/motorola/camera/utility/lens/LensApiHelper;\n\n    new-instance v2, Lcom/motorola/camera/ui/controls_2020/controlbar/ControlBarComposeComponentViewModel$$ExternalSyntheticLambda0;\n\n    invoke-direct {v2, p0}, Lcom/motorola/camera/ui/controls_2020/controlbar/ControlBarComposeComponentViewModel$$ExternalSyntheticLambda0;-><init>(Lcom/motorola/camera/ui/controls_2020/controlbar/ControlBarComposeComponentViewModel;)V\n\n    invoke-virtual {p1, v2}, Lcom/motorola/camera/utility/lens/LensApiHelper;->checkGoogleLensAvailability(Lcom/motorola/camera/utility/lens/LensApiHelper$StatusCheckCallback;)V\n\n",
+      "replace": ""
+    },
+    {
+      "id": "effects_talkback_values",
+      "category": "effects",
+      "file": "res/values/strings.xml",
+      "description": "Effects talkback values.",
+      "find": "<string name=\"talkback_google_lens\">Google Lens</string>",
+      "replace": "<string name=\"talkback_google_lens\">Effects and filters</string>"
+    },
+    {
+      "id": "effects_talkback_values_es",
+      "category": "effects",
+      "file": "res/values-es/strings.xml",
+      "description": "Effects talkback values es.",
+      "find": "<string name=\"talkback_google_lens\">Google Lens</string>",
+      "replace": "<string name=\"talkback_google_lens\">Efectos y filtros</string>"
+    },
+  {
+      "id": "bind_oes_preview_lut",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/widgets/gl/textures/viewfinders/DefaultViewfinder.smali",
+      "description": "Bind the clean-room look uniforms for this preview path.",
+      "find": "    const/4 p0, 0x5\n\n    const/4 p1, 0x4\n\n    invoke-static {p0, v6, p1}, Lcom/motorola/camera/ui/widgets/gl/GlToolBox;->drawArrays(III)V",
+      "replace": "    invoke-static {v0}, Lcom/motorola/camera/custom/LiveLookPreview;->bind(Lcom/motorola/camera/ui/widgets/gl/Shader;)V\n\n    const/4 p0, 0x5\n\n    const/4 p1, 0x4\n\n    invoke-static {p0, v6, p1}, Lcom/motorola/camera/ui/widgets/gl/GlToolBox;->drawArrays(III)V"
+    },
+    {
+      "id": "bind_yuv_preview_lut",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/widgets/gl/textures/YuvTexture.smali",
+      "description": "Bind the clean-room look uniforms for this preview path.",
+      "find": "    iget-object p1, p0, Lcom/motorola/camera/ui/widgets/gl/textures/YuvTexture;->mVerticesData:[F\n\n    const/4 p2, 0x5",
+      "replace": "    invoke-static {v0}, Lcom/motorola/camera/custom/LiveLookPreview;->bind(Lcom/motorola/camera/ui/widgets/gl/Shader;)V\n\n    iget-object p1, p0, Lcom/motorola/camera/ui/widgets/gl/textures/YuvTexture;->mVerticesData:[F\n\n    const/4 p2, 0x5"
+    },
+  {
+      "id": "dismiss_effects_on_activity_transition",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/Camera.smali",
+      "description": "Collapse the selector before gallery and external activity transitions.",
+      "find": ".method public final startActivity(Lcom/motorola/camera/Util$ActivityLaunchRequestInfo;)V\n    .locals 16",
+      "replace": ".method public final startActivity(Lcom/motorola/camera/Util$ActivityLaunchRequestInfo;)V\n    .locals 16\n\n    invoke-static {}, Lcom/motorola/camera/custom/EffectsUiController;->dismiss()V"
+    },
+    {
+      "id": "dismiss_effects_on_ui_transition",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/UIManager.smali",
+      "description": "Collapse the selector when the shutter or settings panel is activated.",
+      "find": ".method public final dispatchEvent(Lcom/motorola/camera/fsm/camera/Trigger;)Z\n    .locals 0",
+      "replace": ".method public final dispatchEvent(Lcom/motorola/camera/fsm/camera/Trigger;)Z\n    .locals 1\n\n    if-eqz p1, :effects_continue_event\n\n    iget-object v0, p1, Lcom/motorola/camera/fsm/camera/Trigger;->mEvent:Lcom/motorola/camera/fsm/camera/Trigger$Event;\n\n    if-eqz v0, :effects_continue_event\n\n    invoke-virtual {v0}, Ljava/lang/Enum;->name()Ljava/lang/String;\n\n    move-result-object v0\n\n    invoke-static {v0}, Lcom/motorola/camera/custom/EffectsUiController;->dispatchTransition(Ljava/lang/String;)V\n\n    :effects_continue_event"
+    },
+    {
+      "id": "orient_effects_badge",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/UIManager.smali",
+      "description": "Track the camera orientation on the effects overlay.",
+      "find": "    iput p2, p0, Lcom/motorola/camera/ui/UIManager;->mOrientation:I",
+      "replace": "    iput p2, p0, Lcom/motorola/camera/ui/UIManager;->mOrientation:I\n\n    invoke-static {p2}, Lcom/motorola/camera/custom/EffectsUiController;->onOrientation(I)V"
+    },
+    {
+      "id": "hide_retired_google_lens_setting",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/controls_2020/settings/fragment/GeneralSettingsFragment.smali",
+      "description": "Remove the retired Lens toggle from General Settings without querying Lens availability.",
+      "find": "    sget-object v10, Lcom/motorola/camera/utility/lens/LensApiHelper;->INSTANCE:Lcom/motorola/camera/utility/lens/LensApiHelper;\n\n    new-instance v12, Lcom/motorola/camera/ui/controls_2020/settings/fragment/GeneralSettingsFragment$$ExternalSyntheticLambda4;\n\n    invoke-direct {v12, v0, v11, v8}, Lcom/motorola/camera/ui/controls_2020/settings/fragment/GeneralSettingsFragment$$ExternalSyntheticLambda4;-><init>(Lcom/motorola/camera/ui/controls_2020/settings/fragment/GeneralSettingsFragment;Landroidx/preference/SwitchPreferenceCompat;Landroidx/preference/PreferenceCategory;)V\n\n    invoke-virtual {v10, v12}, Lcom/motorola/camera/utility/lens/LensApiHelper;->checkGoogleLensAvailability(Lcom/motorola/camera/utility/lens/LensApiHelper$StatusCheckCallback;)V\n\n    goto/16 :goto_2\n\n",
+      "replace": "    goto :cond_15\n\n"
+    },
+    {
+      "id": "allow_effects_preview_uniforms",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/widgets/gl/Shader.smali",
+      "description": "Leave Effects uniforms to LiveLookPreview and retain validation of donor uniforms.",
+      "find": "    :cond_b\n    new-instance v0, Ljava/lang/RuntimeException;\n\n    const-string v1, \"Unable to locate uniform value \\'\"",
+      "replace": "    :cond_b\n    const-string v4, \"u_Effects\"\n\n    invoke-virtual {v3, v4}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z\n\n    move-result v4\n\n    if-eqz v4, :unknown_stock_uniform\n\n    add-int/lit8 v13, v13, 0x1\n\n    goto :goto_5\n\n    :unknown_stock_uniform\n    new-instance v0, Ljava/lang/RuntimeException;\n\n    const-string v1, \"Unable to locate uniform value \\'\""
+    },
+    {
+      "id": "remove_google_lens_preference",
+      "category": "effects",
+      "file": "smali/com/motorola/camera/ui/controls_2020/settings/fragment/GeneralSettingsFragment.smali",
+      "description": "Remove the retired Lens toggle even when the donor considers Lens available.",
+      "find": "    sget-object v12, Lcom/motorola/camera/utility/lens/LensApiHelper;->INSTANCE:Lcom/motorola/camera/utility/lens/LensApiHelper;\n\n    invoke-virtual {v12}, Lcom/motorola/camera/utility/lens/LensApiHelper;->isGoogleLensAvailable()Z\n\n    move-result v12\n\n    goto :goto_4\n\n    :cond_f",
+      "replace": "    goto/16 :cond_15\n\n    :cond_f"
+    },
+    {
+      "id": "front_af_begin_capture",
+      "category": "af-front",
+      "file": "smali/com/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable.smali",
+      "description": "Reset FrontAfHelper per-capture frame counter when FocusExposureLockRunnable begins.",
+      "find": "    .line 9\n    :cond_0\n    sget-object v7, Lcom/motorola/camera/JsonConfig;->mDeviceConfigHolder:Lcom/motorola/camera/JsonConfig$DeviceConfigHolder;",
+      "replace": "    .line 9\n    :cond_0\n    invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->onFrontAfCaptureStart()V\n\n    sget-object v7, Lcom/motorola/camera/JsonConfig;->mDeviceConfigHolder:Lcom/motorola/camera/JsonConfig$DeviceConfigHolder;"
+    },
+    {
+      "id": "front_af_caf_budget",
+      "category": "af-front",
+      "file": "smali/com/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable.smali",
+      "description": "Hold FRONT_MAIN CAF up to 12 frames (~400 ms) for PASSIVE_FOCUSED/FOCUSED_LOCKED instead of timing out on frame 1 when 3a-timeout-frames=0.",
+      "find": "    iget-boolean p0, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mTimeoutChecking:Z\n\n    if-eqz p0, :cond_0\n\n    iget p0, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mFrameCnt:I\n\n    const/4 p1, 0x1\n\n    add-int/2addr p0, p1\n\n    iput p0, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mFrameCnt:I\n\n    iget p2, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mTimeoutFrames:I\n\n    if-lt p0, p2, :cond_0\n\n    const-string p0, \"FocusExposureLockRunnable\"\n\n    const-string p2, \"Lock focus time out\"\n\n    invoke-static {p0, p2}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I\n\n    iget-object p0, v5, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable$LockHolder;->mFlags:Lcom/motorola/camera/utility/Flags;\n\n    sget-object p2, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable$Flag;->FOCUS_TIMEOUT:Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable$Flag;\n\n    invoke-virtual {p0, p2}, Lcom/motorola/camera/utility/Flags;->add(Ljava/lang/Enum;)V\n\n    iget-object p0, v3, Lcom/motorola/camera/fsm/camera/CameraRunnable;->mFsmContext:Lcom/motorola/camera/fsm/camera/FsmContext;",
+      "replace": "    iget-boolean p0, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mTimeoutChecking:Z\n\n    if-eqz p0, :cond_0\n\n    invoke-static {v4, v6}, Lcom/motorola/camera/custom/CustomImagingBridge;->evaluateFrontAfTimeout(Ljava/lang/String;Landroid/hardware/camera2/TotalCaptureResult;)I\n\n    move-result p0\n\n    const/4 p1, 0x1\n\n    if-ne p0, p1, :cond_front_check_ready\n\n    goto :goto_front_hold\n\n    :cond_front_check_ready\n    const/4 p2, 0x2\n\n    if-ne p0, p2, :cond_stock_timeout\n\n    invoke-static {v5, p1, p1}, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->handleFocusState(Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable$LockHolder;ZZ)V\n\n    goto :goto_front_complete\n\n    :cond_stock_timeout\n    iget p0, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mFrameCnt:I\n\n    add-int/2addr p0, p1\n\n    iput p0, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mFrameCnt:I\n\n    iget p2, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mTimeoutFrames:I\n\n    if-lt p0, p2, :cond_0\n\n    const-string p0, \"FocusExposureLockRunnable\"\n\n    const-string p2, \"Lock focus time out\"\n\n    invoke-static {p0, p2}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I\n\n    iget-object p0, v5, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable$LockHolder;->mFlags:Lcom/motorola/camera/utility/Flags;\n\n    sget-object p2, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable$Flag;->FOCUS_TIMEOUT:Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable$Flag;\n\n    invoke-virtual {p0, p2}, Lcom/motorola/camera/utility/Flags;->add(Ljava/lang/Enum;)V\n\n    :goto_front_complete\n    iget-object p0, v3, Lcom/motorola/camera/fsm/camera/CameraRunnable;->mFsmContext:Lcom/motorola/camera/fsm/camera/FsmContext;"
+    },
+    {
+      "id": "front_af_hold_label",
+      "category": "af-front",
+      "file": "smali/com/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable.smali",
+      "description": "Attach hold label at processForChanges exit when FrontAfHelper defers frame-1 timeout.",
+      "find": "    iput p0, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mFrameCnt:I\n\n    :cond_0\n    return-void",
+      "replace": "    iput p0, v3, Lcom/motorola/camera/fsm/camera/states/runnables/FocusExposureLockRunnable;->mFrameCnt:I\n\n    :goto_front_hold\n    :cond_0\n    return-void"
+    },
+    {
+      "id": "video_mediacodec_scale_bitrate",
+      "category": "video-quality",
+      "file": "smali/com/motorola/camera/mediacodec/MediaCodecEngine.smali",
+      "description": "Scale MediaCodec video bitrate by upperFps/30 and clamp under pineapple XML caps (70M HEVC / 100M AVC).",
+      "find": "    invoke-static {v2, v5, v1}, Lcom/motorola/camera/VideoHelper;->getBitrateOfSize(ZLandroid/util/Size;I)I\n\n    move-result v1\n\n    if-eqz v2, :cond_3",
+      "replace": "    invoke-static {v2, v5, v1}, Lcom/motorola/camera/VideoHelper;->getBitrateOfSize(ZLandroid/util/Size;I)I\n\n    move-result v1\n\n    invoke-static {v1, v0, v2}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveVideoBitrate(IIZ)I\n\n    move-result v1\n\n    if-eqz v2, :cond_3"
+    },
+    {
+      "id": "video_mediarecorder_scale_bitrate",
+      "category": "video-quality",
+      "file": "smali/com/motorola/camera/VideoHelper.smali",
+      "description": "Scale MediaRecorderData.mVideoBitRate by upperFps/30 and clamp under pineapple XML caps (70M HEVC/DV / 100M AVC).",
+      "find": "    :goto_e\n    return-object v2\n.end method",
+      "replace": "    :goto_e\n    iget-object p0, v2, Lcom/motorola/camera/capturedmediadata/MediaRecorderData;->mVideoFrameRateRecord:Landroid/util/Range;\n\n    if-eqz p0, :cond_vbr_skip\n\n    invoke-virtual {p0}, Landroid/util/Range;->getUpper()Ljava/lang/Comparable;\n\n    move-result-object p0\n\n    check-cast p0, Ljava/lang/Integer;\n\n    if-eqz p0, :cond_vbr_skip\n\n    invoke-virtual {p0}, Ljava/lang/Integer;->intValue()I\n\n    move-result p0\n\n    iget p1, v2, Lcom/motorola/camera/capturedmediadata/MediaRecorderData;->mVideoCodec:I\n\n    const/4 v0, 0x5\n\n    if-eq p1, v0, :cond_vbr_hevc\n\n    const/4 v0, 0x7\n\n    if-ne p1, v0, :cond_vbr_avc\n\n    :cond_vbr_hevc\n    const/4 p1, 0x1\n\n    goto :goto_vbr_apply\n\n    :cond_vbr_avc\n    const/4 p1, 0x0\n\n    :goto_vbr_apply\n    iget v0, v2, Lcom/motorola/camera/capturedmediadata/MediaRecorderData;->mVideoBitRate:I\n\n    invoke-static {v0, p0, p1}, Lcom/motorola/camera/custom/CustomImagingBridge;->resolveVideoBitrate(IIZ)I\n\n    move-result p0\n\n    iput p0, v2, Lcom/motorola/camera/capturedmediadata/MediaRecorderData;->mVideoBitRate:I\n\n    :cond_vbr_skip\n    return-object v2\n.end method"
+    },
+    {
+      "id": "video_hfr_prefer_fixed_range",
+      "category": "video-quality",
+      "file": "smali/com/motorola/camera/fsm/camera/modes/VideoMode.smali",
+      "description": "Prefer fixed [target, target] high-speed AE FPS range on Qualcomm VideoMode instead of first variable lower!=upper range.",
+      "find": "    array-length p1, p0\n\n    const/4 p3, 0x0\n\n    :goto_1\n    if-ge p3, p1, :cond_3\n\n    aget-object v1, p0, p3\n\n    invoke-virtual {v1}, Landroid/util/Range;->getLower()Ljava/lang/Comparable;\n\n    move-result-object v2\n\n    check-cast v2, Ljava/lang/Integer;\n\n    invoke-virtual {v1}, Landroid/util/Range;->getUpper()Ljava/lang/Comparable;\n\n    move-result-object v3\n\n    invoke-virtual {v2, v3}, Ljava/lang/Integer;->equals(Ljava/lang/Object;)Z\n\n    move-result v2\n\n    if-nez v2, :cond_2\n\n    move-object v0, v1\n\n    goto :goto_2\n\n    :cond_2\n    add-int/lit8 p3, p3, 0x1\n\n    goto :goto_1",
+      "replace": "    invoke-static {p0, v0}, Lcom/motorola/camera/custom/CustomImagingBridge;->pickPreferredHfrRange([Landroid/util/Range;Landroid/util/Range;)Landroid/util/Range;\n\n    move-result-object v0"
+    },
+    {
+      "id": "video_thermal_stepdown_60fps",
+      "category": "video-quality",
+      "file": "smali/com/motorola/camera/Camera$$ExternalSyntheticLambda8.smali",
+      "description": "Step down VIDEO_FRAME_RATE to 30 fps when ThermalHandler.mThermalLevel >= 2.",
+      "find": "    :cond_5\n    :goto_1\n    return-void\n\n    :pswitch_0",
+      "replace": "    :cond_5\n    :goto_1\n    sget v0, Lcom/motorola/camera/limitfunctionality/ThermalHandler;->mThermalLevel:I\n\n    sget-object v1, Lcom/motorola/camera/settings/SettingsManager;->VIDEO_FRAME_RATE:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v1}, Lcom/motorola/camera/settings/SettingsManager;->get(Lcom/motorola/camera/settings/SettingsManager$Key;)Lcom/motorola/camera/settings/Setting;\n\n    move-result-object v2\n\n    if-eqz v2, :cond_therm_fps_done\n\n    iget-object v2, v2, Lcom/motorola/camera/settings/Setting;->mValue:Ljava/lang/Object;\n\n    instance-of v3, v2, Ljava/lang/Integer;\n\n    if-eqz v3, :cond_therm_fps_done\n\n    check-cast v2, Ljava/lang/Integer;\n\n    invoke-virtual {v2}, Ljava/lang/Integer;->intValue()I\n\n    move-result v2\n\n    invoke-static {v0, v2}, Lcom/motorola/camera/custom/CustomImagingBridge;->shouldThermalStepDownFps(II)Z\n\n    move-result v0\n\n    if-eqz v0, :cond_therm_fps_done\n\n    const/16 v0, 0x1e\n\n    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;\n\n    move-result-object v0\n\n    invoke-static {v1, v0}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    :cond_therm_fps_done\n    return-void\n\n    :pswitch_0"
+    },
+    {
+      "id": "hdr10_disable_above_60fps",
+      "category": "video-quality",
+      "file": "smali/com/motorola/camera/settings/SettingsHelper.smali",
+      "description": "Treat HDR10 Video mode as inactive whenever VIDEO_FRAME_RATE is 60 fps or higher.",
+      "find": ".method public static isVideoHDR10Mode(II)Z\n    .locals 1\n\n    .line 2\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isVideoHDR10OrHDR10PlusSupported()Z\n\n    move-result v0\n\n    if-eqz v0, :cond_0\n\n    const/4 v0, 0x1\n\n    if-ne p0, v0, :cond_0\n\n    if-ne p1, v0, :cond_0",
+      "replace": ".method public static isVideoHDR10Mode(II)Z\n    .locals 1\n\n    .line 2\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isVideoHDR10OrHDR10PlusSupported()Z\n\n    move-result v0\n\n    if-eqz v0, :cond_0\n\n    const/4 v0, 0x1\n\n    if-ne p0, v0, :cond_0\n\n    if-ne p1, v0, :cond_0\n\n    sget-object p0, Lcom/motorola/camera/settings/SettingsManager;->VIDEO_FRAME_RATE:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {p0}, Lcom/motorola/camera/settings/SettingsManager;->get(Lcom/motorola/camera/settings/SettingsManager$Key;)Lcom/motorola/camera/settings/Setting;\n\n    move-result-object p0\n\n    if-eqz p0, :cond_hdr_fps_ok\n\n    iget-object p0, p0, Lcom/motorola/camera/settings/Setting;->mValue:Ljava/lang/Object;\n\n    instance-of p1, p0, Ljava/lang/Integer;\n\n    if-eqz p1, :cond_hdr_fps_ok\n\n    check-cast p0, Ljava/lang/Integer;\n\n    invoke-virtual {p0}, Ljava/lang/Integer;->intValue()I\n\n    move-result p0\n\n    invoke-static {p0}, Lcom/motorola/camera/custom/CustomImagingBridge;->shouldDisableHdr10ForFps(I)Z\n\n    move-result p0\n\n    if-eqz p0, :cond_hdr_fps_ok\n\n    goto :cond_0\n\n    :cond_hdr_fps_ok"
+    },
+    {
+      "id": "photo_raw_zsl_cap_max_images",
+      "category": "custom-imaging",
+      "file": "smali/com/motorola/camera/fsm/camera/modes/PhotoMode.smali",
+      "description": "Cap checkCreateRawStream RAW_SENSOR maxImages at 6 for Camera2 ids 0 and 3 across both Mcf.createInputStream and SurfaceUtil.newImageReader.",
+      "find": "    :goto_0\n    sget-object v2, Landroid/hardware/camera2/CameraCharacteristics;->SCALER_STREAM_CONFIGURATION_MAP:Landroid/hardware/camera2/CameraCharacteristics$Key;\n\n    invoke-static {v1, v2}, Lcom/motorola/camera/settings/SettingsManager;->getCameraCharacteristic(Ljava/lang/String;Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;",
+      "replace": "    :goto_0\n    move-object/from16 v2, p2\n\n    move-object/from16 v3, p8\n\n    move-object/from16 v4, p9\n\n    move/from16 v5, p5\n\n    invoke-static {v2, v3, v4, v5}, Lcom/motorola/camera/custom/MultiFrameBurstController;->boundRawMaxImages(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)I\n\n    move-result v2\n\n    move/from16 p5, v2\n\n    sget-object v2, Landroid/hardware/camera2/CameraCharacteristics;->SCALER_STREAM_CONFIGURATION_MAP:Landroid/hardware/camera2/CameraCharacteristics$Key;\n\n    invoke-static {v1, v2}, Lcom/motorola/camera/settings/SettingsManager;->getCameraCharacteristic(Ljava/lang/String;Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;"
+    },
+    {
+      "id": "zsl_note_capture_result_completed",
+      "category": "custom-imaging",
+      "file": "smali/com/motorola/camera/fsm/camera/states/runnables/SetRepeatingRequestRunnable$SetRepeatingRequestListenerExt.smali",
+      "description": "Record TotalCaptureResult metadata and gyro excursion for ZSL frames in both MCF and reproc modes.",
+      "find": "    move-result-object v5\n\n    check-cast v5, Ljava/lang/Long;\n\n    if-nez v3, :cond_2",
+      "replace": "    move-result-object v5\n\n    check-cast v5, Ljava/lang/Long;\n\n    invoke-static {p1, p2}, Lcom/motorola/camera/custom/CustomImagingBridge;->noteZslCaptureCompleted(Landroid/hardware/camera2/CaptureRequest;Landroid/hardware/camera2/TotalCaptureResult;)V\n\n    if-nez v3, :cond_2"
+    },
+    {
+      "id": "symbol_enqueue_raw_sensor_locals",
+      "category": "custom-imaging",
+      "file": "smali/kotlinx/coroutines/internal/Symbol.smali",
+      "description": "Raise locals in Symbol.onImageAvailable for RAW_SENSOR timestamp and format check.",
+      "find": ".method public onImageAvailable(Lcom/motorola/camera/utility/ImageReaderWrapper;Ljava/nio/ByteBuffer;)V\n    .locals 2",
+      "replace": ".method public onImageAvailable(Lcom/motorola/camera/utility/ImageReaderWrapper;Ljava/nio/ByteBuffer;)V\n    .locals 4"
+    },
+    {
+      "id": "symbol_enqueue_raw_sensor_body",
+      "category": "custom-imaging",
+      "file": "smali/kotlinx/coroutines/internal/Symbol.smali",
+      "description": "Copy format 0x20 RAW_SENSOR ByteBuffer duplicate into MultiFrameBurstController on ImageCaptureManager.mHandler.",
+      "find": "    :cond_0\n    iget-object v1, p0, Lkotlinx/coroutines/internal/Symbol;->symbol:Ljava/lang/String;\n\n    invoke-static {v1, v0}, Lcom/motorola/camera/saving/ImageCaptureManager;->-$$Nest$smonImage(Ljava/lang/String;Lcom/motorola/camera/utility/ImageReaderWrapper$ImageWrapper;)V",
+      "replace": "    :cond_0\n    iget-object v1, v0, Lcom/motorola/camera/utility/ImageReaderWrapper$ImageWrapper;->mImage:Landroid/media/Image;\n\n    if-eqz v1, :burst_raw_skip\n\n    invoke-virtual {v1}, Landroid/media/Image;->getFormat()I\n\n    move-result v2\n\n    const/16 v3, 0x20\n\n    if-ne v2, v3, :burst_raw_skip\n\n    if-eqz p2, :burst_raw_skip\n\n    invoke-virtual {v1}, Landroid/media/Image;->getTimestamp()J\n\n    move-result-wide v2\n\n    invoke-static {v2, v3, p2}, Lcom/motorola/camera/custom/CustomImagingBridge;->noteRawImageAvailable(JLjava/nio/ByteBuffer;)V\n\n    :burst_raw_skip\n    iget-object v1, p0, Lkotlinx/coroutines/internal/Symbol;->symbol:Ljava/lang/String;\n\n    invoke-static {v1, v0}, Lcom/motorola/camera/saving/ImageCaptureManager;->-$$Nest$smonImage(Ljava/lang/String;Lcom/motorola/camera/utility/ImageReaderWrapper$ImageWrapper;)V"
+    },
+    {
+      "id": "settings_remove_feedback_and_help",
+      "category": "settings-cleanup",
+      "file": "res/xml/settings_list_root_preferences.xml",
+      "description": "Remove broken OEM Camera feedback and Help entries from Camera Settings.",
+      "find": "        <com.motorola.camera.ui.controls_2020.settings.preferences.generic.BaseBackgroundPreference android:layout=\"@layout/base_preference_arrow\" android:title=\"@string/main_setting_camera_feedback\" android:key=\"@string/settings_list_general_camera_feedback_key\" />\n        <com.motorola.camera.ui.controls_2020.settings.preferences.generic.SummaryPreference android:layout=\"@layout/base_preference_arrow\" android:title=\"@string/main_setting_help_ui\" android:key=\"@string/settings_list_about_help_key\" android:fragment=\"com.motorola.camera.ui.controls_2020.settings.fragment.HelpPreferencesFragment\" />",
+      "replace": ""
+    },
+    {
+      "id": "settings_add_compass_hud_switch",
+      "category": "compass-hud",
+      "file": "res/xml/settings_list_capture_assistant_preferences.xml",
+      "description": "Add Compass & solar HUD switch under Capture Assistant settings backed by port_compass_hud.",
+      "find": "    <com.motorola.camera.ui.controls_2020.settings.preferences.generic.BaseSwitchPreference android:title=\"@string/main_setting_leveler\" android:key=\"@string/settings_list_capture_settings_leveler_key\" />",
+      "replace": "    <com.motorola.camera.ui.controls_2020.settings.preferences.generic.BaseSwitchPreference android:title=\"@string/main_setting_leveler\" android:key=\"@string/settings_list_capture_settings_leveler_key\" />\n    <com.motorola.camera.ui.controls_2020.settings.preferences.generic.BaseSwitchPreference android:title=\"@string/port_compass_hud_title\" android:key=\"port_compass_hud\" android:defaultValue=\"true\" android:persistent=\"true\" />"
+    },
+    {
+      "id": "compass_resume_on_resume_tasks",
+      "category": "compass-hud",
+      "file": "smali/com/motorola/camera/Camera.smali",
+      "description": "Resume CompassHudController sensor stream in Camera.onResumeTasks when preview resumes.",
+      "find": ".method public final onResumeTasks()V\n    .locals 10",
+      "replace": ".method public final onResumeTasks()V\n    .locals 10\n\n    invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->onCameraActivityResumed()V"
+    },
+    {
+      "id": "keep_last_mode_off_full_reset",
+      "category": "settings-reset",
+      "file": "smali/com/motorola/camera/Camera.smali",
+      "description": "When KEEP_LAST_MODE is false on launch, also reset zoom, MODE, MODE_MENU, BACK_TYPE, BACK_PHYSICAL_TYPE, and custom Effects LUT/Bokeh.",
+      "find": "    invoke-static {v1, v4}, Lcom/motorola/camera/settings/SettingsHelper;->setMeisheVideoFilterValues(Ljava/lang/String;Ljava/lang/Boolean;)V\n\n    :goto_3",
+      "replace": "    invoke-static {v1, v4}, Lcom/motorola/camera/settings/SettingsHelper;->setMeisheVideoFilterValues(Ljava/lang/String;Ljava/lang/Boolean;)V\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsManager;->setupZoom()V\n\n    sget-object v1, Lcom/motorola/camera/settings/SettingsManager;->MODE:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    const/4 v9, 0x0\n\n    invoke-static {v9}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;\n\n    move-result-object v8\n\n    invoke-static {v1, v8}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    sget-object v1, Lcom/motorola/camera/settings/SettingsManager;->MODE_MENU:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    const/16 v9, 0x3e8\n\n    invoke-static {v9}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;\n\n    move-result-object v8\n\n    invoke-static {v1, v8}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    sget-object v1, Lcom/motorola/camera/settings/SettingsManager;->BACK_TYPE:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    sget-object v8, Lcom/motorola/camera/settings/CameraType;->BACK_MAIN:Lcom/motorola/camera/settings/CameraType;\n\n    invoke-static {v1, v8}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    sget-object v1, Lcom/motorola/camera/settings/SettingsManager;->BACK_PHYSICAL_TYPE:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v1, v8}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->onSessionResetKeepLastModeOff()V\n\n    :goto_3"
+    },
+    {
+      "id": "setup_meishe_video_require_non_original_lut",
+      "category": "settings-reset",
+      "file": "smali/com/motorola/camera/settings/SettingsManager.smali",
+      "description": "Only enable MCF_MEISHE_EFFECTS_MODE_VIDEO when a non-Original video LUT is actually active.",
+      "find": "    invoke-static {p0}, Lcom/motorola/camera/settings/SettingsHelper;->isFilterVideoMode(I)Z\n\n    move-result p0\n\n    invoke-static {p0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;\n\n    move-result-object p0\n\n    invoke-static {v1, p0}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V",
+      "replace": "    invoke-static {p0}, Lcom/motorola/camera/settings/SettingsHelper;->isFilterVideoMode(I)Z\n\n    move-result p0\n\n    if-eqz p0, :cond_meishe_vid_off\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isMeisheOriginalFilter()Z\n\n    move-result p0\n\n    if-nez p0, :cond_meishe_vid_off\n\n    const/4 p0, 0x1\n\n    goto :goto_meishe_vid_set\n\n    :cond_meishe_vid_off\n    const/4 p0, 0x0\n\n    :goto_meishe_vid_set\n    invoke-static {p0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;\n\n    move-result-object p0\n\n    invoke-static {v1, p0}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V"
+    },
+    {
+      "id": "factory_reset_clear_modes_zoom_effects",
+      "category": "settings-reset",
+      "file": "smali/com/motorola/camera/ui/controls_2020/settings/fragment/GeneralSettingsFragment$resetDialogClickListener$1$1.smali",
+      "description": "Reset zoom, MODE, MODE_MENU, BACK_TYPE, BACK_PHYSICAL_TYPE, custom Effects, and Compass HUD during Settings Reset.",
+      "find": "    :cond_7\n    sget-object p1, Lcom/motorola/camera/settings/SettingsManager;->ASPECT_RATIO:Lcom/motorola/camera/settings/SettingsManager$Key;",
+      "replace": "    :cond_7\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsManager;->setupZoom()V\n\n    sget-object v3, Lcom/motorola/camera/settings/SettingsManager;->MODE:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    const/4 v4, 0x0\n\n    invoke-static {v4}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;\n\n    move-result-object v5\n\n    invoke-static {v3, v5}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    sget-object v3, Lcom/motorola/camera/settings/SettingsManager;->MODE_MENU:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    const/16 v4, 0x3e8\n\n    invoke-static {v4}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;\n\n    move-result-object v5\n\n    invoke-static {v3, v5}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    sget-object v3, Lcom/motorola/camera/settings/SettingsManager;->BACK_TYPE:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    sget-object v5, Lcom/motorola/camera/settings/CameraType;->BACK_MAIN:Lcom/motorola/camera/settings/CameraType;\n\n    invoke-static {v3, v5}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    sget-object v3, Lcom/motorola/camera/settings/SettingsManager;->BACK_PHYSICAL_TYPE:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v3, v5}, Lcom/motorola/camera/settings/SettingsManager;->set(Lcom/motorola/camera/settings/SettingsManager$Key;Ljava/lang/Object;)V\n\n    invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->onFactoryResetPreferences()V\n\n    sget-object p1, Lcom/motorola/camera/settings/SettingsManager;->ASPECT_RATIO:Lcom/motorola/camera/settings/SettingsManager$Key;"
+    },
+    {
+      "id": "hdr10_hide_icon_above_60fps",
+      "category": "video-quality",
+      "file": "smali/com/motorola/camera/ui/controls_2020/ControlPanelHelper.smali",
+      "description": "Hide VIDEO_HDR10 toggle icon when current video frame rate is 60 fps or higher so the top bar matches VideoConfigHelper behavior.",
+      "find": "    :cond_15\n    sget-object v4, Lcom/motorola/camera/settings/SettingsManager;->VIDEO_HDR10:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v5, v4}, Lkotlin/jvm/internal/Intrinsics;->areEqual(Ljava/lang/Object;Ljava/lang/Object;)Z\n\n    move-result v4\n\n    if-eqz v4, :cond_16\n\n    if-nez p0, :cond_2\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isVideoHDR10OrHDR10PlusSupported()Z\n\n    move-result v4\n\n    if-eqz v4, :cond_2\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isVideoMode()Z\n\n    move-result v4\n\n    if-eqz v4, :cond_2\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsManager;->isCurrentBackFacing()Z\n\n    move-result v4\n\n    if-nez v4, :cond_1e\n\n    goto/16 :goto_1",
+      "replace": "    :cond_15\n    sget-object v4, Lcom/motorola/camera/settings/SettingsManager;->VIDEO_HDR10:Lcom/motorola/camera/settings/SettingsManager$Key;\n\n    invoke-static {v5, v4}, Lkotlin/jvm/internal/Intrinsics;->areEqual(Ljava/lang/Object;Ljava/lang/Object;)Z\n\n    move-result v4\n\n    if-eqz v4, :cond_16\n\n    if-nez p0, :cond_2\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isVideoHDR10OrHDR10PlusSupported()Z\n\n    move-result v4\n\n    if-eqz v4, :cond_2\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsHelper;->isVideoMode()Z\n\n    move-result v4\n\n    if-eqz v4, :cond_2\n\n    invoke-static {}, Lcom/motorola/camera/settings/SettingsManager;->isCurrentBackFacing()Z\n\n    move-result v4\n\n    if-nez v4, :cond_hdr10_fps_chk\n\n    goto/16 :goto_1\n\n    :cond_hdr10_fps_chk\n    invoke-static {}, Lcom/motorola/camera/custom/CustomImagingBridge;->isHdr10AvailableForCurrentFps()Z\n\n    move-result v4\n\n    if-nez v4, :cond_1e\n\n    goto/16 :goto_1"
     }
   ]
 }

@@ -15,6 +15,14 @@
 
 
 # instance fields
+.field final bokeh:I
+
+.field final intensity:I
+
+.field final look:I
+
+.field final lookPaused:Z
+
 .field final lux:F
 
 .field final profile:I
@@ -27,27 +35,39 @@
 
 
 # direct methods
-.method constructor <init>([ILjava/lang/String;IFF)V
+.method constructor <init>([ILjava/lang/String;IFFIIIZ)V
     .locals 0
 
-    .line 125
+    .line 190
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 126
+    .line 191
     iput-object p1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
-    .line 127
+    .line 192
     iput-object p2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->summary:Ljava/lang/String;
 
-    .line 128
+    .line 193
     iput p3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->profile:I
 
-    .line 129
+    .line 194
     iput p4, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->zoom:F
 
-    .line 130
+    .line 195
     iput p5, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->lux:F
 
-    .line 131
+    .line 196
+    iput p6, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->look:I
+
+    .line 197
+    iput p7, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->intensity:I
+
+    .line 198
+    iput p8, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->bokeh:I
+
+    .line 199
+    iput-boolean p9, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->lookPaused:Z
+
+    .line 200
     return-void
 .end method

@@ -467,8 +467,14 @@ test('specialized scenes, per-capture bridge isolation, and strip overlap parity
 import android.content.SharedPreferences;
 public final class PersistBehavior {
     public static String mockProfile = "0";
+    public static String mockLook = null;
+    public static String mockIntensity = null;
     public static SharedPreferences getPreferences() {
-        return (key, defValue) -> mockProfile;
+        return (key, defValue) -> {
+            if ("com.motorola.camera.look_preset".equals(key) && mockLook != null) return mockLook;
+            if ("com.motorola.camera.look_intensity".equals(key) && mockIntensity != null) return mockIntensity;
+            return mockProfile;
+        };
     }
 }
 `);
@@ -479,6 +485,7 @@ public final class SettingsManager {
     public static CameraType mockCamType = null;
     public static float mockZoomInv = 1f;
     public static CameraCharacteristics mockChars = null;
+    public static String getCurrentCameraId() { return "2"; }
     public static CameraType getCurrentCameraType() { return mockCamType; }
     public static float getZoomValue(CameraType type) { return mockZoomInv; }
     public static CameraCharacteristics getCharacteristics(String cameraId) { return mockChars; }
@@ -493,6 +500,21 @@ public final class SettingsManager {
       selectorSource,
       toneSource,
       join(sourceDir, 'CleanBayerRawProcessor.java'),
+      join(sourceDir, 'CompassHudController.java'),
+      join(sourceDir, 'CompassSolarHelper.java'),
+      join(sourceDir, 'FrontAfHelper.java'),
+      join(sourceDir, 'LookFilterEngine.java'),
+      join(sourceDir, 'LookOptics.java'),
+      join(sourceDir, 'MultiFrameBurstController.java'),
+      join(sourceDir, 'MultiFrameRawEngine.java'),
+      join(sourceDir, 'EffectsUiController.java'),
+      join(sourceDir, 'LiveLookPreview.java'),
+      join(sourceDir, 'BokehKernel.java'),
+      join(sourceDir, 'OffscreenBokeh.java'),
+      join(sourceDir, 'PortraitBokeh.java'),
+      join(sourceDir, 'GainmapJpeg.java'),
+      join(sourceDir, 'TelemetryCollector.java'),
+      join(sourceDir, 'VideoConfigHelper.java'),
       join(sourceDir, 'CustomImagingBridge.java'),
     ];
     run(javac, ['--release', '11', '-cp', bridgeClasses, '-d', bridgeClasses, ...customFiles]);
@@ -981,6 +1003,38 @@ public final class BridgeChecks {
         if (backlitIso800[0] != 0xFF2A3218) {
             throw new AssertionError("ISO >= 800 must suppress both backlit lift and zoom acutance");
         }
+
+        // 7. v1.8.0 Look <-> PostProc policy coupling checks.
+        int[] autoProMist = ScenePostProcSelector.resolveExtendedWithLook(
+                ScenePostProcSelector.PROFILE_AUTO_SCENE_ADAPTIVE, 1.0f, 50.0f, "", false, false, false, 7, 80);
+        if (autoProMist[2] != ScenePostProcSelector.EDGE_OFF) {
+            throw new AssertionError("Diffusion look >=50% on Auto daylight must drop EDGE_FAST to EDGE_OFF, got " + autoProMist[2]);
+        }
+        int[] cleanRawCoupled = ScenePostProcSelector.resolveExtendedWithLook(
+                ScenePostProcSelector.PROFILE_CLEAN_RAW_BAYER, 1.0f, 50.0f, "", false, false, false, 0, 100);
+        if (cleanRawCoupled[5] != 0 || cleanRawCoupled[6] != 1) {
+            throw new AssertionError("Clean RAW with look coupling should clear implicit lutStyle while preserving rawProcess=1");
+        }
+        if (!ScenePostProcSelector.isProtectedProfile(ScenePostProcSelector.PROFILE_PURE_ISP)
+                || !ScenePostProcSelector.isProtectedProfile(ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING)
+                || !ScenePostProcSelector.isProtectedProfile(ScenePostProcSelector.PROFILE_AUTO_STOCK)
+                || ScenePostProcSelector.isProtectedProfile(ScenePostProcSelector.PROFILE_AUTO_SCENE_ADAPTIVE)) {
+            throw new AssertionError("Protected profile classification mismatch");
+        }
+
+        // 8. P0-3 regression: Look at 0% intensity must NOT suppress stock Motorola applyColorTone.
+        PersistBehavior.mockProfile = "0";
+        PersistBehavior.mockLook = "1";
+        PersistBehavior.mockIntensity = "0";
+        if (CustomImagingBridge.isCustomLutActive()) {
+            throw new AssertionError("Look@0% must not report custom LUT active");
+        }
+        PersistBehavior.mockIntensity = "50";
+        if (!CustomImagingBridge.isCustomLutActive()) {
+            throw new AssertionError("Look@50% must report custom LUT active");
+        }
+        PersistBehavior.mockLook = null;
+        PersistBehavior.mockIntensity = null;
     }
 }
 `);
