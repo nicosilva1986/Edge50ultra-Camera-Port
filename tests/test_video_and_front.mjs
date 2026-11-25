@@ -73,6 +73,34 @@ public final class VideoFrontProbe {
                 boolean done = com.motorola.camera.custom.FrontAfHelper.shouldCompleteCurrent(
                         p[1].equals("1"), Integer.parseInt(p[2]), Integer.parseInt(p[3]));
                 System.out.println("U " + (done ? 1 : 0) + " " + com.motorola.camera.custom.FrontAfHelper.frameCount());
+            } else if (op.equals("VE")) {
+                System.out.println("VE " + com.motorola.camera.custom.VideoConfigHelper.resolveVideoEdgeMode());
+            } else if (op.equals("VNR")) {
+                System.out.println("VNR " + com.motorola.camera.custom.VideoConfigHelper.resolveVideoNoiseReductionMode(
+                        Integer.parseInt(p[1])));
+            } else if (op.equals("VAE")) {
+                int target = Integer.parseInt(p[1]);
+                boolean allowVar = p[2].equals("1");
+                int n = Integer.parseInt(p[3]);
+                int[][] ranges = new int[n][];
+                for (int i = 0; i < n; i++) {
+                    String[] pair = p[4 + i].split(",", -1);
+                    ranges[i] = new int[] { Integer.parseInt(pair[0]), Integer.parseInt(pair[1]) };
+                }
+                int[] picked = com.motorola.camera.custom.VideoConfigHelper.resolveVideoAeRange(target, ranges, allowVar);
+                System.out.println(picked == null ? "VAE none" : "VAE " + picked[0] + " " + picked[1]);
+            } else if (op.equals("OIS")) {
+                int[] avail = p[1].equals("-") ? null : new int[] { 0, Integer.parseInt(p[1]) };
+                Integer cur = p[2].equals("null") ? null : Integer.valueOf(Integer.parseInt(p[2]));
+                boolean dual = p[3].equals("1");
+                System.out.println("OIS " + (com.motorola.camera.custom.VideoConfigHelper.shouldSetVideoOis(avail, cur, dual) ? 1 : 0));
+            } else if (op.equals("AWBR")) {
+                com.motorola.camera.custom.VideoConfigHelper.resetAwbSwitchTracker();
+                System.out.println("AWBR");
+            } else if (op.equals("AWBF")) {
+                com.motorola.camera.custom.VideoConfigHelper.onVideoFramePhysicalCamera(p[1].equals("null") ? null : p[1]);
+                Boolean lock = com.motorola.camera.custom.VideoConfigHelper.nextVideoAwbLockOverride();
+                System.out.println("AWBF " + (lock == null ? "null" : (lock.booleanValue() ? "1" : "0")));
             } else {
                 throw new IllegalArgumentException(op);
             }
@@ -253,4 +281,49 @@ test('front CAF waits for focus or 12 frames and rear stays on the stock timeout
   assert.equal(lines[17], 'E 0');
   assert.equal(lines[18], 'U 0 0');
   assert.equal(lines[19], 'Z 0');
+});
+
+test('video HAL helpers enforce EDGE=0, FPS-safe NR, fixed AE range, safe OIS, and 3-frame AWB switch lock', () => {
+  const lines = probe([
+    'VE',
+    'VNR 30',
+    'VNR 60',
+    'VNR 120',
+    'VAE 30 0 3 15,30 24,30 30,30',
+    'VAE 30 1 3 15,30 24,30 30,30',
+    'VAE 60 0 2 30,60 60,60',
+    'VAE 60 0 1 30,60',
+    'OIS 1 null 0',
+    'OIS 1 0 0',
+    'OIS 1 null 1',
+    'AWBR',
+    'AWBF 0',
+    'AWBF 0',
+    'AWBF 4',
+    'AWBF 4',
+    'AWBF 4',
+    'AWBF 4',
+    'AWBF 4',
+  ]);
+  assert.deepEqual(lines, [
+    'VE 0',
+    'VNR 2',
+    'VNR 1',
+    'VNR 1',
+    'VAE 30 30',
+    'VAE 24 30',
+    'VAE 60 60',
+    'VAE 30 60',
+    'OIS 1',
+    'OIS 0',
+    'OIS 0',
+    'AWBR',
+    'AWBF null',
+    'AWBF null',
+    'AWBF 1',
+    'AWBF 1',
+    'AWBF 1',
+    'AWBF 0',
+    'AWBF null',
+  ]);
 });

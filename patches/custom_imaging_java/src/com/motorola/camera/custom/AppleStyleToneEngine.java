@@ -245,8 +245,8 @@ public final class AppleStyleToneEngine {
 
     /**
      * Independent highlight-rolloff pre-gate for Profile 0: triggers when >= 0.5% of pixels
-     * reach near-clipping luminance (Y >= 250) on a bright-sky/highlight frame (p95 >= 232),
-     * avoiding decode/encode work on indoor/shaded frames with intact highlights.
+     * reach near-clipping luminance (Y >= 250), catching bright clouds even over large midtone scenes
+     * while avoiding decode/encode work on indoor/shaded frames with intact highlights.
      */
     public static boolean evaluateAutoHighlightGate(int[] sampleArgb, int sampleCount) {
         if (sampleArgb == null || sampleCount <= 0) {
@@ -566,6 +566,19 @@ public final class AppleStyleToneEngine {
 
                     if (applyHighlightShoulder || hasLtmGrid) {
                         int peak8 = Math.max(outR8, Math.max(outG8, outB8));
+                        int minC = Math.min(outR8, Math.min(outG8, outB8));
+                        if (applyHighlightShoulder && peak8 > 185 && (peak8 - minC) > 14
+                                && outB8 > outR8 + 12 && outB8 >= outG8 - 6) {
+                            float spanRb = (float) Math.max(1, outB8 - outR8);
+                            float cyanRatio = (outG8 - outR8) / spanRb;
+                            float tCyan = smoothstep(0.35f, 0.72f, cyanRatio);
+                            if (tCyan > 0f) {
+                                float hiWeight = smoothstep(185.0f, 240.0f, (float) peak8);
+                                int gDelta = Math.round(0.14f * hiWeight * tCyan * (outG8 - outR8));
+                                outG8 = clampByte(outG8 - gDelta);
+                                peak8 = Math.max(outR8, Math.max(outG8, outB8));
+                            }
+                        }
                         if (peak8 > 224) {
                             float excess = peak8 - 224.0f;
                             float targetPeak = 224.0f + 128.0f * excess / (128.0f + excess);

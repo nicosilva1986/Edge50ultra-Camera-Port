@@ -308,6 +308,13 @@ public class TelemetryProbe {
           System.out.println(buildShotTelemetryJson(frame(T + 6 * MS, 1_000_000L), sm, "vendor", 0, 0, 0));
         } finally { onCameraPaused(); }
         break;
+      case "scorecard":
+        ShotMetadata scMeta = shotMetadata(
+            "sc1", 42.0f, true, 12.5f, 0.22f, Boolean.TRUE, 60, 1, 5, "hw");
+        TotalCaptureResult scRes = frame(T, 8_000_000L);
+        System.out.println(buildShotTelemetryJson(scRes, scMeta, "rawBurst", 0, 2, 0));
+        System.out.println(escapeJson(buildConciseExifNote(scRes, scMeta, "rawBurst", 0, 2, 0)));
+        break;
       default:throw new AssertionError(args[0]);
     }
   }
@@ -455,4 +462,18 @@ test('compass telemetry records ENU heading, solar ephemeris and strict EV100/ac
   assert.ok(Number.isFinite(calibrated.compass.sunElevationDeg));
   assert.equal(uncal.compass.status, 'uncalibrated');
   assert.equal(uncal.compass.physicalOutdoorBacklit, false);
+});
+
+test('v1.9.2 scorecard diagnostics emit compact EXIF tags and sidecar JSON fields', () => {
+  const [json, note] = run('scorecard');
+  assert.deepEqual(json.diagnostics, {
+    gapMs: 12.5,
+    focusSpreadD: 0.22,
+    motionRejected: true,
+    aeFps: 60,
+    oisMode: 1,
+    mergeCount: 5,
+    depthSource: 'hw',
+  });
+  assert.match(note, /ois=1 aeFps=60 merge=5 gapMs=12\.5 focusSpreadD=0\.22 motion=1 depth=hw/);
 });

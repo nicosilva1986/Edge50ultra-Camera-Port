@@ -8,6 +8,7 @@ uniform float u_EffectsIntensity;
 uniform float u_EffectsVignette;
 uniform float u_EffectsHalation;
 uniform float u_EffectsGrain;
+uniform float u_EffectsShoulder;
 
 vec3 sampleCubeTexel(float r, float g, float b) {
     highp vec2 coord = vec2((r + 0.5) / 33.0, (b * 33.0 + g + 0.5) / 1089.0);
@@ -68,6 +69,16 @@ vec3 applyPreviewLook(vec3 color, vec2 uv) {
     if (u_EffectsGrain > 0.0) {
         highp float noise = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
         graded += (noise - 0.5) * u_EffectsGrain * (1.0 - y);
+    }
+    if (u_EffectsShoulder > 0.0) {
+        float peak = max(graded.r, max(graded.g, graded.b));
+        float knee = 224.0 / 255.0;
+        if (peak > knee) {
+            float excess = peak - knee;
+            float span = 128.0 / 255.0;
+            float targetPeak = knee + span * excess / (span + excess);
+            graded *= mix(1.0, targetPeak / peak, u_EffectsShoulder);
+        }
     }
     return mix(color, clamp(graded, 0.0, 1.0), u_EffectsIntensity);
 }

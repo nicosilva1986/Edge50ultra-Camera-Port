@@ -47,7 +47,7 @@ test('both preview shaders use quad coordinates and share the tiled LUT and opti
       const fragment = readFileSync(join(raw, name + '_glfs.txt'), 'utf8');
       assert.match(vertex, /v_LookQuad = a_Position\.xy/);
       assert.match(fragment, /length\(v_LookQuad \*/);
-      for (const uniform of ['LutTex', 'Intensity', 'Vignette', 'Halation', 'Grain']) {
+      for (const uniform of ['LutTex', 'Intensity', 'Vignette', 'Halation', 'Grain', 'Shoulder']) {
         assert.match(fragment, new RegExp('uniform (?:sampler2D|float) u_Effects' + uniform + '\\b'));
       }
       assert.match(fragment, /\/ 1089\.0/);
@@ -80,6 +80,7 @@ class BokehProbe {
             }
         }
         if (signatures.size() != 5 || BokehKernel.coc(128,128) != 0
+                || BokehKernel.coc(131,128) != 0 || !(BokehKernel.coc(140,128) > 0f)
                 || BokehKernel.coc(202,128) != 1) throw new AssertionError("apertures or CoC");
         int size = 96;
         int[] image = new int[size*size];

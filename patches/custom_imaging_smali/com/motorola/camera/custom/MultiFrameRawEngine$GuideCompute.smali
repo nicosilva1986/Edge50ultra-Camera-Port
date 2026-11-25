@@ -51,17 +51,17 @@
 .method private constructor <init>()V
     .locals 2
 
-    .line 523
+    .line 563
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 534
+    .line 574
     const/4 v0, 0x2
 
     new-array v0, v0, [I
 
     iput-object v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->buffers:[I
 
-    .line 535
+    .line 575
     const/high16 v0, 0x10000
 
     invoke-static {v0}, Ljava/nio/ByteBuffer;->allocateDirect(I)Ljava/nio/ByteBuffer;
@@ -84,10 +84,10 @@
 .method static open()Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;
     .locals 3
 
-    .line 540
+    .line 580
     nop
 
-    .line 542
+    .line 582
     const/4 v0, 0x0
 
     :try_start_0
@@ -111,7 +111,7 @@
 
     goto :goto_0
 
-    .line 544
+    .line 584
     :cond_0
     new-instance v1, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;
 
@@ -120,7 +120,7 @@
     .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_1
     .catch Ljava/lang/LinkageError; {:try_start_0 .. :try_end_0} :catch_1
 
-    .line 545
+    .line 585
     :try_start_1
     invoke-virtual {v1}, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->init()Z
 
@@ -133,34 +133,34 @@
 
     return-object v1
 
-    .line 548
+    .line 588
     :cond_1
     goto :goto_1
 
-    .line 546
+    .line 586
     :catch_0
     move-exception v2
 
     goto :goto_1
 
-    .line 543
+    .line 583
     :cond_2
     :goto_0
     return-object v0
 
-    .line 546
+    .line 586
     :catch_1
     move-exception v1
 
     move-object v1, v0
 
-    .line 549
+    .line 589
     :goto_1
     if-eqz v1, :cond_3
 
     invoke-virtual {v1}, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->close()V
 
-    .line 550
+    .line 590
     :cond_3
     return-object v0
 .end method
@@ -170,7 +170,7 @@
 .method public close()V
     .locals 3
 
-    .line 619
+    .line 659
     :try_start_0
     iget v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
@@ -184,7 +184,7 @@
 
     invoke-static {v0}, Landroid/opengl/GLES31;->glDeleteProgram(I)V
 
-    .line 620
+    .line 660
     :cond_0
     iget v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->shader:I
 
@@ -194,7 +194,7 @@
 
     invoke-static {v0}, Landroid/opengl/GLES31;->glDeleteShader(I)V
 
-    .line 621
+    .line 661
     :cond_1
     iget-object v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->buffers:[I
 
@@ -222,7 +222,7 @@
 
     goto :goto_0
 
-    .line 622
+    .line 662
     :catch_0
     move-exception v0
 
@@ -230,14 +230,14 @@
     :goto_0
     nop
 
-    .line 623
+    .line 663
     return-void
 .end method
 
 .method fill(Lcom/motorola/camera/custom/MultiFrameRawEngine$Frame;[F)Z
     .locals 11
 
-    .line 580
+    .line 620
     iget-boolean v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->available:Z
 
     const/4 v1, 0x0
@@ -246,11 +246,11 @@
 
     return v1
 
-    .line 581
+    .line 621
     :cond_0
     iput-boolean v1, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->available:Z
 
-    .line 583
+    .line 623
     :try_start_0
     iget v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->black:I
 
@@ -260,14 +260,14 @@
 
     invoke-static {v0, v3, v2, v1}, Landroid/opengl/GLES31;->glUniform4fv(II[FI)V
 
-    .line 584
+    .line 624
     iget v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->inverse:I
 
     iget-object v2, p1, Lcom/motorola/camera/custom/MultiFrameRawEngine$Frame;->inv:[F
 
     invoke-static {v0, v3, v2, v1}, Landroid/opengl/GLES31;->glUniform4fv(II[FI)V
 
-    .line 585
+    .line 625
     move v0, v1
 
     :goto_0
@@ -275,7 +275,7 @@
 
     if-ge v0, v2, :cond_6
 
-    .line 586
+    .line 626
     array-length v2, p2
 
     sub-int/2addr v2, v0
@@ -286,12 +286,12 @@
 
     move-result v2
 
-    .line 587
+    .line 627
     iget-object v4, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->staging:Ljava/nio/ByteBuffer;
 
     invoke-virtual {v4}, Ljava/nio/ByteBuffer;->clear()Ljava/nio/ByteBuffer;
 
-    .line 588
+    .line 628
     move v4, v0
 
     :goto_1
@@ -299,7 +299,7 @@
 
     if-ge v4, v5, :cond_1
 
-    .line 589
+    .line 629
     iget v5, p1, Lcom/motorola/camera/custom/MultiFrameRawEngine$Frame;->w:I
 
     div-int/lit8 v5, v5, 0x2
@@ -322,7 +322,7 @@
 
     add-int/2addr v5, v6
 
-    .line 590
+    .line 630
     iget-object v6, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->staging:Ljava/nio/ByteBuffer;
 
     iget-object v7, p1, Lcom/motorola/camera/custom/MultiFrameRawEngine$Frame;->data:[S
@@ -345,7 +345,7 @@
 
     invoke-virtual {v6, v7}, Ljava/nio/ByteBuffer;->putInt(I)Ljava/nio/ByteBuffer;
 
-    .line 591
+    .line 631
     iget-object v6, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->staging:Ljava/nio/ByteBuffer;
 
     iget-object v7, p1, Lcom/motorola/camera/custom/MultiFrameRawEngine$Frame;->data:[S
@@ -374,18 +374,18 @@
 
     invoke-virtual {v6, v5}, Ljava/nio/ByteBuffer;->putInt(I)Ljava/nio/ByteBuffer;
 
-    .line 588
+    .line 628
     add-int/lit8 v4, v4, 0x1
 
     goto :goto_1
 
-    .line 593
+    .line 633
     :cond_1
     iget-object v4, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->staging:Ljava/nio/ByteBuffer;
 
     invoke-virtual {v4}, Ljava/nio/ByteBuffer;->flip()Ljava/nio/ByteBuffer;
 
-    .line 594
+    .line 634
     iget-object v4, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->buffers:[I
 
     aget v4, v4, v1
@@ -394,7 +394,7 @@
 
     invoke-static {v5, v4}, Landroid/opengl/GLES31;->glBindBuffer(II)V
 
-    .line 595
+    .line 635
     mul-int/lit8 v4, v2, 0x8
 
     iget-object v6, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->staging:Ljava/nio/ByteBuffer;
@@ -403,21 +403,21 @@
 
     invoke-static {v5, v4, v6, v7}, Landroid/opengl/GLES31;->glBufferData(IILjava/nio/Buffer;I)V
 
-    .line 596
+    .line 636
     iget-object v4, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->buffers:[I
 
     aget v4, v4, v1
 
     invoke-static {v5, v1, v4}, Landroid/opengl/GLES31;->glBindBufferBase(III)V
 
-    .line 597
+    .line 637
     iget-object v4, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->buffers:[I
 
     aget v4, v4, v3
 
     invoke-static {v5, v4}, Landroid/opengl/GLES31;->glBindBuffer(II)V
 
-    .line 598
+    .line 638
     mul-int/lit8 v4, v2, 0x4
 
     const/4 v6, 0x0
@@ -426,31 +426,31 @@
 
     invoke-static {v5, v4, v6, v7}, Landroid/opengl/GLES31;->glBufferData(IILjava/nio/Buffer;I)V
 
-    .line 599
+    .line 639
     iget-object v6, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->buffers:[I
 
     aget v6, v6, v3
 
     invoke-static {v5, v3, v6}, Landroid/opengl/GLES31;->glBindBufferBase(III)V
 
-    .line 600
+    .line 640
     iget v6, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->count:I
 
     invoke-static {v6, v2}, Landroid/opengl/GLES31;->glUniform1i(II)V
 
-    .line 601
+    .line 641
     add-int/lit8 v6, v2, 0x3f
 
     div-int/lit8 v6, v6, 0x40
 
     invoke-static {v6, v3, v3}, Landroid/opengl/GLES31;->glDispatchCompute(III)V
 
-    .line 602
+    .line 642
     const/16 v6, 0x200
 
     invoke-static {v6}, Landroid/opengl/GLES31;->glMemoryBarrier(I)V
 
-    .line 603
+    .line 643
     invoke-static {}, Landroid/opengl/GLES31;->glGetError()I
 
     move-result v6
@@ -459,7 +459,7 @@
 
     return v1
 
-    .line 604
+    .line 644
     :cond_2
     invoke-static {v5, v1, v4, v3}, Landroid/opengl/GLES31;->glMapBufferRange(IIII)Ljava/nio/Buffer;
 
@@ -468,12 +468,12 @@
     .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_0
     .catch Ljava/lang/LinkageError; {:try_start_0 .. :try_end_0} :catch_0
 
-    .line 605
+    .line 645
     if-nez v4, :cond_3
 
     return v1
 
-    .line 608
+    .line 648
     :cond_3
     :try_start_1
     check-cast v4, Ljava/nio/ByteBuffer;
@@ -494,13 +494,13 @@
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 609
+    .line 649
     :try_start_2
     invoke-static {v5}, Landroid/opengl/GLES31;->glUnmapBuffer(I)Z
 
     move-result v2
 
-    .line 610
+    .line 650
     if-eqz v2, :cond_5
 
     invoke-static {}, Landroid/opengl/GLES31;->glGetError()I
@@ -511,18 +511,18 @@
 
     goto :goto_2
 
-    .line 585
+    .line 625
     :cond_4
     add-int/lit16 v0, v0, 0x2000
 
     goto/16 :goto_0
 
-    .line 610
+    .line 650
     :cond_5
     :goto_2
     return v1
 
-    .line 609
+    .line 649
     :catchall_0
     move-exception p1
 
@@ -530,17 +530,17 @@
 
     throw p1
 
-    .line 612
+    .line 652
     :cond_6
     iput-boolean v3, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->available:Z
     :try_end_2
     .catch Ljava/lang/RuntimeException; {:try_start_2 .. :try_end_2} :catch_0
     .catch Ljava/lang/LinkageError; {:try_start_2 .. :try_end_2} :catch_0
 
-    .line 613
+    .line 653
     return v3
 
-    .line 614
+    .line 654
     :catch_0
     move-exception p1
 
@@ -550,14 +550,14 @@
 .method init()Z
     .locals 5
 
-    .line 554
+    .line 594
     const/16 v0, 0x1f02
 
     invoke-static {v0}, Landroid/opengl/GLES31;->glGetString(I)Ljava/lang/String;
 
     move-result-object v0
 
-    .line 555
+    .line 595
     const/4 v1, 0x0
 
     if-eqz v0, :cond_5
@@ -580,7 +580,7 @@
 
     goto/16 :goto_1
 
-    .line 557
+    .line 597
     :cond_0
     const v0, 0x91b9
 
@@ -590,14 +590,14 @@
 
     iput v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->shader:I
 
-    .line 558
+    .line 598
     iget v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->shader:I
 
     if-nez v0, :cond_1
 
     return v1
 
-    .line 559
+    .line 599
     :cond_1
     iget v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->shader:I
 
@@ -605,31 +605,31 @@
 
     invoke-static {v0, v2}, Landroid/opengl/GLES31;->glShaderSource(ILjava/lang/String;)V
 
-    .line 560
+    .line 600
     iget v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->shader:I
 
     invoke-static {v0}, Landroid/opengl/GLES31;->glCompileShader(I)V
 
-    .line 561
+    .line 601
     const/4 v0, 0x1
 
     new-array v2, v0, [I
 
-    .line 562
+    .line 602
     iget v3, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->shader:I
 
     const v4, 0x8b81
 
     invoke-static {v3, v4, v2, v1}, Landroid/opengl/GLES31;->glGetShaderiv(II[II)V
 
-    .line 563
+    .line 603
     aget v3, v2, v1
 
     if-nez v3, :cond_2
 
     return v1
 
-    .line 564
+    .line 604
     :cond_2
     invoke-static {}, Landroid/opengl/GLES31;->glCreateProgram()I
 
@@ -637,33 +637,33 @@
 
     iput v3, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
-    .line 565
+    .line 605
     iget v3, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
     iget v4, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->shader:I
 
     invoke-static {v3, v4}, Landroid/opengl/GLES31;->glAttachShader(II)V
 
-    .line 566
+    .line 606
     iget v3, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
     invoke-static {v3}, Landroid/opengl/GLES31;->glLinkProgram(I)V
 
-    .line 567
+    .line 607
     iget v3, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
     const v4, 0x8b82
 
     invoke-static {v3, v4, v2, v1}, Landroid/opengl/GLES31;->glGetProgramiv(II[II)V
 
-    .line 568
+    .line 608
     aget v2, v2, v1
 
     if-nez v2, :cond_3
 
     return v1
 
-    .line 569
+    .line 609
     :cond_3
     iget v2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
@@ -675,7 +675,7 @@
 
     iput v2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->black:I
 
-    .line 570
+    .line 610
     iget v2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
     const-string v3, "invRange"
@@ -686,7 +686,7 @@
 
     iput v2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->inverse:I
 
-    .line 571
+    .line 611
     iget v2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
     const-string v3, "count"
@@ -697,19 +697,19 @@
 
     iput v2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->count:I
 
-    .line 572
+    .line 612
     const/4 v2, 0x2
 
     iget-object v3, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->buffers:[I
 
     invoke-static {v2, v3, v1}, Landroid/opengl/GLES31;->glGenBuffers(I[II)V
 
-    .line 573
+    .line 613
     iget v2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->program:I
 
     invoke-static {v2}, Landroid/opengl/GLES31;->glUseProgram(I)V
 
-    .line 574
+    .line 614
     iget v2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->black:I
 
     if-ltz v2, :cond_4
@@ -734,7 +734,7 @@
 
     if-eqz v2, :cond_4
 
-    .line 575
+    .line 615
     invoke-static {}, Landroid/opengl/GLES31;->glGetError()I
 
     move-result v2
@@ -751,12 +751,12 @@
     :goto_0
     iput-boolean v1, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->available:Z
 
-    .line 576
+    .line 616
     iget-boolean v0, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$GuideCompute;->available:Z
 
     return v0
 
-    .line 556
+    .line 596
     :cond_5
     :goto_1
     return v1

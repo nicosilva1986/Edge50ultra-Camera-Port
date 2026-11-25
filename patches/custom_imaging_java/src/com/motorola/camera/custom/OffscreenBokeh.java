@@ -18,11 +18,12 @@ final class OffscreenBokeh {
             "#version 300 es", "precision highp float;", "in vec2 uv;", "out vec4 outputColor;",
             "uniform sampler2D image, depth;", "uniform vec2 radius;", "uniform float focus;",
             "uniform int style;", "uniform vec3 taps[32];",
-            "float coc(float d){return smoothstep(9.0/255.0,74.0/255.0,abs(d-focus));}",
+            "float coc(float d){return smoothstep(3.0/255.0,71.0/255.0,abs(d-focus));}",
+            "float dweight(float d,float ds,float c){return (1.0-smoothstep(18.0/255.0,46.0/255.0,abs(d-ds)))*step(c*0.38,coc(ds));}",
             "void main(){",
             " float d=texture(depth,uv).r; float c=coc(d);",
             " vec3 original=texture(image,uv).rgb;",
-            " if(c<0.06){outputColor=vec4(original,1.0);return;}",
+            " if(c<0.02){outputColor=vec4(original,1.0);return;}",
             " vec2 radial=uv-0.5; float edge=length(radial); vec2 n=radial/max(edge,0.0001);",
             " float a=1.7*edge*c; mat2 rot=mat2(cos(a),sin(a),-sin(a),cos(a));",
             " vec3 rgb=vec3(0.0); float sum=0.0;",
@@ -30,8 +31,10 @@ final class OffscreenBokeh {
             "   vec2 p=taps[i].xy;",
             "   if(style==1){p=rot*p; p-=n*dot(n,p)*edge*0.8;}",
             "   vec2 at=uv+p*radius*c; float ds=texture(depth,at).r;",
-            "   if(abs(d-ds)>34.0/255.0 || coc(ds)<c*0.38) continue;",
-            "   rgb+=texture(image,at).rgb*taps[i].z; sum+=taps[i].z;",
+            "   float dw=dweight(d,ds,c);",
+            "   if(dw<=0.0) continue;",
+            "   float w=taps[i].z*dw;",
+            "   rgb+=texture(image,at).rgb*w; sum+=w;",
             " }",
             " rgb=sum>0.0?rgb/sum:original;",
             " if(style==4){",
@@ -40,8 +43,9 @@ final class OffscreenBokeh {
             "   for(int k=-1;k<=1;k+=2){",
             "     vec2 sat=uv+float(k)*streak;",
             "     float sds=texture(depth,sat).r;",
-            "     if(abs(d-sds)<=34.0/255.0 && coc(sds)>=c*0.38){",
-            "       sSum+=texture(image,sat).rgb; sW+=1.0;",
+            "     float dw=dweight(d,sds,c);",
+            "     if(dw>0.0){",
+            "       sSum+=texture(image,sat).rgb*dw; sW+=dw;",
             "     }",
             "   }",
             "   if(sW>0.0){",
@@ -55,6 +59,10 @@ final class OffscreenBokeh {
     private OffscreenBokeh() {}
 
     static int[] render(int[] image, byte[] depth, int width, int height, int focus, int style) {
+        return render(image, depth, width, height, focus, style, 1.0f);
+    }
+
+    static int[] render(int[] image, byte[] depth, int width, int height, int focus, int style, float radiusScale) {
         // The save worker normally has no GL context. Leave any caller-owned context alone.
         if (!EGL14.EGL_NO_CONTEXT.equals(EGL14.eglGetCurrentContext())) return null;
         EGLDisplay display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
@@ -76,7 +84,7 @@ final class OffscreenBokeh {
             surface = EGL14.eglCreatePbufferSurface(display, configs[0],
                     new int[] {EGL14.EGL_WIDTH, width, EGL14.EGL_HEIGHT, height, end}, 0);
             if (EGL14.EGL_NO_SURFACE.equals(surface) || !EGL14.eglMakeCurrent(display, surface, surface, context)) return null;
-            return draw(image, depth, width, height, focus, style);
+            return draw(image, depth, width, height, focus, style, radiusScale);
         } catch (RuntimeException failure) {
             return null;
         } finally {
@@ -87,7 +95,7 @@ final class OffscreenBokeh {
         }
     }
 
-    private static int[] draw(int[] pixels, byte[] depth, int width, int height, int focus, int style) {
+    private static int[] draw(int[] pixels, byte[] depth, int width, int height, int focus, int style, float radiusScale) {
         int vertex = compile(GLES20.GL_VERTEX_SHADER, VERTEX);
         int fragment = compile(GLES20.GL_FRAGMENT_SHADER, FRAGMENT);
         if (vertex == 0 || fragment == 0) return null;
@@ -112,7 +120,8 @@ final class OffscreenBokeh {
         texture(program, "depth", depthImage, width, height, 1, GLES20.GL_NEAREST);
         GLES20.glUniform1i(GLES20.glGetUniformLocation(program, "style"), style);
         GLES20.glUniform1f(GLES20.glGetUniformLocation(program, "focus"), focus / 255f);
-        float radius = Math.max(2, Math.min(width, height) * 0.027f);
+        float safeScale = Math.max(0.70f, Math.min(1.45f, Float.isFinite(radiusScale) ? radiusScale : 1.0f));
+        float radius = Math.max(2f, Math.min(width, height) * 0.027f * safeScale);
         GLES20.glUniform2f(GLES20.glGetUniformLocation(program, "radius"), radius / width, radius / height);
         GLES20.glUniform3fv(GLES20.glGetUniformLocation(program, "taps[0]"), BokehKernel.TAPS,
                 BokehKernel.aperture(style), 0);

@@ -9,5 +9,10 @@ public final class SettingsHelper {
     public static boolean isProPhotoMode() { return false; }
     public static boolean isNightVisionMode() { return false; }
     public static boolean isTenBitVideoMode() { return false; }
+    public static boolean isVideoMode() { return false; }
+    public static boolean isDualCaptureMode() { return false; }
+    public static boolean isDualCaptureVideoMode() { return false; }
+    public static boolean isSlowMotionMode() { return false; }
+    public static boolean isVideoHDR10Mode() { return false; }
     public static boolean isCurrentFrontCamera() { return false; }
 }

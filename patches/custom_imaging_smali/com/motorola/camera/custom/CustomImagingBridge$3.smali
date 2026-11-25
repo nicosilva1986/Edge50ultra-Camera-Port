@@ -32,7 +32,7 @@
         }
     .end annotation
 
-    .line 1195
+    .line 1220
     iput-object p1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$3;->val$pixels:[I
 
     iput p2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$3;->val$width:I
@@ -47,7 +47,7 @@
 .method public readRows(II[II)V
     .locals 2
 
-    .line 1197
+    .line 1222
     iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$3;->val$pixels:[I
 
     iget v1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$3;->val$width:I
@@ -60,14 +60,14 @@
 
     invoke-static {v0, p1, p3, p4, p2}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 
-    .line 1198
+    .line 1223
     return-void
 .end method
 
 .method public writeRows(II[II)V
     .locals 2
 
-    .line 1200
+    .line 1225
     iget-object v0, p0, Lcom/motorola/camera/custom/CustomImagingBridge$3;->val$pixels:[I
 
     iget v1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$3;->val$width:I
@@ -80,6 +80,6 @@
 
     invoke-static {p3, p4, v0, p1, p2}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 
-    .line 1201
+    .line 1226
     return-void
 .end method

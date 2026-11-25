@@ -28,13 +28,20 @@ public final class MultiFrameBurstController {
     public static final long BYTE_CAP_STANDARD = 320L * 1024L * 1024L;
     public static final long BYTE_CAP_SR = 420L * 1024L * 1024L;
     public static final float ANCHOR_MAX_MOTION_PX = 0.75f;
+    public static final float MAX_FOCUS_SPREAD_DIOPTERS = 0.15f;
+    public static final int LENS_STATE_MOVING = 1;
 
     private static final class Slot {
+        int sessionGeneration;
+        String cameraId;
         long timestampNs;
         long exposureNs;
         int iso;
         float focalLengthPx;
         float gyroExcursionRad;
+        float focusDistance;
+        int afState;
+        int lensState;
         long seqId;
         byte[] raw;
         boolean saturated;
@@ -73,8 +80,34 @@ public final class MultiFrameBurstController {
     private static String abortReason;
     private static boolean singleFrame;
     private static int plannedFrames = -1;
+    private static int activeSessionGeneration;
+    private static String activeCameraId;
+    private static boolean lastMergeMotionRejected;
+    private static float lastMergeFocusSpread = Float.NaN;
+    private static float lastMergeGapMs = Float.NaN;
 
     private MultiFrameBurstController() {}
+
+    public static synchronized int beginSession(String cameraId) {
+        activeSessionGeneration++;
+        if (activeSessionGeneration <= 0) activeSessionGeneration = 1;
+        activeCameraId = cameraId;
+        while (count > 0) evictOldest();
+        pendingCount = 0;
+        for (int i = 0; i < pending.length; i++) pending[i] = null;
+        lastMergeMotionRejected = false;
+        lastMergeFocusSpread = Float.NaN;
+        lastMergeGapMs = Float.NaN;
+        return activeSessionGeneration;
+    }
+
+    public static synchronized int currentSessionGeneration() {
+        return activeSessionGeneration;
+    }
+
+    public static synchronized String activeCameraId() {
+        return activeCameraId;
+    }
 
     /**
      * Caps the RAW {@code ImageReader} maxImages for Camera2 ids {@code "0"}
@@ -118,6 +151,11 @@ public final class MultiFrameBurstController {
         plannedFrames = -1;
         maxFrames = MAX_FRAMES_STANDARD;
         byteCap = BYTE_CAP_STANDARD;
+        activeSessionGeneration = 0;
+        activeCameraId = null;
+        lastMergeMotionRejected = false;
+        lastMergeFocusSpread = Float.NaN;
+        lastMergeGapMs = Float.NaN;
     }
 
     public static synchronized void configure(int captureMode) {
@@ -149,23 +187,47 @@ public final class MultiFrameBurstController {
     public static synchronized boolean offer(long timestampNs, long exposureNs, int iso,
             float focalLengthPx, float gyroExcursionRad, long seqId, byte[] raw,
             boolean saturated, boolean exposureValid) {
+        return offerInternal(activeSessionGeneration, null, timestampNs, exposureNs, iso,
+                focalLengthPx, gyroExcursionRad, seqId, raw, saturated, exposureValid,
+                Float.NaN, 0, 0, true);
+    }
+
+    /** Session-strict ZSL RAW ingest joined only by {@code (sessionGeneration, cameraId, timestampNs)}. */
+    public static synchronized boolean offerSessionFrame(int sessionGeneration, String cameraId,
+            long timestampNs, long exposureNs, int iso, float focalLengthPx,
+            float gyroExcursionRad, long seqId, byte[] raw, boolean saturated,
+            boolean exposureValid) {
+        if (sessionGeneration != activeSessionGeneration) return false;
+        if (activeCameraId != null && !activeCameraId.equals(cameraId)) return false;
+        if (timestampNs <= 0L) return false;
+        return offerInternal(sessionGeneration, cameraId, timestampNs, exposureNs, iso,
+                focalLengthPx, gyroExcursionRad, seqId, raw, saturated, exposureValid,
+                Float.NaN, 0, 0, false);
+    }
+
+    private static boolean offerInternal(int sessionGeneration, String cameraId, long timestampNs,
+            long exposureNs, int iso, float focalLengthPx, float gyroExcursionRad, long seqId,
+            byte[] raw, boolean saturated, boolean exposureValid, float focusDistance,
+            int afState, int lensState, boolean allowSeqReplace) {
         if (aborted || raw == null) return false;
         long need = raw.length;
         if (need > byteCap) return false;
-        int existing = findSeq(seqId);
+        int existing = allowSeqReplace
+                ? findSeq(seqId)
+                : findSessionTimestamp(sessionGeneration, cameraId, timestampNs);
         if (existing >= 0) removeAt(existing);
         while (count > 0 && (count >= maxFrames || retained + need > byteCap)) {
             evictOldest();
         }
         if (count >= maxFrames || retained + need > byteCap) return false;
         Slot slot = new Slot();
-        fill(slot, timestampNs, exposureNs, iso, focalLengthPx, gyroExcursionRad, seqId,
-                saturated, exposureValid);
+        fill(slot, sessionGeneration, cameraId, timestampNs, exposureNs, iso, focalLengthPx,
+                gyroExcursionRad, seqId, saturated, exposureValid, focusDistance, afState, lensState);
         slot.raw = raw;
         slots[count] = slot;
         count++;
         retained += need;
-        overlayPending(slot);
+        overlayPending(slot, !allowSeqReplace);
         return true;
     }
 
@@ -173,12 +235,39 @@ public final class MultiFrameBurstController {
     public static synchronized void noteMetadata(long timestampNs, long exposureNs, int iso,
             float focalLengthPx, float gyroExcursionRad, long seqId, boolean saturated,
             boolean exposureValid) {
+        noteMetadataInternal(activeSessionGeneration, null, timestampNs, exposureNs, iso,
+                focalLengthPx, gyroExcursionRad, seqId, saturated, exposureValid,
+                Float.NaN, 0, 0, true);
+    }
+
+    /** Session-strict CaptureResult join on {@code (sessionGeneration, cameraId, timestampNs)}. */
+    public static synchronized void noteSessionMetadata(int sessionGeneration, String cameraId,
+            long timestampNs, long exposureNs, int iso, float focalLengthPx,
+            float gyroExcursionRad, long seqId, boolean saturated, boolean exposureValid,
+            float focusDistance, int afState, int lensState) {
+        if (sessionGeneration != activeSessionGeneration) return;
+        if (activeCameraId != null && !activeCameraId.equals(cameraId)) return;
+        if (timestampNs <= 0L) return;
+        noteMetadataInternal(sessionGeneration, cameraId, timestampNs, exposureNs, iso,
+                focalLengthPx, gyroExcursionRad, seqId, saturated, exposureValid,
+                focusDistance, afState, lensState, false);
+    }
+
+    private static void noteMetadataInternal(int sessionGeneration, String cameraId, long timestampNs,
+            long exposureNs, int iso, float focalLengthPx, float gyroExcursionRad, long seqId,
+            boolean saturated, boolean exposureValid, float focusDistance, int afState,
+            int lensState, boolean allowSeqFallback) {
         for (int i = 0; i < count; i++) {
             Slot slot = slots[i];
-            if (slot.timestampNs == timestampNs || slot.seqId == seqId) {
+            boolean match = allowSeqFallback
+                    ? (slot.timestampNs == timestampNs || slot.seqId == seqId)
+                    : (slot.sessionGeneration == sessionGeneration
+                            && sameCamera(slot.cameraId, cameraId)
+                            && slot.timestampNs == timestampNs);
+            if (match) {
                 float gyro = gyroExcursionRad < 0f ? slot.gyroExcursionRad : gyroExcursionRad;
-                fill(slot, timestampNs, exposureNs, iso, focalLengthPx, gyro, seqId,
-                        saturated, exposureValid);
+                fill(slot, sessionGeneration, cameraId, timestampNs, exposureNs, iso, focalLengthPx,
+                        gyro, seqId, saturated, exposureValid, focusDistance, afState, lensState);
                 return;
             }
         }
@@ -188,8 +277,8 @@ public final class MultiFrameBurstController {
             pending[pendingCount] = null;
         }
         Slot meta = new Slot();
-        fill(meta, timestampNs, exposureNs, iso, focalLengthPx, gyroExcursionRad, seqId,
-                saturated, exposureValid);
+        fill(meta, sessionGeneration, cameraId, timestampNs, exposureNs, iso, focalLengthPx,
+                gyroExcursionRad, seqId, saturated, exposureValid, focusDistance, afState, lensState);
         pending[pendingCount] = meta;
         pendingCount++;
     }
@@ -209,15 +298,26 @@ public final class MultiFrameBurstController {
         public final int iso;
         public final float focalLengthPx;
         public final float gyroExcursionRad;
+        public final float focusDistance;
+        public final int afState;
+        public final int lensState;
+        public final int sessionGeneration;
+        public final String cameraId;
         public final byte[] raw;
 
         BurstFrameSnapshot(long timestampNs, long exposureNs, int iso,
-                float focalLengthPx, float gyroExcursionRad, byte[] raw) {
+                float focalLengthPx, float gyroExcursionRad, float focusDistance,
+                int afState, int lensState, int sessionGeneration, String cameraId, byte[] raw) {
             this.timestampNs = timestampNs;
             this.exposureNs = exposureNs;
             this.iso = iso;
             this.focalLengthPx = focalLengthPx;
             this.gyroExcursionRad = gyroExcursionRad;
+            this.focusDistance = focusDistance;
+            this.afState = afState;
+            this.lensState = lensState;
+            this.sessionGeneration = sessionGeneration;
+            this.cameraId = cameraId;
             this.raw = raw;
         }
     }
@@ -225,17 +325,97 @@ public final class MultiFrameBurstController {
     /** Returns up to {@code maxFramesOut} buffered frames matching the byte length bounds cleanly. */
     public static synchronized BurstFrameSnapshot[] snapshotMatchingFrames(
             int minBytes, int maxBytes, int maxFramesOut) {
+        return snapshotMatchingFrames(null, activeSessionGeneration, minBytes, maxBytes, maxFramesOut, false);
+    }
+
+    /** Session- and camera-scoped snapshot preserving join identity. */
+    public static synchronized BurstFrameSnapshot[] snapshotSessionFrames(
+            String cameraId, int minBytes, int maxBytes, int maxFramesOut) {
+        return snapshotMatchingFrames(cameraId, activeSessionGeneration, minBytes, maxBytes, maxFramesOut, true);
+    }
+
+    private static BurstFrameSnapshot[] snapshotMatchingFrames(
+            String cameraId, int sessionGeneration, int minBytes, int maxBytes,
+            int maxFramesOut, boolean strictSession) {
         if (count == 0 || maxFramesOut <= 0) return new BurstFrameSnapshot[0];
         java.util.ArrayList<BurstFrameSnapshot> list = new java.util.ArrayList<>(Math.min(count, maxFramesOut));
         for (int i = count - 1; i >= 0 && list.size() < maxFramesOut; i--) {
             Slot s = slots[i];
             if (s == null || s.raw == null || s.saturated) continue;
+            if (strictSession) {
+                if (s.sessionGeneration != sessionGeneration) continue;
+                if (cameraId != null && !cameraId.equals(s.cameraId)) continue;
+            }
             if (s.raw.length < minBytes || s.raw.length > maxBytes) continue;
             list.add(new BurstFrameSnapshot(
-                    s.timestampNs, s.exposureNs, s.iso, s.focalLengthPx, s.gyroExcursionRad, s.raw));
+                    s.timestampNs, s.exposureNs, s.iso, s.focalLengthPx, s.gyroExcursionRad,
+                    s.focusDistance, s.afState, s.lensState, s.sessionGeneration, s.cameraId, s.raw));
         }
         java.util.Collections.reverse(list);
         return list.toArray(new BurstFrameSnapshot[0]);
+    }
+
+    /** Computes focus spread (diopters) across finite buffered focus readings. */
+    public static float computeFocusSpreadDiopters(BurstFrameSnapshot[] frames, float anchorFocusDistance) {
+        float minD = Float.POSITIVE_INFINITY;
+        float maxD = Float.NEGATIVE_INFINITY;
+        int valid = 0;
+        if (Float.isFinite(anchorFocusDistance) && anchorFocusDistance >= 0f) {
+            minD = anchorFocusDistance;
+            maxD = anchorFocusDistance;
+            valid = 1;
+        }
+        if (frames != null) {
+            for (BurstFrameSnapshot f : frames) {
+                if (f != null && Float.isFinite(f.focusDistance) && f.focusDistance >= 0f) {
+                    if (f.focusDistance < minD) minD = f.focusDistance;
+                    if (f.focusDistance > maxD) maxD = f.focusDistance;
+                    valid++;
+                }
+            }
+        }
+        return valid >= 2 ? (maxD - minD) : Float.NaN;
+    }
+
+    public static boolean hasFocusDriftOrMotion(BurstFrameSnapshot[] frames, float anchorFocusDistance,
+                                                int anchorLensState, float anchorMotionPx,
+                                                boolean allowFocusStack) {
+        if (Float.isFinite(anchorMotionPx) && anchorMotionPx >= ANCHOR_MAX_MOTION_PX) {
+            return true;
+        }
+        if (allowFocusStack) {
+            return false;
+        }
+        if (anchorLensState == LENS_STATE_MOVING) {
+            return true;
+        }
+        if (frames != null) {
+            for (BurstFrameSnapshot f : frames) {
+                if (f != null && f.lensState == LENS_STATE_MOVING) {
+                    return true;
+                }
+            }
+        }
+        float spread = computeFocusSpreadDiopters(frames, anchorFocusDistance);
+        return Float.isFinite(spread) && spread > MAX_FOCUS_SPREAD_DIOPTERS;
+    }
+
+    public static synchronized void recordMergeDiagnostics(boolean motionRejected, float focusSpreadD, float gapMs) {
+        lastMergeMotionRejected = motionRejected;
+        lastMergeFocusSpread = focusSpreadD;
+        lastMergeGapMs = gapMs;
+    }
+
+    public static synchronized boolean wasLastMergeMotionRejected() {
+        return lastMergeMotionRejected;
+    }
+
+    public static synchronized float latestMergeFocusSpread() {
+        return lastMergeFocusSpread;
+    }
+
+    public static synchronized float latestMergeGapMs() {
+        return lastMergeGapMs;
     }
 
     public static synchronized long oldestSeqId() {
@@ -384,29 +564,39 @@ public final class MultiFrameBurstController {
         return bestSeq;
     }
 
-    private static void fill(Slot slot, long timestampNs, long exposureNs, int iso,
-            float focalLengthPx, float gyroExcursionRad, long seqId, boolean saturated,
-            boolean exposureValid) {
+    private static void fill(Slot slot, int sessionGeneration, String cameraId, long timestampNs,
+            long exposureNs, int iso, float focalLengthPx, float gyroExcursionRad, long seqId,
+            boolean saturated, boolean exposureValid, float focusDistance, int afState, int lensState) {
+        slot.sessionGeneration = sessionGeneration;
+        slot.cameraId = cameraId;
         slot.timestampNs = timestampNs;
         slot.exposureNs = exposureNs;
         slot.iso = iso;
         slot.focalLengthPx = focalLengthPx;
         slot.gyroExcursionRad = gyroExcursionRad;
+        slot.focusDistance = focusDistance;
+        slot.afState = afState;
+        slot.lensState = lensState;
         slot.seqId = seqId;
         slot.saturated = saturated;
         slot.exposureValid = exposureValid;
     }
 
-    private static void overlayPending(Slot slot) {
+    private static void overlayPending(Slot slot, boolean strictSession) {
         for (int i = 0; i < pendingCount; i++) {
             Slot meta = pending[i];
-            boolean match = meta.timestampNs == slot.timestampNs || meta.seqId == slot.seqId;
+            boolean match = strictSession
+                    ? (meta.sessionGeneration == slot.sessionGeneration
+                            && sameCamera(meta.cameraId, slot.cameraId)
+                            && meta.timestampNs == slot.timestampNs)
+                    : (meta.timestampNs == slot.timestampNs || meta.seqId == slot.seqId);
             if (!match) continue;
             if (!slot.exposureValid && meta.exposureValid) {
                 byte[] kept = slot.raw;
                 float gyro = meta.gyroExcursionRad < 0f ? slot.gyroExcursionRad : meta.gyroExcursionRad;
-                fill(slot, meta.timestampNs, meta.exposureNs, meta.iso, meta.focalLengthPx,
-                        gyro, meta.seqId, meta.saturated, true);
+                fill(slot, meta.sessionGeneration, meta.cameraId, meta.timestampNs, meta.exposureNs,
+                        meta.iso, meta.focalLengthPx, gyro, meta.seqId, meta.saturated, true,
+                        meta.focusDistance, meta.afState, meta.lensState);
                 slot.raw = kept;
             }
             for (int j = i + 1; j < pendingCount; j++) pending[j - 1] = pending[j];
@@ -414,6 +604,22 @@ public final class MultiFrameBurstController {
             pending[pendingCount] = null;
             return;
         }
+    }
+
+    private static int findSessionTimestamp(int sessionGeneration, String cameraId, long timestampNs) {
+        for (int i = 0; i < count; i++) {
+            Slot s = slots[i];
+            if (s.sessionGeneration == sessionGeneration
+                    && sameCamera(s.cameraId, cameraId)
+                    && s.timestampNs == timestampNs) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean sameCamera(String a, String b) {
+        return a == null ? b == null : a.equals(b);
     }
 
     private static int findSeq(long seqId) {

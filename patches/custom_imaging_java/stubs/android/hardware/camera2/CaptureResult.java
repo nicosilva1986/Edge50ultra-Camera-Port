@@ -18,6 +18,9 @@ public class CaptureResult {
     public static final Key<Float> LENS_FOCAL_LENGTH = new Key<>();
     public static final Key<Integer> CONTROL_AF_MODE = new Key<>();
     public static final Key<Integer> CONTROL_AF_STATE = new Key<>();
+    public static final Key<Float> LENS_FOCUS_DISTANCE = new Key<>();
+    public static final Key<Integer> LENS_STATE = new Key<>();
+    public static final Key<String> LOGICAL_MULTI_CAMERA_ACTIVE_PHYSICAL_ID = new Key<>();
     public static final Key<Long> SENSOR_TIMESTAMP = new Key<>();
     public static final Key<Long> SENSOR_EXPOSURE_TIME = new Key<>();
     public <T> T get(Key<T> key) { return null; }

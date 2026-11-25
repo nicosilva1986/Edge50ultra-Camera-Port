@@ -15,7 +15,7 @@ test('smali_patches_cam5.json loads cleanly and defines valid unique patch entri
   assert.equal(data.targetPackage, 'com.motorola.camera5');
   assert.equal(data.targetVersion, '10.0.44.42');
   assert.ok(Array.isArray(data.patches));
-  assert.equal(data.patches.length, 62);
+  assert.equal(data.patches.length, 67);
 
   const galleryPatchIds = data.patches.filter((p) => p.category === 'gallery').map((p) => p.id);
   assert.deepEqual(galleryPatchIds, [
@@ -215,5 +215,20 @@ test(
       'utf8',
     );
     assert.equal(panelSmali.includes('CustomImagingBridge;->isHdr10AvailableForCurrentFps()Z'), true);
+
+    for (const featureKey of ['default_feature', 'filter_effect', 'beauty']) {
+      assert.equal(
+        iq.ctwo.uhdr_settings_advanced?.default_cam_type?.default_mode?.[featureKey]?.HAL_FRAME_STACK,
+        undefined,
+        `HAL_FRAME_STACK must stay excluded from uhdr_settings_advanced.${featureKey} (non-RAW pipeline lacks McfUltraHDRWrapper aux buffers and crashes McfSnapshotProc)`,
+      );
+    }
+    const videoSmali = fs.readFileSync(
+      path.join(STAGE_CAM5, 'smali', 'com', 'motorola', 'camera', 'fsm', 'camera', 'modes', 'VideoMode.smali'),
+      'utf8',
+    );
+    assert.equal(videoSmali.includes('CustomImagingBridge;->resolveQualcommVideoFpsRange('), true);
+    assert.equal(videoSmali.includes('CustomImagingBridge;->applyVideoRequestOverrides('), true);
+    assert.equal(videoSmali.includes('CustomImagingBridge;->applyVideoSnapshotOverrides('), true);
   },
 );

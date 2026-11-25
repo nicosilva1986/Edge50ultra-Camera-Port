@@ -204,13 +204,16 @@ public final class MultiFrameRawEngine {
     private static final class Aligned {
         final Frame f;
         final float[] dx, dy, sharpness;
+        final boolean[] tileRejected;
         final double scale;
         double noiseVariance;
+        boolean frameRejected;
         Aligned(Frame f, Frame anchor, int tiles, boolean focus) {
             this.f = f;
             scale = anchor.exposureGain / f.exposureGain;
             dx = new float[tiles];
             dy = new float[tiles];
+            tileRejected = new boolean[tiles];
             sharpness = focus ? new float[tiles] : null;
         }
     }
@@ -242,6 +245,11 @@ public final class MultiFrameRawEngine {
                     if (focus) sharpness(f,cols);
                 }
             }
+            int keep = 1;
+            for (int i = 1; i < used; i++) {
+                if (!frames[i].frameRejected) frames[keep++] = frames[i];
+            }
+            used = keep;
         }
         double headroom = 1;
         if (mode == MODE_RAW_AEB) for (int i = 1; i < used; i++) headroom = Math.max(headroom,frames[i].scale);
@@ -317,11 +325,14 @@ public final class MultiFrameRawEngine {
         double[] global = {gx,gy};
         refine(ref,src,w,h,border,border,w-border,h-border,step,frame.scale,global);
         double[] delta = new double[2];
+        int rejectedTiles = 0;
+        double tileLimit = 0.045 * Math.min(1.0, frame.scale);
         for (int t = 0; t < frame.dx.length; t++) {
             int tx = (t%cols)*TILE/2, ty = (t/cols)*TILE/2;
             int x0 = Math.max(0,tx-3), y0 = Math.max(0,ty-3);
             int x1 = Math.min(w,tx+TILE/2+3), y1 = Math.min(h,ty+TILE/2+3);
             delta[0] = global[0]; delta[1] = global[1];
+            double tileResidual = 0;
             // ND tracks the static scene. Following each moving object would erase intentional trails.
             if (mode != MODE_SYNTHETIC_ND) {
                 double priorCost = cost(ref,src,w,h,x0,y0,x1,y1,gx,gy,1,frame.scale);
@@ -336,12 +347,26 @@ public final class MultiFrameRawEngine {
                 if (lx != gx || ly != gy) {
                     delta[0] = lx; delta[1] = ly;
                     refine(ref,src,w,h,x0,y0,x1,y1,1,frame.scale,delta);
+                    tileResidual = cost(ref,src,w,h,x0,y0,x1,y1,
+                            (int)Math.rint(delta[0]),(int)Math.rint(delta[1]),1,frame.scale);
+                } else {
+                    tileResidual = priorCost;
+                }
+                if (tileResidual > tileLimit) {
+                    frame.tileRejected[t] = true;
+                    rejectedTiles++;
                 }
             }
             frame.dx[t] = displacement(delta[0]);
             frame.dy[t] = displacement(delta[1]);
         }
-        if (mode == MODE_HDR_PLUS) estimateNoise(frame,ref,src,cols);
+        if (mode != MODE_SYNTHETIC_ND && mode != MODE_FOCUS_STACK
+                && frame.dx.length > 0 && rejectedTiles * 10 > frame.dx.length * 3) {
+            frame.frameRejected = true;
+        }
+        if (mode == MODE_HDR_PLUS || mode == MODE_RAW_AEB || mode == MODE_SUPER_RES) {
+            estimateNoise(frame,ref,src,cols);
+        }
     }
 
     private static float displacement(double cells) {
@@ -470,6 +495,13 @@ public final class MultiFrameRawEngine {
                 double safe = Math.max(0,Math.min(1,(1-v)/0.08));
                 if (v >= 1-0.5*f.f.inv[phase]) safe = 0; // integer saturation
                 weight = safe*safe/(f.scale*f.scale);
+                if (i != 0 && reference < 0.85) {
+                    double diff = radiance - reference;
+                    double var = Math.max(f.noiseVariance, 0.004 * 0.004);
+                    double ratio = diff * diff / var;
+                    if (ratio > 25) weight = 0;
+                    else weight /= (1 + 0.25 * ratio);
+                }
             } else if (mode == MODE_HDR_PLUS && i != 0) {
                 double diff = radiance-reference, ratio = diff*diff/f.noiseVariance;
                 weight = ratio > 25 ? 0 : 1/(1+ratio);
@@ -501,23 +533,31 @@ public final class MultiFrameRawEngine {
 
     private static double reconstruct(Aligned[] frames, int used, int tile, double x, double y, int p) {
         int px = p&1, py = p>>1;
+        double anchorRef = sample(frames[0].f, x, y, p);
         double total = 0, weights = 0;
         for (int i = 0; i < used; i++) {
             Aligned f = frames[i];
+            if (i > 0 && f.tileRejected[tile]) continue;
             double sx = x+f.dx[tile], sy = y+f.dy[tile];
             int x0 = 2*(int)Math.floor((sx-px)/2)+px, y0 = 2*(int)Math.floor((sy-py)/2)+py;
+            double var = Math.max(f.noiseVariance, 0.032 * 0.032);
             for (int yy = y0; yy <= y0+2; yy += 2) {
                 if (yy < 0 || yy >= f.f.h) continue;
                 double wy = kernel(yy-sy);
                 for (int xx = x0; xx <= x0+2; xx += 2) {
                     if (xx < 0 || xx >= f.f.w) continue;
+                    double radiance = f.f.linear(xx,yy,p)*f.scale;
+                    if (i > 0) {
+                        double diff = radiance - anchorRef;
+                        if (diff * diff / var > 25) continue;
+                    }
                     double weight = wy*kernel(xx-sx);
-                    total += weight*f.f.linear(xx,yy,p)*f.scale;
+                    total += weight*radiance;
                     weights += weight;
                 }
             }
         }
-        return weights > 0 ? total/weights : sample(frames[0].f,x,y,p);
+        return weights > 0 ? total/weights : anchorRef;
     }
     /** Builds only 2x2 registration guides on the GPU. Capture buffers never leave the CPU ring. */
     private static final class GuideCompute implements AutoCloseable {

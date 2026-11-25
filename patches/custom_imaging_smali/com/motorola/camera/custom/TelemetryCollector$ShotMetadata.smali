@@ -15,13 +15,27 @@
 
 
 # instance fields
+.field public final aeFps:Ljava/lang/Integer;
+
 .field public final cameraId:Ljava/lang/String;
+
+.field public final depthSource:Ljava/lang/String;
+
+.field public final focusSpreadD:Ljava/lang/Float;
+
+.field public final gapMs:Ljava/lang/Float;
 
 .field private final generation:J
 
 .field public final iqLuxIdx:Ljava/lang/Float;
 
 .field public final isFront:Ljava/lang/Boolean;
+
+.field public final mergeCount:Ljava/lang/Integer;
+
+.field public final motionRejected:Ljava/lang/Boolean;
+
+.field public final oisMode:Ljava/lang/Integer;
 
 .field public final realtimeClock:Z
 
@@ -37,22 +51,22 @@
     return-wide v0
 .end method
 
-.method private constructor <init>(Ljava/lang/String;Ljava/lang/Float;ZLcom/motorola/camera/custom/TelemetryCollector$Session;)V
+.method private constructor <init>(Ljava/lang/String;Ljava/lang/Float;ZLcom/motorola/camera/custom/TelemetryCollector$Session;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
     .locals 0
 
-    .line 89
+    .line 95
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 90
+    .line 96
     iput-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->shotId:Ljava/lang/String;
 
-    .line 91
+    .line 97
     iput-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->iqLuxIdx:Ljava/lang/Float;
 
-    .line 92
+    .line 98
     iput-boolean p3, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->realtimeClock:Z
 
-    .line 93
+    .line 99
     const/4 p1, 0x0
 
     if-nez p4, :cond_0
@@ -67,7 +81,7 @@
     :goto_0
     iput-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->cameraId:Ljava/lang/String;
 
-    .line 94
+    .line 100
     if-nez p4, :cond_1
 
     goto :goto_1
@@ -82,7 +96,7 @@
     :goto_1
     iput-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->isFront:Ljava/lang/Boolean;
 
-    .line 95
+    .line 101
     if-nez p4, :cond_2
 
     const-wide/16 p1, 0x0
@@ -95,14 +109,35 @@
     :goto_2
     iput-wide p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->generation:J
 
-    .line 96
+    .line 102
+    iput-object p5, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->gapMs:Ljava/lang/Float;
+
+    .line 103
+    iput-object p6, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->focusSpreadD:Ljava/lang/Float;
+
+    .line 104
+    iput-object p7, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->motionRejected:Ljava/lang/Boolean;
+
+    .line 105
+    iput-object p8, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->aeFps:Ljava/lang/Integer;
+
+    .line 106
+    iput-object p9, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->oisMode:Ljava/lang/Integer;
+
+    .line 107
+    iput-object p10, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->mergeCount:Ljava/lang/Integer;
+
+    .line 108
+    iput-object p11, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->depthSource:Ljava/lang/String;
+
+    .line 109
     return-void
 .end method
 
-.method synthetic constructor <init>(Ljava/lang/String;Ljava/lang/Float;ZLcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector-IA;)V
+.method synthetic constructor <init>(Ljava/lang/String;Ljava/lang/Float;ZLcom/motorola/camera/custom/TelemetryCollector$Session;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Lcom/motorola/camera/custom/TelemetryCollector-IA;)V
     .locals 0
 
-    invoke-direct {p0, p1, p2, p3, p4}, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;-><init>(Ljava/lang/String;Ljava/lang/Float;ZLcom/motorola/camera/custom/TelemetryCollector$Session;)V
+    invoke-direct/range {p0 .. p11}, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;-><init>(Ljava/lang/String;Ljava/lang/Float;ZLcom/motorola/camera/custom/TelemetryCollector$Session;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
 
     return-void
 .end method

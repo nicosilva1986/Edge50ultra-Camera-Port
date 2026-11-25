@@ -42,7 +42,7 @@
 .method private static synthetic $values()[Lcom/motorola/camera/custom/TelemetryCollector$Stream;
     .locals 6
 
-    .line 131
+    .line 153
     sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->GYRO:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ACCEL:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -65,7 +65,7 @@
 .method static constructor <clinit>()V
     .locals 3
 
-    .line 131
+    .line 153
     new-instance v0, Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     const-string v1, "GYRO"
@@ -154,7 +154,7 @@
         }
     .end annotation
 
-    .line 131
+    .line 153
     invoke-direct {p0, p1, p2}, Ljava/lang/Enum;-><init>(Ljava/lang/String;I)V
 
     return-void
@@ -171,7 +171,7 @@
         }
     .end annotation
 
-    .line 131
+    .line 153
     const-class v0, Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     invoke-static {v0, p0}, Ljava/lang/Enum;->valueOf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
@@ -186,7 +186,7 @@
 .method public static values()[Lcom/motorola/camera/custom/TelemetryCollector$Stream;
     .locals 1
 
-    .line 131
+    .line 153
     sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->$VALUES:[Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     invoke-virtual {v0}, [Lcom/motorola/camera/custom/TelemetryCollector$Stream;->clone()Ljava/lang/Object;

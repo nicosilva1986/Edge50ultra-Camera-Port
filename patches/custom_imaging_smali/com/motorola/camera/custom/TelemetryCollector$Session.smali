@@ -87,10 +87,10 @@
 .method constructor <init>(JLandroid/content/Context;Ljava/lang/String;ZLandroid/hardware/SensorManager;Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)V
     .locals 3
 
-    .line 153
+    .line 175
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 140
+    .line 162
     new-instance v0, Landroid/os/HandlerThread;
 
     const-string v1, "CameraTelemetrySensors"
@@ -99,7 +99,7 @@
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thread:Landroid/os/HandlerThread;
 
-    .line 141
+    .line 163
     new-instance v0, Lcom/motorola/camera/custom/TelemetryCollector$Session$$ExternalSyntheticLambda1;
 
     invoke-direct {v0}, Lcom/motorola/camera/custom/TelemetryCollector$Session$$ExternalSyntheticLambda1;-><init>()V
@@ -110,7 +110,7 @@
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thermalWorker:Ljava/util/concurrent/ScheduledExecutorService;
 
-    .line 146
+    .line 168
     new-instance v0, Ljava/util/EnumMap;
 
     const-class v1, Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -119,7 +119,7 @@
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->sensors:Ljava/util/EnumMap;
 
-    .line 147
+    .line 169
     new-instance v0, Ljava/util/EnumMap;
 
     const-class v1, Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -128,7 +128,7 @@
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
 
-    .line 148
+    .line 170
     new-instance v0, Lcom/motorola/camera/custom/TelemetryCollector$Series;
 
     invoke-static {}, Lcom/motorola/camera/custom/TelemetryCollector;->-$$Nest$sfgetZONES()[Ljava/lang/String;
@@ -143,14 +143,14 @@
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thermal:Lcom/motorola/camera/custom/TelemetryCollector$Series;
 
-    .line 149
+    .line 171
     new-instance v0, Ljava/util/IdentityHashMap;
 
     invoke-direct {v0}, Ljava/util/IdentityHashMap;-><init>()V
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->registered:Ljava/util/IdentityHashMap;
 
-    .line 150
+    .line 172
     new-instance v0, Ljava/util/EnumMap;
 
     const-class v1, Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -159,25 +159,25 @@
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
 
-    .line 154
+    .line 176
     iput-wide p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->id:J
 
-    .line 155
+    .line 177
     iput-object p3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->appContext:Landroid/content/Context;
 
-    .line 156
+    .line 178
     iput-object p4, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->cameraId:Ljava/lang/String;
 
-    .line 157
+    .line 179
     iput-boolean p5, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->front:Z
 
-    .line 158
+    .line 180
     iput-object p6, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->manager:Landroid/hardware/SensorManager;
 
-    .line 159
+    .line 181
     iput-object p7, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
 
-    .line 160
+    .line 182
     invoke-static {}, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->values()[Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     move-result-object p1
@@ -193,7 +193,7 @@
 
     aget-object p5, p1, p4
 
-    .line 161
+    .line 183
     sget-object p6, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->GYRO:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     if-eq p5, p6, :cond_1
@@ -213,7 +213,7 @@
     :goto_1
     const/4 p6, 0x1
 
-    .line 162
+    .line 184
     :goto_2
     if-eqz p6, :cond_2
 
@@ -224,7 +224,7 @@
     :cond_2
     const/16 p7, 0x80
 
-    .line 163
+    .line 185
     :goto_3
     if-eqz p6, :cond_3
 
@@ -244,7 +244,7 @@
     :cond_4
     const/16 p6, 0x10
 
-    .line 164
+    .line 186
     :goto_4
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
 
@@ -254,19 +254,19 @@
 
     invoke-virtual {v0, p5, v1}, Ljava/util/EnumMap;->put(Ljava/lang/Enum;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 165
+    .line 187
     iget-object p6, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
 
     const-string p7, "notExposed"
 
     invoke-virtual {p6, p5, p7}, Ljava/util/EnumMap;->put(Ljava/lang/Enum;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 160
+    .line 182
     add-int/lit8 p4, p4, 0x1
 
     goto :goto_0
 
-    .line 167
+    .line 189
     :cond_5
     return-void
 .end method
@@ -274,19 +274,19 @@
 .method static synthetic lambda$new$0(Ljava/lang/Runnable;)Ljava/lang/Thread;
     .locals 2
 
-    .line 142
+    .line 164
     new-instance v0, Ljava/lang/Thread;
 
     const-string v1, "CameraTelemetryThermal"
 
     invoke-direct {v0, p0, v1}, Ljava/lang/Thread;-><init>(Ljava/lang/Runnable;Ljava/lang/String;)V
 
-    .line 143
+    .line 165
     const/4 p0, 0x1
 
     invoke-virtual {v0, p0}, Ljava/lang/Thread;->setDaemon(Z)V
 
-    .line 144
+    .line 166
     return-object v0
 .end method
 
@@ -295,14 +295,14 @@
 
     monitor-enter p0
 
-    .line 216
+    .line 238
     if-nez p2, :cond_0
 
     monitor-exit p0
 
     return-void
 
-    .line 217
+    .line 239
     :cond_0
     :try_start_0
     sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->GYRO:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -326,7 +326,7 @@
     :goto_0
     const/4 v0, 0x1
 
-    .line 218
+    .line 240
     :goto_1
     const/16 v2, 0x4e20
 
@@ -342,7 +342,7 @@
 
     goto :goto_2
 
-    .line 219
+    .line 241
     :cond_3
     sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ROTATION:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
@@ -363,7 +363,7 @@
 
     move-result-object v0
 
-    .line 220
+    .line 242
     :goto_2
     array-length v2, v0
 
@@ -374,7 +374,7 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 222
+    .line 244
     :try_start_1
     iget-object v4, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->manager:Landroid/hardware/SensorManager;
 
@@ -384,12 +384,12 @@
 
     if-eqz v3, :cond_6
 
-    .line 223
+    .line 245
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->sensors:Ljava/util/EnumMap;
 
     invoke-virtual {v3, p1, p2}, Ljava/util/EnumMap;->put(Ljava/lang/Enum;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 224
+    .line 246
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->registered:Ljava/util/IdentityHashMap;
 
     invoke-virtual {v3, p2}, Ljava/util/IdentityHashMap;->containsKey(Ljava/lang/Object;)Z
@@ -402,7 +402,7 @@
 
     invoke-virtual {v3, p2, p1}, Ljava/util/IdentityHashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 225
+    .line 247
     :cond_5
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
 
@@ -414,12 +414,12 @@
     .catch Ljava/lang/RuntimeException; {:try_start_1 .. :try_end_1} :catch_0
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 226
+    .line 248
     monitor-exit p0
 
     return-void
 
-    .line 228
+    .line 250
     :cond_6
     :try_start_2
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
@@ -434,11 +434,11 @@
 
     goto :goto_4
 
-    .line 231
+    .line 253
     :catch_0
     move-exception v3
 
-    .line 232
+    .line 254
     :try_start_3
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
 
@@ -448,11 +448,11 @@
 
     goto :goto_5
 
-    .line 229
+    .line 251
     :catch_1
     move-exception v3
 
-    .line 230
+    .line 252
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
 
     const-string v4, "accessDenied"
@@ -461,23 +461,23 @@
     :try_end_3
     .catchall {:try_start_3 .. :try_end_3} :catchall_0
 
-    .line 233
+    .line 255
     :goto_4
     nop
 
-    .line 220
+    .line 242
     :goto_5
     add-int/lit8 v1, v1, 0x1
 
     goto :goto_3
 
-    .line 235
+    .line 257
     :cond_7
     monitor-exit p0
 
     return-void
 
-    .line 215
+    .line 237
     :catchall_0
     move-exception p1
 
@@ -492,7 +492,7 @@
 .method private registerImu(Lcom/motorola/camera/custom/TelemetryCollector$Stream;ILandroid/os/Handler;)V
     .locals 1
 
-    .line 195
+    .line 217
     :try_start_0
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->manager:Landroid/hardware/SensorManager;
 
@@ -504,21 +504,21 @@
     :try_end_0
     .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_0
 
-    .line 198
+    .line 220
     goto :goto_0
 
-    .line 196
+    .line 218
     :catch_0
     move-exception p2
 
-    .line 197
+    .line 219
     iget-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
 
     const-string p3, "unavailable"
 
     invoke-virtual {p2, p1, p3}, Ljava/util/EnumMap;->put(Ljava/lang/Enum;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 199
+    .line 221
     :goto_0
     return-void
 .end method
@@ -526,7 +526,7 @@
 .method private registerRotation(Landroid/os/Handler;)V
     .locals 5
 
-    .line 203
+    .line 225
     const/16 v0, 0x14
 
     const/16 v1, 0xb
@@ -545,14 +545,14 @@
 
     aget v2, v0, v1
 
-    .line 204
+    .line 226
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->manager:Landroid/hardware/SensorManager;
 
     invoke-virtual {v3, v2}, Landroid/hardware/SensorManager;->getDefaultSensor(I)Landroid/hardware/Sensor;
 
     move-result-object v3
 
-    .line 205
+    .line 227
     if-eqz v3, :cond_0
 
     invoke-virtual {v3}, Landroid/hardware/Sensor;->getType()I
@@ -561,12 +561,12 @@
 
     if-ne v4, v2, :cond_0
 
-    .line 206
+    .line 228
     sget-object v2, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ROTATION:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     invoke-direct {p0, v2, v3, p1}, Lcom/motorola/camera/custom/TelemetryCollector$Session;->register(Lcom/motorola/camera/custom/TelemetryCollector$Stream;Landroid/hardware/Sensor;Landroid/os/Handler;)V
 
-    .line 207
+    .line 229
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->sensors:Ljava/util/EnumMap;
 
     sget-object v3, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ROTATION:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -581,21 +581,21 @@
 
     return-void
 
-    .line 203
+    .line 225
     :cond_0
     add-int/lit8 v1, v1, 0x1
 
     goto :goto_0
 
-    .line 212
+    .line 234
     :cond_1
     goto :goto_1
 
-    .line 210
+    .line 232
     :catch_0
     move-exception p1
 
-    .line 211
+    .line 233
     iget-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
 
     sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ROTATION:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -604,7 +604,7 @@
 
     invoke-virtual {p1, v0, v1}, Ljava/util/EnumMap;->put(Ljava/lang/Enum;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 213
+    .line 235
     :goto_1
     return-void
 .end method
@@ -614,17 +614,17 @@
 .method close()V
     .locals 2
 
-    .line 258
+    .line 280
     const/4 v0, 0x1
 
     iput-boolean v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->closed:Z
 
-    .line 259
+    .line 281
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thermalWorker:Ljava/util/concurrent/ScheduledExecutorService;
 
     invoke-interface {v0}, Ljava/util/concurrent/ScheduledExecutorService;->shutdownNow()Ljava/util/List;
 
-    .line 261
+    .line 283
     :try_start_0
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->manager:Landroid/hardware/SensorManager;
 
@@ -637,7 +637,7 @@
     .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 265
+    .line 287
     :cond_0
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thread:Landroid/os/HandlerThread;
 
@@ -664,15 +664,15 @@
 
     invoke-virtual {v1}, Landroid/os/HandlerThread;->quitSafely()Z
 
-    .line 266
+    .line 288
     :cond_1
     throw v0
 
-    .line 262
+    .line 284
     :catch_0
     move-exception v0
 
-    .line 265
+    .line 287
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thread:Landroid/os/HandlerThread;
 
     invoke-virtual {v0}, Landroid/os/HandlerThread;->isAlive()Z
@@ -686,7 +686,7 @@
 
     invoke-virtual {v0}, Landroid/os/HandlerThread;->quitSafely()Z
 
-    .line 267
+    .line 289
     :cond_2
     return-void
 .end method
@@ -694,7 +694,7 @@
 .method synthetic lambda$start$1$com-motorola-camera-custom-TelemetryCollector$Session()V
     .locals 4
 
-    .line 171
+    .line 193
     const/4 v0, 0x0
 
     new-array v0, v0, [Ljava/lang/String;
@@ -709,7 +709,7 @@
 
     move-result-object v0
 
-    .line 172
+    .line 194
     iget-boolean v1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->closed:Z
 
     if-nez v1, :cond_0
@@ -722,7 +722,7 @@
 
     invoke-virtual {v1, v2, v3, v0}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->add(J[F)V
 
-    .line 173
+    .line 195
     :cond_0
     return-void
 .end method
@@ -730,14 +730,14 @@
 .method public onAccuracyChanged(Landroid/hardware/Sensor;I)V
     .locals 0
 
-    .line 237
+    .line 259
     return-void
 .end method
 
 .method public onSensorChanged(Landroid/hardware/SensorEvent;)V
     .locals 13
 
-    .line 240
+    .line 262
     iget-boolean v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->closed:Z
 
     if-nez v0, :cond_9
@@ -750,7 +750,7 @@
 
     goto/16 :goto_2
 
-    .line 242
+    .line 264
     :cond_0
     monitor-enter p0
 
@@ -769,12 +769,12 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 243
+    .line 265
     if-nez v0, :cond_1
 
     return-void
 
-    .line 244
+    .line 266
     :cond_1
     sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->GYRO:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
@@ -795,13 +795,13 @@
 
     return-void
 
-    .line 245
+    .line 267
     :cond_3
     sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ROTATION:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     if-ne v0, v1, :cond_8
 
-    .line 246
+    .line 268
     iget-object v0, p1, Landroid/hardware/SensorEvent;->values:[F
 
     array-length v0, v0
@@ -812,7 +812,7 @@
 
     return-void
 
-    .line 247
+    .line 269
     :cond_4
     iget-object v0, p1, Landroid/hardware/SensorEvent;->values:[F
 
@@ -832,7 +832,7 @@
 
     aget v5, v5, v6
 
-    .line 248
+    .line 270
     iget-object v7, p1, Landroid/hardware/SensorEvent;->values:[F
 
     array-length v7, v7
@@ -847,7 +847,7 @@
 
     goto :goto_0
 
-    .line 249
+    .line 271
     :cond_5
     float-to-double v9, v0
 
@@ -881,7 +881,7 @@
 
     double-to-float v7, v9
 
-    .line 250
+    .line 272
     :goto_0
     invoke-static {v0}, Ljava/lang/Float;->isFinite(F)Z
 
@@ -909,7 +909,7 @@
 
     goto :goto_1
 
-    .line 251
+    .line 273
     :cond_6
     iget-object v9, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
 
@@ -943,15 +943,15 @@
 
     invoke-virtual {v9, v10, v11, v12}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->add(J[F)V
 
-    .line 252
+    .line 274
     return-void
 
-    .line 250
+    .line 272
     :cond_7
     :goto_1
     return-void
 
-    .line 254
+    .line 276
     :cond_8
     iget-object v1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
 
@@ -967,10 +967,10 @@
 
     invoke-virtual {v0, v1, v2, p1}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->add(J[F)V
 
-    .line 255
+    .line 277
     return-void
 
-    .line 242
+    .line 264
     :catchall_0
     move-exception p1
 
@@ -981,7 +981,7 @@
 
     throw p1
 
-    .line 240
+    .line 262
     :cond_9
     :goto_2
     return-void
@@ -990,7 +990,7 @@
 .method start()V
     .locals 7
 
-    .line 170
+    .line 192
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thermalWorker:Ljava/util/concurrent/ScheduledExecutorService;
 
     new-instance v1, Lcom/motorola/camera/custom/TelemetryCollector$Session$$ExternalSyntheticLambda0;
@@ -1005,20 +1005,20 @@
 
     invoke-interface/range {v0 .. v6}, Ljava/util/concurrent/ScheduledExecutorService;->scheduleWithFixedDelay(Ljava/lang/Runnable;JJLjava/util/concurrent/TimeUnit;)Ljava/util/concurrent/ScheduledFuture;
 
-    .line 174
+    .line 196
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->manager:Landroid/hardware/SensorManager;
 
     if-nez v0, :cond_0
 
     return-void
 
-    .line 175
+    .line 197
     :cond_0
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thread:Landroid/os/HandlerThread;
 
     invoke-virtual {v0}, Landroid/os/HandlerThread;->start()V
 
-    .line 176
+    .line 198
     new-instance v0, Landroid/os/Handler;
 
     iget-object v1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->thread:Landroid/os/HandlerThread;
@@ -1029,24 +1029,24 @@
 
     invoke-direct {v0, v1}, Landroid/os/Handler;-><init>(Landroid/os/Looper;)V
 
-    .line 177
+    .line 199
     sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->GYRO:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     const/4 v2, 0x4
 
     invoke-direct {p0, v1, v2, v0}, Lcom/motorola/camera/custom/TelemetryCollector$Session;->registerImu(Lcom/motorola/camera/custom/TelemetryCollector$Stream;ILandroid/os/Handler;)V
 
-    .line 178
+    .line 200
     sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ACCEL:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     const/4 v2, 0x1
 
     invoke-direct {p0, v1, v2, v0}, Lcom/motorola/camera/custom/TelemetryCollector$Session;->registerImu(Lcom/motorola/camera/custom/TelemetryCollector$Stream;ILandroid/os/Handler;)V
 
-    .line 179
+    .line 201
     invoke-direct {p0, v0}, Lcom/motorola/camera/custom/TelemetryCollector$Session;->registerRotation(Landroid/os/Handler;)V
 
-    .line 181
+    .line 203
     :try_start_0
     iget-object v1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->manager:Landroid/hardware/SensorManager;
 
@@ -1056,7 +1056,7 @@
 
     move-result-object v1
 
-    .line 182
+    .line 204
     invoke-interface {v1}, Ljava/util/List;->iterator()Ljava/util/Iterator;
 
     move-result-object v1
@@ -1074,12 +1074,12 @@
 
     check-cast v3, Landroid/hardware/Sensor;
 
-    .line 183
+    .line 205
     invoke-static {v3}, Lcom/motorola/camera/custom/TelemetryCollector;->-$$Nest$smvendorStream(Landroid/hardware/Sensor;)Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     move-result-object v4
 
-    .line 184
+    .line 206
     if-eqz v4, :cond_1
 
     iget-object v5, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->sensors:Ljava/util/EnumMap;
@@ -1094,19 +1094,19 @@
     :try_end_0
     .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_0
 
-    .line 185
+    .line 207
     :cond_1
     goto :goto_0
 
-    .line 190
+    .line 212
     :cond_2
     goto :goto_2
 
-    .line 186
+    .line 208
     :catch_0
     move-exception v0
 
-    .line 187
+    .line 209
     const/4 v0, 0x3
 
     new-array v1, v0, [Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -1132,7 +1132,7 @@
 
     aget-object v2, v1, v4
 
-    .line 188
+    .line 210
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->sensors:Ljava/util/EnumMap;
 
     invoke-virtual {v3, v2}, Ljava/util/EnumMap;->containsKey(Ljava/lang/Object;)Z
@@ -1147,13 +1147,13 @@
 
     invoke-virtual {v3, v2, v5}, Ljava/util/EnumMap;->put(Ljava/lang/Enum;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 187
+    .line 209
     :cond_3
     add-int/lit8 v4, v4, 0x1
 
     goto :goto_1
 
-    .line 191
+    .line 213
     :cond_4
     :goto_2
     return-void

@@ -15,21 +15,31 @@
 
 
 # instance fields
+.field afState:I
+
+.field cameraId:Ljava/lang/String;
+
 .field exposureNs:J
 
 .field exposureValid:Z
 
 .field focalLengthPx:F
 
+.field focusDistance:F
+
 .field gyroExcursionRad:F
 
 .field iso:I
+
+.field lensState:I
 
 .field raw:[B
 
 .field saturated:Z
 
 .field seqId:J
+
+.field sessionGeneration:I
 
 .field timestampNs:J
 
@@ -38,7 +48,7 @@
 .method private constructor <init>()V
     .locals 0
 
-    .line 32
+    .line 34
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     return-void

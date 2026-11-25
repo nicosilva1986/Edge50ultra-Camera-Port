@@ -71,7 +71,8 @@ public final class LiveLookPreview {
                 GLES20.glGetUniformLocation(program, "u_EffectsIntensity"),
                 GLES20.glGetUniformLocation(program, "u_EffectsVignette"),
                 GLES20.glGetUniformLocation(program, "u_EffectsHalation"),
-                GLES20.glGetUniformLocation(program, "u_EffectsGrain")
+                GLES20.glGetUniformLocation(program, "u_EffectsGrain"),
+                GLES20.glGetUniformLocation(program, "u_EffectsShoulder")
             };
             state.programs.put(shader, locations);
         }
@@ -80,6 +81,7 @@ public final class LiveLookPreview {
         LookTexture look = ready;
         if (look == null || selected != look.id || compare || profilePaused || intensity == 0) {
             GLES20.glUniform1f(locations[1], 0);
+            if (locations[5] >= 0) GLES20.glUniform1f(locations[5], 0);
             return;
         }
         GLES20.glGetIntegerv(GLES20.GL_ACTIVE_TEXTURE, state.scratch, 0);
@@ -107,6 +109,7 @@ public final class LiveLookPreview {
         GLES20.glUniform1f(locations[2], look.id == 1 ? 0.27f : look.id == 2 ? 0.13f : 0);
         GLES20.glUniform1f(locations[3], look.id == 7 ? 0.16f : look.id == 8 ? -0.22f : 0);
         GLES20.glUniform1f(locations[4], look.id == 3 || look.id >= 9 ? 0.016f : 0);
+        if (locations[5] >= 0) GLES20.glUniform1f(locations[5], 1.0f);
     }
 
     private static final class LookTexture {

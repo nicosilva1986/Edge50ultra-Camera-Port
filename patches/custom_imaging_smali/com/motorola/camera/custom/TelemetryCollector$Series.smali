@@ -32,30 +32,30 @@
 .method constructor <init>(II)V
     .locals 1
 
-    .line 290
+    .line 312
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 291
+    .line 313
     iput p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->width:I
 
-    .line 292
+    .line 314
     new-array v0, p1, [J
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
 
-    .line 293
+    .line 315
     new-array v0, p1, [I
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->sizes:[I
 
-    .line 294
+    .line 316
     mul-int/2addr p1, p2
 
     new-array p1, p1, [F
 
     iput-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
 
-    .line 295
+    .line 317
     return-void
 .end method
 
@@ -66,7 +66,7 @@
 
     monitor-enter p0
 
-    .line 298
+    .line 320
     const-wide/16 v0, 0x0
 
     cmp-long v0, p1, v0
@@ -100,7 +100,7 @@
 
     goto :goto_0
 
-    .line 299
+    .line 321
     :cond_0
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
 
@@ -108,7 +108,7 @@
 
     aput-wide p1, v0, v1
 
-    .line 300
+    .line 322
     iget-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->sizes:[I
 
     iget p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->next:I
@@ -123,7 +123,7 @@
 
     aput v0, p1, p2
 
-    .line 301
+    .line 323
     iget-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
 
     iget p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->next:I
@@ -142,7 +142,7 @@
 
     invoke-static {p3, v1, p1, p2, v0}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 
-    .line 302
+    .line 324
     iget p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->next:I
 
     add-int/lit8 p1, p1, 0x1
@@ -155,7 +155,7 @@
 
     iput p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->next:I
 
-    .line 303
+    .line 325
     iget p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
 
     iget-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
@@ -172,13 +172,13 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 304
+    .line 326
     :cond_1
     monitor-exit p0
 
     return-void
 
-    .line 297
+    .line 319
     :catchall_0
     move-exception p1
 
@@ -189,7 +189,7 @@
 
     throw p1
 
-    .line 298
+    .line 320
     :cond_2
     :goto_0
     monitor-exit p0
@@ -202,13 +202,13 @@
 
     monitor-enter p0
 
-    .line 320
+    .line 342
     :try_start_0
     invoke-virtual {p0, p1, p2}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->lowerBound(J)I
 
     move-result v0
 
-    .line 321
+    .line 343
     iget v1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
 
     if-ge v0, v1, :cond_0
@@ -235,7 +235,7 @@
 
     return p1
 
-    .line 322
+    .line 344
     :cond_0
     if-nez v0, :cond_1
 
@@ -258,7 +258,7 @@
 
     return p1
 
-    .line 319
+    .line 341
     :catchall_0
     move-exception p1
 
@@ -273,21 +273,21 @@
 .method lowerBound(J)I
     .locals 5
 
-    .line 310
+    .line 332
     iget v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
 
     const/4 v1, 0x0
 
-    .line 311
+    .line 333
     :goto_0
     if-ge v1, v0, :cond_1
 
-    .line 312
+    .line 334
     add-int v2, v1, v0
 
     ushr-int/lit8 v2, v2, 0x1
 
-    .line 313
+    .line 335
     iget-object v3, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
 
     invoke-virtual {p0, v2}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->slot(I)I
@@ -306,15 +306,15 @@
 
     goto :goto_1
 
-    .line 314
+    .line 336
     :cond_0
     move v0, v2
 
-    .line 315
+    .line 337
     :goto_1
     goto :goto_0
 
-    .line 316
+    .line 338
     :cond_1
     return v1
 .end method
@@ -322,7 +322,7 @@
 .method slot(I)I
     .locals 2
 
-    .line 306
+    .line 328
     iget v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->next:I
 
     iget v1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I

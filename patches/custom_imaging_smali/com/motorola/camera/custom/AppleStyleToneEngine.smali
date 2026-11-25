@@ -594,7 +594,7 @@
 .end method
 
 .method public static applyAutoLocalToneAndZoomAcutance([IIIIII[F[FIIZZZFZI)V
-    .locals 36
+    .locals 34
 
     .line 457
     move-object/from16 v0, p0
@@ -613,11 +613,11 @@
 
     move/from16 v7, p15
 
-    if-eqz v0, :cond_33
+    if-eqz v0, :cond_36
 
-    if-lez v1, :cond_33
+    if-lez v1, :cond_36
 
-    if-lez v2, :cond_33
+    if-lez v2, :cond_36
 
     if-nez p10, :cond_0
 
@@ -627,7 +627,7 @@
 
     if-nez p14, :cond_0
 
-    goto/16 :goto_1d
+    goto/16 :goto_1f
 
     .line 461
     :cond_0
@@ -690,144 +690,146 @@
 
     .line 471
     :goto_0
-    const/16 v13, 0x320
-
     if-eqz p14, :cond_3
 
     if-nez v12, :cond_3
 
+    const/16 v13, 0x320
+
     if-ge v7, v13, :cond_3
 
-    const/4 v14, 0x1
+    const/4 v13, 0x1
 
     goto :goto_1
 
     :cond_3
-    const/4 v14, 0x0
+    const/4 v13, 0x0
 
     .line 472
     :goto_1
-    const/16 v15, 0xc8
+    const/16 v14, 0xc8
 
-    if-le v7, v15, :cond_4
+    if-le v7, v14, :cond_4
 
-    const v16, 0x3f0ccccd    # 0.55f
+    const v14, 0x3f0ccccd    # 0.55f
 
     goto :goto_2
 
     :cond_4
-    const v16, 0x3feccccd    # 1.85f
+    const v14, 0x3feccccd    # 1.85f
 
     .line 474
     :goto_2
-    const v17, 0x3d93dd98    # 0.0722f
+    const v16, 0x3d93dd98    # 0.0722f
 
-    const v18, 0x3f371759    # 0.7152f
+    const v17, 0x3f371759    # 0.7152f
 
-    const v19, 0x3e59b3d0    # 0.2126f
+    const v18, 0x3e59b3d0    # 0.2126f
 
-    const/high16 v20, 0x41000000    # 8.0f
+    const/high16 v19, 0x41000000    # 8.0f
 
-    const/high16 v21, 0x3e800000    # 0.25f
+    const/high16 v20, 0x3e800000    # 0.25f
 
-    const/high16 v22, 0x3f000000    # 0.5f
+    const/high16 v21, 0x3f000000    # 0.5f
 
     const/4 v10, 0x0
 
     if-nez v12, :cond_5
 
-    if-nez v14, :cond_5
+    if-nez v13, :cond_5
 
-    if-eqz p11, :cond_15
+    if-eqz p11, :cond_18
 
     .line 475
     :cond_5
     nop
 
     .line 476
-    const/4 v11, 0x0
+    const/4 v15, 0x0
 
     :goto_3
-    if-ge v11, v8, :cond_15
+    if-ge v15, v8, :cond_18
 
     .line 477
-    add-int v15, p3, v11
+    add-int v11, p3, v15
 
     .line 478
     if-eqz v12, :cond_6
 
-    int-to-float v15, v15
+    int-to-float v11, v11
 
-    add-float v15, v15, v22
+    add-float v11, v11, v21
 
-    div-float v15, v15, v20
+    div-float v11, v11, v19
 
-    sub-float v15, v15, v22
+    sub-float v11, v11, v21
 
-    int-to-float v13, v6
+    const/high16 p10, 0x3f800000    # 1.0f
 
-    const v24, 0x3f800347    # 1.0001f
+    int-to-float v9, v6
 
-    sub-float v13, v13, v24
+    const v23, 0x3f800347    # 1.0001f
 
-    invoke-static {v15, v10, v13}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clamp(FFF)F
+    sub-float v9, v9, v23
 
-    move-result v13
+    invoke-static {v11, v10, v9}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clamp(FFF)F
+
+    move-result v9
 
     goto :goto_4
 
     :cond_6
-    move v13, v10
+    const/high16 p10, 0x3f800000    # 1.0f
+
+    move v9, v10
 
     .line 479
     :goto_4
-    float-to-int v15, v13
+    float-to-int v11, v9
 
     .line 480
     if-eqz v12, :cond_7
 
-    const/high16 p14, 0x3f800000    # 1.0f
+    add-int/lit8 v10, v11, 0x1
 
-    add-int/lit8 v9, v15, 0x1
+    add-int/lit8 v0, v6, -0x1
 
-    add-int/lit8 v10, v6, -0x1
+    invoke-static {v10, v0}, Ljava/lang/Math;->min(II)I
 
-    invoke-static {v9, v10}, Ljava/lang/Math;->min(II)I
-
-    move-result v9
+    move-result v0
 
     goto :goto_5
 
     :cond_7
-    const/high16 p14, 0x3f800000    # 1.0f
-
-    const/4 v9, 0x0
+    const/4 v0, 0x0
 
     .line 481
     :goto_5
-    int-to-float v10, v15
+    int-to-float v10, v11
 
-    sub-float/2addr v13, v10
+    sub-float/2addr v9, v10
 
     .line 482
-    mul-int v10, v11, v1
+    mul-int v10, v15, v1
 
     .line 484
+    move/from16 v23, v0
+
     const/4 v0, 0x0
 
     :goto_6
-    if-ge v0, v1, :cond_14
+    if-ge v0, v1, :cond_17
 
     .line 485
-    add-int v25, v10, v0
+    add-int v24, v10, v0
 
     .line 486
-    aget v3, p0, v25
+    aget v3, p0, v24
 
     .line 487
-    const/high16 v26, -0x1000000
+    const/high16 v25, -0x1000000
 
-    and-int v26, v3, v26
+    and-int v25, v3, v25
 
     .line 488
     ushr-int/lit8 v4, v3, 0x10
@@ -843,22 +845,24 @@
     and-int/lit16 v3, v3, 0xff
 
     .line 491
-    or-int v27, v4, v6
+    or-int v26, v4, v6
 
-    or-int v27, v27, v3
+    or-int v26, v26, v3
 
-    if-nez v27, :cond_8
+    if-nez v26, :cond_8
 
     .line 492
-    move/from16 v28, v0
+    move/from16 v27, v0
 
-    move/from16 v27, v9
+    move/from16 v26, v9
 
-    move/from16 v32, v10
+    move/from16 v31, v10
 
-    move/from16 v29, v11
+    move/from16 v28, v11
 
-    goto/16 :goto_c
+    move/from16 v32, v12
+
+    goto/16 :goto_d
 
     .line 495
     :cond_8
@@ -874,23 +878,23 @@
     if-eqz v12, :cond_a
 
     .line 500
-    move/from16 v27, v9
+    move/from16 v26, v9
 
     int-to-float v9, v0
 
-    add-float v9, v9, v22
+    add-float v9, v9, v21
 
-    div-float v9, v9, v20
+    div-float v9, v9, v19
 
-    sub-float v9, v9, v22
+    sub-float v9, v9, v21
 
-    move/from16 v28, v0
+    move/from16 v27, v0
 
     int-to-float v0, v5
 
-    const v29, 0x3f800347    # 1.0001f
+    const v28, 0x3f800347    # 1.0001f
 
-    sub-float v0, v0, v29
+    sub-float v0, v0, v28
 
     const/4 v5, 0x0
 
@@ -904,7 +908,7 @@
     .line 502
     add-int/lit8 v9, v5, 0x1
 
-    move/from16 v29, v0
+    move/from16 v28, v0
 
     add-int/lit8 v0, p8, -0x1
 
@@ -915,61 +919,61 @@
     .line 503
     int-to-float v9, v5
 
-    sub-float v9, v29, v9
+    sub-float v9, v28, v9
 
     .line 504
-    mul-int v29, v15, p8
+    mul-int v28, v11, p8
 
-    add-int v30, v29, v5
+    add-int v29, v28, v5
 
     .line 505
-    add-int v29, v29, v0
+    add-int v28, v28, v0
 
     .line 506
-    mul-int v31, v27, p8
+    mul-int v30, v23, p8
 
-    add-int v5, v31, v5
+    add-int v5, v30, v5
 
     .line 507
-    add-int v31, v31, v0
+    add-int v30, v30, v0
 
     .line 509
-    aget v0, p6, v30
+    aget v0, p6, v29
+
+    aget v31, p6, v28
 
     aget v32, p6, v29
 
-    aget v33, p6, v30
+    sub-float v31, v31, v32
+
+    mul-float v31, v31, v9
+
+    add-float v0, v0, v31
+
+    .line 510
+    aget v31, p6, v5
+
+    aget v32, p6, v30
+
+    aget v33, p6, v5
 
     sub-float v32, v32, v33
 
     mul-float v32, v32, v9
 
-    add-float v0, v0, v32
-
-    .line 510
-    aget v32, p6, v5
-
-    aget v33, p6, v31
-
-    aget v34, p6, v5
-
-    sub-float v33, v33, v34
-
-    mul-float v33, v33, v9
-
-    add-float v32, v32, v33
+    add-float v31, v31, v32
 
     .line 511
-    sub-float v32, v32, v0
+    sub-float v31, v31, v0
 
-    mul-float v32, v32, v13
+    mul-float v31, v31, v26
 
-    add-float v0, v0, v32
+    add-float v0, v0, v31
 
     .line 512
-    move/from16 v33, v9
+    move/from16 v32, v9
 
-    move/from16 v32, v10
+    move/from16 v31, v10
 
     float-to-double v9, v0
 
@@ -990,35 +994,35 @@
     move-result v0
 
     .line 514
-    aget v9, p7, v30
+    aget v9, p7, v29
 
-    aget v10, p7, v29
+    aget v10, p7, v28
 
-    aget v29, p7, v30
+    aget v28, p7, v29
 
-    sub-float v10, v10, v29
+    sub-float v10, v10, v28
 
-    mul-float v10, v10, v33
+    mul-float v10, v10, v32
 
     add-float/2addr v9, v10
 
     .line 515
     aget v10, p7, v5
 
-    aget v29, p7, v31
+    aget v28, p7, v30
 
     aget v5, p7, v5
 
-    sub-float v29, v29, v5
+    sub-float v28, v28, v5
 
-    mul-float v29, v29, v33
+    mul-float v28, v28, v32
 
-    add-float v10, v10, v29
+    add-float v10, v10, v28
 
     .line 516
     sub-float/2addr v10, v9
 
-    mul-float/2addr v10, v13
+    mul-float v10, v10, v26
 
     add-float/2addr v9, v10
 
@@ -1034,7 +1038,7 @@
     .line 519
     const v10, 0x3d0f5c29    # 0.035f
 
-    move/from16 v29, v5
+    move/from16 v28, v5
 
     const v5, 0x3e0f5c29    # 0.14f
 
@@ -1042,7 +1046,7 @@
 
     move-result v0
 
-    sub-float v0, p14, v0
+    sub-float v0, p10, v0
 
     .line 520
     const v5, 0x3c03126f    # 0.008f
@@ -1056,7 +1060,7 @@
     .line 521
     const v9, 0x3e75c28f    # 0.24f
 
-    mul-float v9, v9, v29
+    mul-float v9, v9, v28
 
     mul-float/2addr v9, v0
 
@@ -1064,11 +1068,11 @@
 
     mul-float/2addr v5, v0
 
-    add-float v5, v5, v21
+    add-float v5, v5, v20
 
     mul-float/2addr v9, v5
 
-    add-float v9, v9, p14
+    add-float v9, v9, p10
 
     .line 522
     const v0, 0x3f8020c5    # 1.001f
@@ -1128,13 +1132,13 @@
     goto/16 :goto_9
 
     :cond_a
-    move/from16 v28, v0
+    move/from16 v27, v0
 
-    move/from16 v27, v9
+    move/from16 v26, v9
 
-    move/from16 v32, v10
+    move/from16 v31, v10
 
-    if-eqz v14, :cond_e
+    if-eqz v13, :cond_e
 
     .line 531
     invoke-static {v6, v3}, Ljava/lang/Math;->max(II)I
@@ -1166,35 +1170,35 @@
     aget v10, v10, v3
 
     .line 536
-    mul-float v29, v0, v19
+    mul-float v28, v0, v18
 
-    mul-float v30, v5, v18
+    mul-float v29, v5, v17
 
-    add-float v29, v29, v30
+    add-float v28, v28, v29
 
-    mul-float v30, v10, v17
+    mul-float v29, v10, v16
 
-    const v31, 0x3e4ccccd    # 0.2f
+    const v30, 0x3e4ccccd    # 0.2f
 
-    add-float v9, v29, v30
+    add-float v9, v28, v29
 
     .line 537
-    const v29, 0x3b449ba6    # 0.003f
+    const v28, 0x3b449ba6    # 0.003f
 
-    cmpl-float v29, v9, v29
+    cmpl-float v28, v9, v28
 
-    if-lez v29, :cond_c
+    if-lez v28, :cond_c
 
-    cmpg-float v29, v9, v31
+    cmpg-float v28, v9, v30
 
-    if-gez v29, :cond_c
+    if-gez v28, :cond_c
 
     .line 538
-    move/from16 v29, v0
+    move/from16 v28, v0
 
     const v0, 0x3b83126f    # 0.004f
 
-    move/from16 v30, v5
+    move/from16 v29, v5
 
     const v5, 0x3c656042    # 0.014f
 
@@ -1204,7 +1208,7 @@
 
     const v5, 0x3d4ccccd    # 0.05f
 
-    move/from16 v33, v0
+    move/from16 v32, v0
 
     const v0, 0x3e428f5c    # 0.19f
 
@@ -1212,14 +1216,14 @@
 
     move-result v0
 
-    sub-float v9, p14, v0
+    sub-float v9, p10, v0
 
-    mul-float v0, v33, v9
+    mul-float v0, v32, v9
 
     .line 539
-    mul-float v0, v0, v16
+    mul-float/2addr v0, v14
 
-    add-float v0, v0, p14
+    add-float v0, v0, p10
 
     .line 540
     const v5, 0x3f80a3d7    # 1.005f
@@ -1229,54 +1233,54 @@
     if-lez v5, :cond_c
 
     .line 541
-    mul-float v5, v29, v0
+    mul-float v5, v28, v0
 
     .line 542
-    mul-float v9, v30, v0
+    mul-float v9, v29, v0
 
     .line 543
     mul-float/2addr v10, v0
 
     .line 545
-    mul-float v29, v5, v19
+    mul-float v28, v5, v18
 
-    mul-float v30, v9, v18
+    mul-float v29, v9, v17
 
-    add-float v29, v29, v30
+    add-float v28, v28, v29
 
-    mul-float v30, v10, v17
+    mul-float v29, v10, v16
 
-    add-float v29, v29, v30
+    add-float v28, v28, v29
 
     .line 546
-    sub-float v0, v0, p14
+    sub-float v0, v0, p10
 
-    const/high16 v30, 0x3f400000    # 0.75f
+    const/high16 v29, 0x3f400000    # 0.75f
 
-    mul-float v0, v0, v30
+    mul-float v0, v0, v29
 
-    move/from16 v30, v5
+    move/from16 v29, v5
 
-    move/from16 v5, p14
+    move/from16 v5, p10
 
     invoke-static {v5, v0}, Ljava/lang/Math;->min(FF)F
 
     move-result v0
 
-    const v33, 0x3e23d70a    # 0.16f
+    const v32, 0x3e23d70a    # 0.16f
 
-    mul-float v0, v0, v33
+    mul-float v0, v0, v32
 
     add-float/2addr v0, v5
 
     .line 547
-    sub-float v5, v30, v29
+    sub-float v5, v29, v28
 
     mul-float/2addr v5, v0
 
-    add-float v5, v29, v5
+    add-float v5, v28, v5
 
-    move/from16 v30, v0
+    move/from16 v29, v0
 
     const/4 v0, 0x0
 
@@ -1285,22 +1289,22 @@
     move-result v5
 
     .line 548
-    sub-float v9, v9, v29
+    sub-float v9, v9, v28
 
-    mul-float v9, v9, v30
+    mul-float v9, v9, v29
 
-    add-float v9, v29, v9
+    add-float v9, v28, v9
 
     invoke-static {v0, v9}, Ljava/lang/Math;->max(FF)F
 
     move-result v9
 
     .line 549
-    sub-float v10, v10, v29
+    sub-float v10, v10, v28
 
-    mul-float v10, v10, v30
+    mul-float v10, v10, v29
 
-    add-float v10, v29, v10
+    add-float v10, v28, v10
 
     invoke-static {v0, v10}, Ljava/lang/Math;->max(FF)F
 
@@ -1325,7 +1329,7 @@
 
     .line 532
     :cond_b
-    const v31, 0x3e4ccccd    # 0.2f
+    const v30, 0x3e4ccccd    # 0.2f
 
     .line 557
     :cond_c
@@ -1345,7 +1349,7 @@
     move-result v10
 
     .line 558
-    move/from16 v29, v10
+    move/from16 v28, v10
 
     invoke-static {v5, v9}, Ljava/lang/Math;->min(II)I
 
@@ -1356,13 +1360,13 @@
     move-result v10
 
     .line 559
-    move/from16 v30, v0
+    move/from16 v29, v0
 
     const/16 v0, 0xaa
 
     if-lt v10, v0, :cond_d
 
-    sub-int v10, v29, v10
+    sub-int v10, v28, v10
 
     const/16 v0, 0xe
 
@@ -1371,7 +1375,7 @@
     if-lez v10, :cond_d
 
     .line 560
-    mul-int/lit8 v0, v30, 0x36
+    mul-int/lit8 v0, v29, 0x36
 
     mul-int/lit16 v10, v5, 0xb7
 
@@ -1384,30 +1388,30 @@
     ushr-int/lit8 v0, v0, 0x8
 
     .line 561
-    sub-int v10, v0, v30
+    sub-int v10, v0, v29
 
     int-to-float v10, v10
 
-    mul-float v10, v10, v31
+    mul-float v10, v10, v30
 
     invoke-static {v10}, Ljava/lang/Math;->round(F)I
 
     move-result v10
 
-    add-int v10, v30, v10
+    add-int v10, v29, v10
 
     invoke-static {v10}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clampByte(I)I
 
     move-result v10
 
     .line 562
-    move/from16 v29, v0
+    move/from16 v28, v0
 
-    sub-int v0, v29, v5
+    sub-int v0, v28, v5
 
     int-to-float v0, v0
 
-    mul-float v0, v0, v31
+    mul-float v0, v0, v30
 
     invoke-static {v0}, Ljava/lang/Math;->round(F)I
 
@@ -1420,11 +1424,11 @@
     move-result v5
 
     .line 563
-    sub-int v0, v29, v9
+    sub-int v0, v28, v9
 
     int-to-float v0, v0
 
-    mul-float v0, v0, v31
+    mul-float v0, v0, v30
 
     invoke-static {v0}, Ljava/lang/Math;->round(F)I
 
@@ -1442,7 +1446,7 @@
 
     .line 567
     :cond_d
-    move/from16 v0, v30
+    move/from16 v0, v29
 
     goto :goto_9
 
@@ -1463,9 +1467,11 @@
     goto :goto_a
 
     :cond_f
-    move/from16 v29, v11
+    move/from16 v28, v11
 
-    goto :goto_b
+    move/from16 v32, v12
+
+    goto/16 :goto_c
 
     .line 568
     :cond_10
@@ -1479,41 +1485,164 @@
     move-result v10
 
     .line 569
-    move/from16 v29, v11
+    move/from16 v28, v11
 
-    const/16 v11, 0xe0
+    invoke-static {v5, v9}, Ljava/lang/Math;->min(II)I
 
-    if-le v10, v11, :cond_11
+    move-result v11
+
+    invoke-static {v0, v11}, Ljava/lang/Math;->min(II)I
+
+    move-result v11
 
     .line 570
+    if-eqz p11, :cond_11
+
+    move/from16 v29, v5
+
+    const/16 v5, 0xb9
+
+    if-le v10, v5, :cond_12
+
+    sub-int v5, v10, v11
+
+    const/16 v11, 0xe
+
+    if-le v5, v11, :cond_12
+
+    add-int/lit8 v5, v0, 0xc
+
+    if-le v9, v5, :cond_12
+
+    add-int/lit8 v5, v29, -0x6
+
+    if-lt v9, v5, :cond_12
+
+    .line 572
+    sub-int v5, v9, v0
+
+    const/4 v11, 0x1
+
+    invoke-static {v11, v5}, Ljava/lang/Math;->max(II)I
+
+    move-result v5
+
+    int-to-float v5, v5
+
+    .line 573
+    sub-int v11, v29, v0
+
+    int-to-float v11, v11
+
+    div-float v5, v11, v5
+
+    .line 574
+    move/from16 v30, v11
+
+    const v11, 0x3f3851ec    # 0.72f
+
+    move/from16 v32, v12
+
+    const v12, 0x3eb33333    # 0.35f
+
+    invoke-static {v12, v11, v5}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
+
+    move-result v5
+
+    .line 575
+    const/4 v11, 0x0
+
+    cmpl-float v12, v5, v11
+
+    if-lez v12, :cond_13
+
+    .line 576
+    const/high16 v11, 0x43700000    # 240.0f
+
+    int-to-float v10, v10
+
+    const/high16 v12, 0x43390000    # 185.0f
+
+    invoke-static {v12, v11, v10}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
+
+    move-result v10
+
+    .line 577
+    const v11, 0x3e0f5c29    # 0.14f
+
+    mul-float/2addr v10, v11
+
+    mul-float/2addr v10, v5
+
+    mul-float v10, v10, v30
+
+    invoke-static {v10}, Ljava/lang/Math;->round(F)I
+
+    move-result v5
+
+    .line 578
+    sub-int v5, v29, v5
+
+    invoke-static {v5}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clampByte(I)I
+
+    move-result v5
+
+    .line 579
+    invoke-static {v5, v9}, Ljava/lang/Math;->max(II)I
+
+    move-result v10
+
+    invoke-static {v0, v10}, Ljava/lang/Math;->max(II)I
+
+    move-result v10
+
+    goto :goto_b
+
+    .line 570
+    :cond_11
+    move/from16 v29, v5
+
+    :cond_12
+    move/from16 v32, v12
+
+    .line 582
+    :cond_13
+    move/from16 v5, v29
+
+    :goto_b
+    const/16 v11, 0xe0
+
+    if-le v10, v11, :cond_14
+
+    .line 583
     int-to-float v10, v10
 
     const/high16 v11, 0x43600000    # 224.0f
 
     sub-float v11, v10, v11
 
-    .line 571
-    const/high16 v30, 0x43000000    # 128.0f
+    .line 584
+    const/high16 v12, 0x43000000    # 128.0f
 
-    mul-float v30, v30, v11
+    mul-float/2addr v12, v11
 
-    const/high16 v31, 0x43000000    # 128.0f
+    const/high16 v29, 0x43000000    # 128.0f
 
-    add-float v11, v11, v31
+    add-float v11, v11, v29
 
-    div-float v30, v30, v11
+    div-float/2addr v12, v11
 
     const/high16 v11, 0x43600000    # 224.0f
 
-    add-float v30, v30, v11
+    add-float/2addr v12, v11
 
-    .line 572
-    div-float v30, v30, v10
+    .line 585
+    div-float/2addr v12, v10
 
-    .line 573
+    .line 586
     int-to-float v0, v0
 
-    mul-float v0, v0, v30
+    mul-float/2addr v0, v12
 
     invoke-static {v0}, Ljava/lang/Math;->round(F)I
 
@@ -1523,10 +1652,10 @@
 
     move-result v0
 
-    .line 574
+    .line 587
     int-to-float v5, v5
 
-    mul-float v5, v5, v30
+    mul-float/2addr v5, v12
 
     invoke-static {v5}, Ljava/lang/Math;->round(F)I
 
@@ -1536,10 +1665,10 @@
 
     move-result v5
 
-    .line 575
+    .line 588
     int-to-float v9, v9
 
-    mul-float v9, v9, v30
+    mul-float/2addr v9, v12
 
     invoke-static {v9}, Ljava/lang/Math;->round(F)I
 
@@ -1549,20 +1678,20 @@
 
     move-result v9
 
-    .line 579
-    :cond_11
-    :goto_b
-    if-ne v0, v4, :cond_12
+    .line 592
+    :cond_14
+    :goto_c
+    if-ne v0, v4, :cond_15
 
-    if-ne v5, v6, :cond_12
+    if-ne v5, v6, :cond_15
 
-    if-eq v9, v3, :cond_13
+    if-eq v9, v3, :cond_16
 
-    .line 580
-    :cond_12
+    .line 593
+    :cond_15
     shl-int/lit8 v0, v0, 0x10
 
-    or-int v0, v26, v0
+    or-int v0, v25, v0
 
     shl-int/lit8 v3, v5, 0x8
 
@@ -1570,12 +1699,12 @@
 
     or-int/2addr v0, v9
 
-    aput v0, p0, v25
+    aput v0, p0, v24
 
     .line 484
-    :cond_13
-    :goto_c
-    add-int/lit8 v0, v28, 0x1
+    :cond_16
+    :goto_d
+    add-int/lit8 v0, v27, 0x1
 
     move-object/from16 v3, p6
 
@@ -1585,21 +1714,27 @@
 
     move/from16 v6, p9
 
-    move/from16 v9, v27
+    move/from16 v9, v26
 
-    move/from16 v11, v29
+    move/from16 v11, v28
 
-    move/from16 v10, v32
+    move/from16 v10, v31
 
-    const/high16 p14, 0x3f800000    # 1.0f
+    move/from16 v12, v32
+
+    const/high16 p10, 0x3f800000    # 1.0f
 
     goto/16 :goto_6
 
     .line 476
-    :cond_14
-    move/from16 v29, v11
+    :cond_17
+    move/from16 v32, v12
 
-    add-int/lit8 v11, v29, 0x1
+    add-int/lit8 v15, v15, 0x1
+
+    const/4 v10, 0x0
+
+    move-object/from16 v0, p0
 
     move-object/from16 v3, p6
 
@@ -1609,1052 +1744,1073 @@
 
     move/from16 v6, p9
 
-    const/4 v10, 0x0
-
-    const/16 v13, 0x320
-
-    const/16 v15, 0xc8
-
-    move-object/from16 v0, p0
-
     goto/16 :goto_3
 
-    .line 586
-    :cond_15
-    if-eqz p12, :cond_32
+    .line 599
+    :cond_18
+    if-eqz p12, :cond_35
 
-    const v0, 0x3ee66666    # 0.45f
+    const v12, 0x3ee66666    # 0.45f
 
-    cmpl-float v3, p13, v0
+    cmpl-float v0, p13, v12
 
-    if-ltz v3, :cond_32
+    if-ltz v0, :cond_35
 
-    const/high16 v3, 0x41f00000    # 30.0f
+    const/high16 v0, 0x41f00000    # 30.0f
 
-    cmpg-float v3, p13, v3
+    cmpg-float v0, p13, v0
 
-    if-gtz v3, :cond_32
+    if-gtz v0, :cond_35
 
-    const/16 v3, 0x320
+    const/16 v0, 0x320
 
-    if-ge v7, v3, :cond_32
+    if-ge v7, v0, :cond_35
 
-    const/4 v3, 0x6
+    const/4 v0, 0x6
 
-    if-lt v1, v3, :cond_32
+    if-lt v1, v0, :cond_35
 
-    const/4 v3, 0x6
+    if-lt v8, v0, :cond_35
 
-    if-lt v8, v3, :cond_32
+    .line 600
+    const/16 v0, 0xc8
 
-    .line 587
-    const/16 v3, 0xc8
+    if-le v7, v0, :cond_19
 
-    if-le v7, v3, :cond_16
-
-    move/from16 v5, v22
-
-    goto :goto_d
-
-    :cond_16
-    const/high16 v5, 0x3f800000    # 1.0f
-
-    .line 588
-    :goto_d
-    const v3, 0x403ccccd    # 2.95f
-
-    cmpg-float v3, p13, v3
-
-    if-gez v3, :cond_17
-
-    const/4 v4, 0x1
+    move/from16 v5, v21
 
     goto :goto_e
 
-    :cond_17
-    const/4 v4, 0x0
-
-    .line 592
-    :goto_e
-    const v6, 0x3f733333    # 0.95f
-
-    cmpg-float v7, p13, v6
-
-    if-gez v7, :cond_18
-
-    .line 593
-    nop
-
-    .line 594
-    nop
-
-    .line 595
-    const v3, 0x3e75c28f    # 0.24f
-
-    mul-float/2addr v5, v3
-
-    const v3, 0x3d30b0b1
-
-    move/from16 v7, v21
-
-    goto :goto_f
-
-    .line 596
-    :cond_18
-    const v7, 0x3fd9999a    # 1.7f
-
-    cmpg-float v7, p13, v7
-
-    if-gez v7, :cond_19
-
-    .line 597
-    nop
-
-    .line 598
-    nop
-
-    .line 599
-    const v3, 0x3ec28f5c    # 0.38f
-
-    mul-float/2addr v5, v3
-
-    const v3, 0x3d109091
-
-    const v7, 0x3e6147ae    # 0.22f
-
-    goto :goto_f
-
-    .line 600
     :cond_19
-    if-gez v3, :cond_1a
+    const/high16 v5, 0x3f800000    # 1.0f
 
     .line 601
-    nop
+    :goto_e
+    const v0, 0x403ccccd    # 2.95f
 
-    .line 602
-    nop
+    cmpg-float v0, p13, v0
 
-    .line 603
-    const v3, 0x3e8f5c29    # 0.28f
+    if-gez v0, :cond_1a
 
-    mul-float/2addr v5, v3
-
-    const v3, 0x3d20a0a1
-
-    const v7, 0x3eb33333    # 0.35f
+    const/4 v11, 0x1
 
     goto :goto_f
 
-    .line 604
     :cond_1a
-    const/high16 v3, 0x40b00000    # 5.5f
-
-    cmpg-float v3, p13, v3
-
-    if-gez v3, :cond_1b
+    const/4 v11, 0x0
 
     .line 605
-    nop
+    :goto_f
+    const v3, 0x3f733333    # 0.95f
+
+    cmpg-float v4, p13, v3
+
+    if-gez v4, :cond_1b
 
     .line 606
     nop
 
     .line 607
-    const v3, 0x3e6147ae    # 0.22f
-
-    mul-float/2addr v5, v3
-
-    const v3, 0x3d20a0a1
-
-    move v7, v0
-
-    goto :goto_f
+    nop
 
     .line 608
-    :cond_1b
-    const/high16 v3, 0x41400000    # 12.0f
+    const v0, 0x3e75c28f    # 0.24f
 
-    cmpg-float v3, p13, v3
+    mul-float/2addr v5, v0
 
-    if-gez v3, :cond_1c
+    const v0, 0x3d30b0b1
+
+    move/from16 v4, v20
+
+    goto :goto_10
 
     .line 609
-    nop
+    :cond_1b
+    const v4, 0x3fd9999a    # 1.7f
+
+    cmpg-float v4, p13, v4
+
+    if-gez v4, :cond_1c
 
     .line 610
     nop
 
     .line 611
-    const v3, 0x3ed70a3d    # 0.42f
+    nop
 
-    mul-float/2addr v5, v3
+    .line 612
+    const v0, 0x3ec28f5c    # 0.38f
 
-    const v3, 0x3d008081
+    mul-float/2addr v5, v0
 
-    const v7, 0x3ef5c28f    # 0.48f
+    const v0, 0x3d109091
 
-    goto :goto_f
+    const v4, 0x3e6147ae    # 0.22f
+
+    goto :goto_10
 
     .line 613
     :cond_1c
-    nop
+    if-gez v0, :cond_1d
 
     .line 614
     nop
 
     .line 615
-    const v3, 0x3ea3d70a    # 0.32f
+    nop
 
-    mul-float/2addr v5, v3
+    .line 616
+    const v0, 0x3e8f5c29    # 0.28f
 
-    const v3, 0x3d109091
+    mul-float/2addr v5, v0
 
-    const v7, 0x3f0ccccd    # 0.55f
+    const v0, 0x3d20a0a1
+
+    const v4, 0x3eb33333    # 0.35f
+
+    goto :goto_10
 
     .line 617
-    :goto_f
-    new-array v9, v2, [F
+    :cond_1d
+    const/high16 v0, 0x40b00000    # 5.5f
+
+    cmpg-float v0, p13, v0
+
+    if-gez v0, :cond_1e
 
     .line 618
-    const/4 v10, 0x0
-
-    :goto_10
-    if-ge v10, v2, :cond_1d
+    nop
 
     .line 619
-    aget v11, p0, v10
+    nop
 
     .line 620
-    ushr-int/lit8 v12, v11, 0x10
+    const v0, 0x3e6147ae    # 0.22f
 
-    and-int/lit16 v12, v12, 0xff
+    mul-float/2addr v5, v0
 
-    int-to-float v12, v12
+    const v0, 0x3d20a0a1
 
-    mul-float v12, v12, v19
+    move v4, v12
 
-    ushr-int/lit8 v13, v11, 0x8
+    goto :goto_10
+
+    .line 621
+    :cond_1e
+    const/high16 v0, 0x41400000    # 12.0f
+
+    cmpg-float v0, p13, v0
+
+    if-gez v0, :cond_1f
+
+    .line 622
+    nop
+
+    .line 623
+    nop
+
+    .line 624
+    const v0, 0x3ed70a3d    # 0.42f
+
+    mul-float/2addr v5, v0
+
+    const v0, 0x3d008081
+
+    const v4, 0x3ef5c28f    # 0.48f
+
+    goto :goto_10
+
+    .line 626
+    :cond_1f
+    nop
+
+    .line 627
+    nop
+
+    .line 628
+    const v0, 0x3ea3d70a    # 0.32f
+
+    mul-float/2addr v5, v0
+
+    const v0, 0x3d109091
+
+    const v4, 0x3f0ccccd    # 0.55f
+
+    .line 630
+    :goto_10
+    new-array v6, v2, [F
+
+    .line 631
+    const/4 v10, 0x0
+
+    :goto_11
+    if-ge v10, v2, :cond_20
+
+    .line 632
+    aget v7, p0, v10
+
+    .line 633
+    ushr-int/lit8 v9, v7, 0x10
+
+    and-int/lit16 v9, v9, 0xff
+
+    int-to-float v9, v9
+
+    mul-float v9, v9, v18
+
+    ushr-int/lit8 v13, v7, 0x8
 
     and-int/lit16 v13, v13, 0xff
 
     int-to-float v13, v13
 
-    mul-float v13, v13, v18
+    mul-float v13, v13, v17
 
-    add-float/2addr v12, v13
+    add-float/2addr v9, v13
 
-    and-int/lit16 v11, v11, 0xff
+    and-int/lit16 v7, v7, 0xff
 
-    int-to-float v11, v11
+    int-to-float v7, v7
 
-    mul-float v11, v11, v17
+    mul-float v7, v7, v16
 
-    add-float/2addr v12, v11
+    add-float/2addr v9, v7
 
-    const v11, 0x3b808081
+    const v7, 0x3b808081
 
-    mul-float/2addr v12, v11
+    mul-float/2addr v9, v7
 
-    aput v12, v9, v10
+    aput v9, v6, v10
 
-    .line 618
+    .line 631
     add-int/lit8 v10, v10, 0x1
 
-    goto :goto_10
+    goto :goto_11
 
-    .line 624
-    :cond_1d
-    mul-float/2addr v3, v3
+    .line 637
+    :cond_20
+    mul-float/2addr v0, v0
 
-    .line 625
+    .line 638
     const v2, 0x3fd9999a    # 1.7f
 
     cmpg-float v2, p13, v2
 
-    if-gez v2, :cond_1e
+    if-gez v2, :cond_21
 
-    const/high16 v20, 0x41200000    # 10.0f
+    const/high16 v19, 0x41200000    # 10.0f
 
-    :cond_1e
+    :cond_21
     const/high16 v2, 0x437f0000    # 255.0f
 
-    div-float v20, v20, v2
+    div-float v19, v19, v2
 
-    .line 626
-    const/4 v10, 0x2
-
-    :goto_11
-    add-int/lit8 v11, v8, -0x2
-
-    if-ge v10, v11, :cond_32
-
-    .line 627
-    mul-int v11, v10, v1
-
-    .line 628
-    const/4 v12, 0x2
+    .line 639
+    const/4 v7, 0x2
 
     :goto_12
+    add-int/lit8 v9, v8, -0x2
+
+    if-ge v7, v9, :cond_35
+
+    .line 640
+    mul-int v9, v7, v1
+
+    .line 641
+    const/4 v10, 0x2
+
+    :goto_13
     add-int/lit8 v13, v1, -0x2
 
-    if-ge v12, v13, :cond_31
+    if-ge v10, v13, :cond_34
 
-    .line 629
+    .line 642
     nop
 
-    .line 630
+    .line 643
     nop
 
-    .line 631
+    .line 644
     nop
 
-    .line 632
+    .line 645
     nop
 
-    .line 633
+    .line 646
     nop
 
-    .line 634
+    .line 647
     nop
 
-    .line 635
+    .line 648
     const/4 v13, -0x1
 
-    move v15, v13
+    move/from16 p3, v2
+
+    move/from16 p4, v12
+
+    move v3, v13
+
+    const/4 v2, 0x0
+
+    const/high16 v12, 0x3f800000    # 1.0f
 
     const/4 v13, 0x0
 
-    const/high16 v14, 0x3f800000    # 1.0f
+    const/4 v14, 0x0
+
+    const/4 v15, 0x0
 
     const/16 v16, 0x0
 
-    const/16 v17, 0x0
-
-    const/16 v18, 0x0
-
-    const/16 v19, 0x0
-
-    :goto_13
-    move/from16 p3, v0
-
-    const/4 v0, 0x1
-
-    if-gt v15, v0, :cond_22
-
-    .line 636
-    add-int v23, v10, v15
-
-    mul-int v23, v23, v1
-
-    .line 637
-    const/16 v25, -0x1
-
-    move/from16 p4, v2
-
-    move/from16 v2, v25
-
     :goto_14
-    if-gt v2, v0, :cond_21
+    move/from16 p7, v5
 
-    .line 638
-    add-int v25, v23, v12
+    const/4 v5, 0x1
 
-    add-int v25, v25, v2
+    if-gt v3, v5, :cond_25
 
-    .line 639
-    aget v26, v9, v25
+    .line 649
+    add-int v17, v7, v3
 
-    .line 640
-    add-float v19, v19, v26
-
-    .line 641
-    cmpg-float v27, v26, v14
-
-    if-gez v27, :cond_1f
-
-    move/from16 v14, v26
-
-    .line 642
-    :cond_1f
-    cmpl-float v27, v26, v13
-
-    if-lez v27, :cond_20
-
-    move/from16 v13, v26
-
-    .line 643
-    :cond_20
-    add-int/lit8 v26, v25, 0x1
-
-    aget v26, v9, v26
-
-    add-int/lit8 v27, v25, -0x1
-
-    aget v27, v9, v27
-
-    sub-float v26, v26, v27
-
-    mul-float v26, v26, v22
-
-    .line 644
-    add-int v27, v25, v1
-
-    aget v27, v9, v27
-
-    sub-int v25, v25, v1
-
-    aget v25, v9, v25
-
-    sub-float v27, v27, v25
-
-    mul-float v27, v27, v22
-
-    .line 645
-    mul-float v25, v26, v26
-
-    add-float v16, v16, v25
-
-    .line 646
-    mul-float v26, v26, v27
-
-    add-float v17, v17, v26
-
-    .line 647
-    mul-float v27, v27, v27
-
-    add-float v18, v18, v27
-
-    .line 637
-    add-int/lit8 v2, v2, 0x1
-
-    goto :goto_14
-
-    .line 635
-    :cond_21
-    add-int/lit8 v15, v15, 0x1
-
-    move/from16 v0, p3
-
-    move/from16 v2, p4
-
-    goto :goto_13
+    mul-int v17, v17, v1
 
     .line 650
-    :cond_22
-    move/from16 p4, v2
+    const/16 v18, -0x1
 
-    sub-float v2, v13, v14
+    move/from16 p8, v2
 
-    cmpg-float v2, v2, v20
+    move/from16 v2, v18
 
-    if-gez v2, :cond_23
+    :goto_15
+    if-gt v2, v5, :cond_24
 
     .line 651
-    move/from16 p7, v4
+    add-int v18, v17, v10
 
-    move v4, v6
+    add-int v18, v18, v2
 
-    const/16 v24, 0x0
-
-    move v6, v3
-
-    goto/16 :goto_1c
+    .line 652
+    aget v22, v6, v18
 
     .line 653
-    :cond_23
-    const v2, 0x3de38e39
-
-    mul-float v16, v16, v2
+    add-float v16, v16, v22
 
     .line 654
-    mul-float v17, v17, v2
+    cmpg-float v23, v22, v12
+
+    if-gez v23, :cond_22
+
+    move/from16 v12, v22
 
     .line 655
-    mul-float v18, v18, v2
+    :cond_22
+    cmpl-float v23, v22, p8
 
-    .line 656
-    add-float v15, v16, v18
-
-    .line 657
-    cmpg-float v23, v15, v3
-
-    if-gez v23, :cond_24
-
-    .line 658
-    move/from16 p7, v4
-
-    move v4, v6
-
-    const/16 v24, 0x0
-
-    move v6, v3
-
-    goto/16 :goto_1c
-
-    .line 660
-    :cond_24
-    sub-float v16, v16, v18
-
-    .line 661
-    mul-float v18, v16, v16
-
-    const/high16 v23, 0x40800000    # 4.0f
-
-    mul-float v23, v23, v17
-
-    mul-float v23, v23, v17
-
-    add-float v0, v18, v23
-
-    move/from16 p7, v2
-
-    move/from16 p6, v3
-
-    float-to-double v2, v0
-
-    invoke-static {v2, v3}, Ljava/lang/Math;->sqrt(D)D
-
-    move-result-wide v2
-
-    double-to-float v0, v2
-
-    .line 662
-    add-float v2, v15, v0
-
-    mul-float v2, v2, v22
-
-    .line 663
-    sub-float v3, v15, v0
-
-    mul-float v3, v3, v22
-
-    .line 664
-    sub-float v18, v2, v3
-
-    add-float/2addr v2, v3
-
-    const v3, 0x322bcc77    # 1.0E-8f
-
-    add-float/2addr v2, v3
-
-    div-float v2, v18, v2
-
-    .line 665
-    add-int v3, v11, v12
-
-    aget v18, v9, v3
-
-    .line 668
-    const/high16 v23, 0x40000000    # 2.0f
-
-    if-eqz v4, :cond_28
-
-    .line 671
-    move/from16 v25, v0
-
-    add-float v0, v7, p3
-
-    invoke-static {v6, v0}, Ljava/lang/Math;->min(FF)F
-
-    move-result v0
-
-    invoke-static {v7, v0, v2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
-
-    move-result v0
-
-    .line 672
-    const/high16 v2, 0x40c00000    # 6.0f
-
-    mul-float v2, v2, p6
-
-    move/from16 v6, p6
-
-    invoke-static {v6, v2, v15}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
-
-    move-result v2
-
-    .line 673
-    const/16 v24, 0x0
-
-    cmpl-float v15, v16, v24
-
-    if-ltz v15, :cond_25
-
-    add-float v26, v16, v25
-
-    goto :goto_15
-
-    :cond_25
-    mul-float v26, v17, v23
-
-    .line 674
-    :goto_15
-    if-ltz v15, :cond_26
-
-    mul-float v17, v17, v23
+    if-lez v23, :cond_23
 
     goto :goto_16
 
-    :cond_26
-    sub-float v17, v25, v16
+    :cond_23
+    move/from16 v22, p8
 
-    .line 675
+    .line 656
     :goto_16
-    mul-float v15, v26, v26
+    add-int/lit8 v23, v18, 0x1
 
-    mul-float v16, v17, v17
+    aget v23, v6, v23
 
-    add-float v15, v15, v16
+    add-int/lit8 v24, v18, -0x1
 
-    move/from16 p9, v2
+    aget v24, v6, v24
 
-    move/from16 p6, v3
+    sub-float v23, v23, v24
 
-    float-to-double v2, v15
+    mul-float v23, v23, v21
 
-    invoke-static {v2, v3}, Ljava/lang/Math;->sqrt(D)D
+    .line 657
+    add-int v24, v18, v1
 
-    move-result-wide v2
+    aget v24, v6, v24
 
-    double-to-float v2, v2
+    sub-int v18, v18, v1
 
-    .line 676
-    nop
+    aget v18, v6, v18
 
-    .line 677
-    const v3, 0x358637bd    # 1.0E-6f
+    sub-float v24, v24, v18
 
-    cmpl-float v3, v2, v3
+    mul-float v24, v24, v21
 
-    if-ltz v3, :cond_27
+    .line 658
+    mul-float v18, v23, v23
 
-    .line 678
-    div-float v26, v26, v2
+    add-float v13, v13, v18
 
-    .line 679
-    div-float v17, v17, v2
+    .line 659
+    mul-float v23, v23, v24
 
-    .line 680
-    int-to-float v2, v12
+    add-float v14, v14, v23
 
-    sub-float v3, v2, v26
+    .line 660
+    mul-float v24, v24, v24
 
-    int-to-float v15, v10
+    add-float v15, v15, v24
 
-    move/from16 v16, v2
+    .line 650
+    add-int/lit8 v2, v2, 0x1
 
-    sub-float v2, v15, v17
+    move/from16 p8, v22
 
-    invoke-static {v9, v1, v8, v3, v2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->sampleBilinearY([FIIFF)F
+    goto :goto_15
 
-    move-result v2
+    .line 648
+    :cond_24
+    add-int/lit8 v3, v3, 0x1
 
-    .line 681
-    add-float v3, v16, v26
+    move/from16 v5, p7
+
+    move/from16 v2, p8
+
+    goto :goto_14
+
+    .line 663
+    :cond_25
+    sub-float v3, v2, v12
+
+    cmpg-float v3, v3, v19
+
+    if-gez v3, :cond_26
+
+    .line 664
+    move/from16 p11, v0
+
+    move-object v3, v6
+
+    move/from16 p9, v9
+
+    move v13, v10
+
+    const v10, 0x3f733333    # 0.95f
+
+    const/4 v14, 0x0
+
+    goto/16 :goto_1e
+
+    .line 666
+    :cond_26
+    const v3, 0x3de38e39
+
+    mul-float/2addr v13, v3
+
+    .line 667
+    mul-float/2addr v14, v3
+
+    .line 668
+    mul-float/2addr v15, v3
+
+    .line 669
+    move/from16 p8, v3
+
+    add-float v3, v13, v15
+
+    .line 670
+    cmpg-float v17, v3, v0
+
+    if-gez v17, :cond_27
+
+    .line 671
+    move/from16 p11, v0
+
+    move-object v3, v6
+
+    move/from16 p9, v9
+
+    move v13, v10
+
+    const v10, 0x3f733333    # 0.95f
+
+    const/4 v14, 0x0
+
+    goto/16 :goto_1e
+
+    .line 673
+    :cond_27
+    sub-float/2addr v13, v15
+
+    .line 674
+    mul-float v15, v13, v13
+
+    const/high16 v17, 0x40800000    # 4.0f
+
+    mul-float v17, v17, v14
+
+    mul-float v17, v17, v14
 
     add-float v15, v15, v17
 
-    invoke-static {v9, v1, v8, v3, v15}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->sampleBilinearY([FIIFF)F
+    move-object/from16 v17, v6
+
+    float-to-double v5, v15
+
+    invoke-static {v5, v6}, Ljava/lang/Math;->sqrt(D)D
+
+    move-result-wide v5
+
+    double-to-float v5, v5
+
+    .line 675
+    add-float v6, v3, v5
+
+    mul-float v6, v6, v21
+
+    .line 676
+    sub-float v15, v3, v5
+
+    mul-float v15, v15, v21
+
+    .line 677
+    sub-float v18, v6, v15
+
+    add-float/2addr v6, v15
+
+    const v15, 0x322bcc77    # 1.0E-8f
+
+    add-float/2addr v6, v15
+
+    div-float v6, v18, v6
+
+    .line 678
+    add-int v15, v9, v10
+
+    aget v18, v17, v15
+
+    .line 681
+    const/high16 v23, 0x40000000    # 2.0f
+
+    if-eqz v11, :cond_2b
+
+    .line 684
+    move/from16 v24, v5
+
+    add-float v5, v4, p4
+
+    move/from16 p9, v9
+
+    const v9, 0x3f733333    # 0.95f
+
+    invoke-static {v9, v5}, Ljava/lang/Math;->min(FF)F
+
+    move-result v5
+
+    invoke-static {v4, v5, v6}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
+
+    move-result v5
+
+    .line 685
+    const/high16 v6, 0x40c00000    # 6.0f
+
+    mul-float/2addr v6, v0
+
+    invoke-static {v0, v6, v3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
 
     move-result v3
 
-    .line 682
-    add-float/2addr v2, v3
+    .line 686
+    const/4 v6, 0x0
 
-    mul-float v2, v2, v22
+    cmpl-float v9, v13, v6
 
-    sub-float v2, v18, v2
+    if-ltz v9, :cond_28
+
+    add-float v6, v13, v24
 
     goto :goto_17
 
-    .line 677
-    :cond_27
-    const/4 v2, 0x0
-
-    .line 684
-    :goto_17
-    mul-float v19, v19, p7
-
-    sub-float v3, v18, v19
-
-    .line 685
-    mul-float/2addr v2, v0
-
-    const/high16 v15, 0x3f800000    # 1.0f
-
-    sub-float v16, v15, v0
-
-    mul-float v3, v3, v16
-
-    add-float/2addr v2, v3
-
-    .line 686
-    mul-float v3, p9, p3
-
-    invoke-static {v3, v0}, Ljava/lang/Math;->max(FF)F
-
-    move-result v0
-
-    mul-float/2addr v0, v5
+    :cond_28
+    mul-float v6, v14, v23
 
     .line 687
-    move/from16 p7, v4
+    :goto_17
+    if-ltz v9, :cond_29
 
-    const v4, 0x3f733333    # 0.95f
-
-    goto/16 :goto_1a
-
-    .line 688
-    :cond_28
-    move/from16 v6, p6
-
-    move/from16 v25, v0
-
-    move/from16 p6, v3
-
-    const/high16 v15, 0x3f800000    # 1.0f
-
-    cmpg-float v0, v2, v7
-
-    if-gez v0, :cond_29
-
-    .line 689
-    move/from16 p7, v4
-
-    const v4, 0x3f733333    # 0.95f
-
-    const/16 v24, 0x0
-
-    goto/16 :goto_1c
-
-    .line 691
-    :cond_29
-    const/16 v24, 0x0
-
-    cmpl-float v0, v16, v24
-
-    if-ltz v0, :cond_2a
-
-    add-float v3, v16, v25
+    mul-float v14, v14, v23
 
     goto :goto_18
 
-    :cond_2a
-    mul-float v3, v17, v23
+    :cond_29
+    sub-float v14, v24, v13
+
+    .line 688
+    :goto_18
+    mul-float v9, v6, v6
+
+    mul-float v13, v14, v14
+
+    add-float/2addr v9, v13
+
+    move/from16 p11, v14
+
+    float-to-double v13, v9
+
+    invoke-static {v13, v14}, Ljava/lang/Math;->sqrt(D)D
+
+    move-result-wide v13
+
+    double-to-float v9, v13
+
+    .line 689
+    nop
+
+    .line 690
+    const v13, 0x358637bd    # 1.0E-6f
+
+    cmpl-float v13, v9, v13
+
+    if-ltz v13, :cond_2a
+
+    .line 691
+    div-float/2addr v6, v9
 
     .line 692
-    :goto_18
-    if-ltz v0, :cond_2b
-
-    mul-float v17, v17, v23
-
-    goto :goto_19
-
-    :cond_2b
-    sub-float v17, v25, v16
+    div-float v14, p11, v9
 
     .line 693
-    :goto_19
-    mul-float v0, v3, v3
+    int-to-float v9, v10
 
-    mul-float v16, v17, v17
+    sub-float v13, v9, v6
 
-    add-float v0, v0, v16
+    move/from16 p11, v0
 
-    move/from16 p9, v3
+    int-to-float v0, v7
 
-    move/from16 p7, v4
+    move/from16 v23, v0
 
-    float-to-double v3, v0
+    sub-float v0, v23, v14
 
-    invoke-static {v3, v4}, Ljava/lang/Math;->sqrt(D)D
+    move/from16 p12, v3
 
-    move-result-wide v3
+    move-object/from16 v3, v17
 
-    double-to-float v0, v3
-
-    .line 694
-    const v3, 0x358637bd    # 1.0E-6f
-
-    cmpg-float v3, v0, v3
-
-    if-gez v3, :cond_2c
-
-    .line 695
-    const v4, 0x3f733333    # 0.95f
-
-    const/16 v24, 0x0
-
-    goto/16 :goto_1c
-
-    .line 697
-    :cond_2c
-    div-float v3, p9, v0
-
-    .line 698
-    div-float v17, v17, v0
-
-    .line 699
-    int-to-float v0, v12
-
-    sub-float v4, v0, v3
-
-    int-to-float v15, v10
-
-    move/from16 v16, v0
-
-    sub-float v0, v15, v17
-
-    invoke-static {v9, v1, v8, v4, v0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->sampleBilinearY([FIIFF)F
+    invoke-static {v3, v1, v8, v13, v0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->sampleBilinearY([FIIFF)F
 
     move-result v0
 
-    .line 700
-    add-float v3, v16, v3
+    .line 694
+    add-float/2addr v9, v6
 
-    add-float v15, v15, v17
+    add-float v6, v23, v14
 
-    invoke-static {v9, v1, v8, v3, v15}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->sampleBilinearY([FIIFF)F
+    invoke-static {v3, v1, v8, v9, v6}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->sampleBilinearY([FIIFF)F
 
-    move-result v3
+    move-result v6
 
-    .line 701
-    add-float/2addr v0, v3
+    .line 695
+    add-float/2addr v0, v6
 
-    mul-float v0, v0, v22
+    mul-float v0, v0, v21
 
     sub-float v0, v18, v0
 
+    goto :goto_19
+
+    .line 690
+    :cond_2a
+    move/from16 p11, v0
+
+    move/from16 p12, v3
+
+    move-object/from16 v3, v17
+
+    const/4 v0, 0x0
+
+    .line 697
+    :goto_19
+    mul-float v16, v16, p8
+
+    sub-float v6, v18, v16
+
+    .line 698
+    mul-float/2addr v0, v5
+
+    const/high16 v9, 0x3f800000    # 1.0f
+
+    sub-float v13, v9, v5
+
+    mul-float/2addr v6, v13
+
+    add-float/2addr v0, v6
+
+    .line 699
+    mul-float v6, p12, p4
+
+    invoke-static {v6, v5}, Ljava/lang/Math;->max(FF)F
+
+    move-result v5
+
+    mul-float v5, v5, p7
+
+    .line 700
+    move v6, v5
+
+    move v13, v10
+
+    const v5, 0x3eb33333    # 0.35f
+
+    const v10, 0x3f733333    # 0.95f
+
+    goto/16 :goto_1c
+
+    .line 701
+    :cond_2b
+    move/from16 p11, v0
+
+    move/from16 v24, v5
+
+    move/from16 p9, v9
+
+    move-object/from16 v3, v17
+
+    const/high16 v9, 0x3f800000    # 1.0f
+
+    cmpg-float v0, v6, v4
+
+    if-gez v0, :cond_2c
+
     .line 702
-    const v3, 0x3eb33333    # 0.35f
+    move v13, v10
 
-    add-float/2addr v3, v7
+    const v10, 0x3f733333    # 0.95f
 
-    const v4, 0x3f733333    # 0.95f
+    const/4 v14, 0x0
 
-    invoke-static {v4, v3}, Ljava/lang/Math;->min(FF)F
-
-    move-result v3
-
-    invoke-static {v7, v3, v2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
-
-    move-result v2
-
-    mul-float/2addr v2, v5
-
-    move/from16 v35, v2
-
-    move v2, v0
-
-    move/from16 v0, v35
+    goto/16 :goto_1e
 
     .line 704
-    :goto_1a
-    const v3, 0x3f666666    # 0.9f
+    :cond_2c
+    const/4 v0, 0x0
 
-    cmpl-float v3, v13, v3
+    cmpl-float v5, v13, v0
 
-    if-lez v3, :cond_2d
+    if-ltz v5, :cond_2d
+
+    add-float v0, v13, v24
+
+    goto :goto_1a
+
+    :cond_2d
+    mul-float v0, v14, v23
 
     .line 705
-    mul-float v0, v0, v21
+    :goto_1a
+    if-ltz v5, :cond_2e
+
+    mul-float v14, v14, v23
+
+    goto :goto_1b
+
+    :cond_2e
+    sub-float v14, v24, v13
+
+    .line 706
+    :goto_1b
+    mul-float v5, v0, v0
+
+    mul-float v13, v14, v14
+
+    add-float/2addr v5, v13
+
+    move v13, v10
+
+    float-to-double v9, v5
+
+    invoke-static {v9, v10}, Ljava/lang/Math;->sqrt(D)D
+
+    move-result-wide v9
+
+    double-to-float v5, v9
 
     .line 707
-    :cond_2d
-    mul-float/2addr v0, v2
+    const v9, 0x358637bd    # 1.0E-6f
 
-    add-float v0, v18, v0
+    cmpg-float v9, v5, v9
 
-    invoke-static {v0, v14, v13}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clamp(FFF)F
+    if-gez v9, :cond_2f
+
+    .line 708
+    const v10, 0x3f733333    # 0.95f
+
+    const/4 v14, 0x0
+
+    goto/16 :goto_1e
+
+    .line 710
+    :cond_2f
+    div-float/2addr v0, v5
+
+    .line 711
+    div-float/2addr v14, v5
+
+    .line 712
+    int-to-float v5, v13
+
+    sub-float v9, v5, v0
+
+    int-to-float v10, v7
+
+    move/from16 p8, v0
+
+    sub-float v0, v10, v14
+
+    invoke-static {v3, v1, v8, v9, v0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->sampleBilinearY([FIIFF)F
 
     move-result v0
 
-    .line 708
+    .line 713
+    add-float v5, v5, p8
+
+    add-float/2addr v10, v14
+
+    invoke-static {v3, v1, v8, v5, v10}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->sampleBilinearY([FIIFF)F
+
+    move-result v5
+
+    .line 714
+    add-float/2addr v0, v5
+
+    mul-float v0, v0, v21
+
+    sub-float v0, v18, v0
+
+    .line 715
+    const v5, 0x3eb33333    # 0.35f
+
+    add-float v9, v4, v5
+
+    const v10, 0x3f733333    # 0.95f
+
+    invoke-static {v10, v9}, Ljava/lang/Math;->min(FF)F
+
+    move-result v9
+
+    invoke-static {v4, v9, v6}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
+
+    move-result v6
+
+    mul-float v6, v6, p7
+
+    .line 717
+    :goto_1c
+    const v9, 0x3f666666    # 0.9f
+
+    cmpl-float v9, v2, v9
+
+    if-lez v9, :cond_30
+
+    .line 718
+    mul-float v6, v6, v20
+
+    .line 720
+    :cond_30
+    mul-float/2addr v6, v0
+
+    add-float v6, v18, v6
+
+    invoke-static {v6, v12, v2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clamp(FFF)F
+
+    move-result v0
+
+    .line 721
     sub-float v0, v0, v18
 
-    mul-float v0, v0, p4
+    mul-float v0, v0, p3
 
-    .line 709
+    .line 722
     invoke-static {v0}, Ljava/lang/Math;->abs(F)F
 
     move-result v2
 
-    cmpg-float v2, v2, v21
+    cmpg-float v2, v2, v20
 
-    if-gez v2, :cond_2e
+    if-gez v2, :cond_31
 
-    .line 710
-    const/16 v24, 0x0
+    .line 723
+    const/4 v14, 0x0
 
-    goto :goto_1c
+    goto :goto_1e
 
-    .line 712
-    :cond_2e
+    .line 725
+    :cond_31
     nop
 
-    .line 713
-    aget v2, p0, p6
+    .line 726
+    aget v2, p0, v15
 
-    .line 714
-    ushr-int/lit8 v3, v2, 0x10
+    .line 727
+    ushr-int/lit8 v6, v2, 0x10
 
-    and-int/lit16 v3, v3, 0xff
+    and-int/lit16 v6, v6, 0xff
 
-    .line 715
-    ushr-int/lit8 v13, v2, 0x8
+    .line 728
+    ushr-int/lit8 v9, v2, 0x8
 
-    and-int/lit16 v13, v13, 0xff
+    and-int/lit16 v9, v9, 0xff
 
-    .line 716
-    and-int/lit16 v14, v2, 0xff
+    .line 729
+    and-int/lit16 v12, v2, 0xff
 
-    .line 717
-    const/16 v24, 0x0
+    .line 730
+    const/4 v14, 0x0
 
-    cmpl-float v15, v0, v24
+    cmpl-float v16, v0, v14
 
-    if-lez v15, :cond_2f
+    if-lez v16, :cond_32
 
-    .line 718
-    invoke-static {v13, v14}, Ljava/lang/Math;->max(II)I
+    .line 731
+    invoke-static {v9, v12}, Ljava/lang/Math;->max(II)I
 
-    move-result v15
+    move-result v5
 
-    invoke-static {v3, v15}, Ljava/lang/Math;->max(II)I
+    invoke-static {v6, v5}, Ljava/lang/Math;->max(II)I
 
-    move-result v15
+    move-result v5
 
-    int-to-float v15, v15
+    int-to-float v5, v5
 
-    sub-float v15, p4, v15
+    sub-float v5, p3, v5
 
-    .line 719
-    invoke-static {v0, v15}, Ljava/lang/Math;->min(FF)F
-
-    move-result v0
-
-    .line 720
-    goto :goto_1b
-
-    .line 721
-    :cond_2f
-    invoke-static {v13, v14}, Ljava/lang/Math;->min(II)I
-
-    move-result v15
-
-    invoke-static {v3, v15}, Ljava/lang/Math;->min(II)I
-
-    move-result v15
-
-    neg-int v15, v15
-
-    int-to-float v15, v15
-
-    .line 722
-    invoke-static {v0, v15}, Ljava/lang/Math;->max(FF)F
+    .line 732
+    invoke-static {v0, v5}, Ljava/lang/Math;->min(FF)F
 
     move-result v0
 
-    .line 724
-    :goto_1b
+    .line 733
+    goto :goto_1d
+
+    .line 734
+    :cond_32
+    invoke-static {v9, v12}, Ljava/lang/Math;->min(II)I
+
+    move-result v5
+
+    invoke-static {v6, v5}, Ljava/lang/Math;->min(II)I
+
+    move-result v5
+
+    neg-int v5, v5
+
+    int-to-float v5, v5
+
+    .line 735
+    invoke-static {v0, v5}, Ljava/lang/Math;->max(FF)F
+
+    move-result v0
+
+    .line 737
+    :goto_1d
     invoke-static {v0}, Ljava/lang/Math;->round(F)I
 
     move-result v0
 
-    .line 725
-    if-eqz v0, :cond_30
+    .line 738
+    if-eqz v0, :cond_33
 
-    .line 726
-    const/high16 v15, -0x1000000
+    .line 739
+    const/high16 v5, -0x1000000
 
-    and-int/2addr v2, v15
+    and-int/2addr v2, v5
 
-    add-int/2addr v3, v0
+    add-int/2addr v6, v0
 
-    .line 727
-    invoke-static {v3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clampByte(I)I
+    .line 740
+    invoke-static {v6}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clampByte(I)I
 
-    move-result v3
+    move-result v5
 
-    shl-int/lit8 v3, v3, 0x10
+    shl-int/lit8 v5, v5, 0x10
 
-    or-int/2addr v2, v3
+    or-int/2addr v2, v5
 
-    add-int/2addr v13, v0
+    add-int/2addr v9, v0
 
-    .line 728
-    invoke-static {v13}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clampByte(I)I
+    .line 741
+    invoke-static {v9}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clampByte(I)I
 
-    move-result v3
+    move-result v5
 
-    shl-int/lit8 v3, v3, 0x8
+    shl-int/lit8 v5, v5, 0x8
 
-    or-int/2addr v2, v3
+    or-int/2addr v2, v5
 
-    add-int/2addr v14, v0
+    add-int/2addr v12, v0
 
-    .line 729
-    invoke-static {v14}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clampByte(I)I
+    .line 742
+    invoke-static {v12}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clampByte(I)I
 
     move-result v0
 
     or-int/2addr v0, v2
 
-    aput v0, p0, p6
+    aput v0, p0, v15
 
-    .line 628
-    :cond_30
-    :goto_1c
-    add-int/lit8 v12, v12, 0x1
+    .line 641
+    :cond_33
+    :goto_1e
+    add-int/lit8 v0, v13, 0x1
 
-    move/from16 v0, p3
+    move/from16 v2, p3
 
-    move/from16 v2, p4
+    move/from16 v12, p4
 
-    move v3, v6
+    move/from16 v5, p7
 
-    move v6, v4
+    move/from16 v9, p9
 
-    move/from16 v4, p7
+    move-object v6, v3
+
+    move v3, v10
+
+    move v10, v0
+
+    move/from16 v0, p11
+
+    goto/16 :goto_13
+
+    .line 639
+    :cond_34
+    move/from16 p11, v0
+
+    move/from16 p3, v2
+
+    move v10, v3
+
+    move/from16 p7, v5
+
+    move-object v3, v6
+
+    move/from16 p4, v12
+
+    const/4 v14, 0x0
+
+    add-int/lit8 v7, v7, 0x1
+
+    move v3, v10
 
     goto/16 :goto_12
 
-    .line 626
-    :cond_31
-    move/from16 p3, v0
-
-    move/from16 p4, v2
-
-    move/from16 p7, v4
-
-    move v4, v6
-
-    const/16 v24, 0x0
-
-    move v6, v3
-
-    add-int/lit8 v10, v10, 0x1
-
-    move v6, v4
-
-    move/from16 v4, p7
-
-    goto/16 :goto_11
-
-    .line 734
-    :cond_32
+    .line 747
+    :cond_35
     return-void
 
     .line 459
-    :cond_33
-    :goto_1d
+    :cond_36
+    :goto_1f
     return-void
 .end method
 
 .method private static applyLightnessCurve(FI)F
     .locals 4
 
-    .line 965
+    .line 978
     const/4 v0, 0x0
 
     cmpg-float v1, p0, v0
@@ -2663,7 +2819,7 @@
 
     return v0
 
-    .line 966
+    .line 979
     :cond_0
     const/high16 v0, 0x3f800000    # 1.0f
 
@@ -2673,20 +2829,20 @@
 
     return v0
 
-    .line 967
+    .line 980
     :cond_1
     const/4 v1, 0x2
 
     if-ne p1, v1, :cond_4
 
-    .line 969
+    .line 982
     const p1, 0x3e6147ae    # 0.22f
 
     cmpg-float v1, p0, p1
 
     if-gez v1, :cond_2
 
-    .line 970
+    .line 983
     float-to-double p0, p0
 
     const-wide v0, 0x3fcc28f5c28f5c29L    # 0.22
@@ -2705,7 +2861,7 @@
 
     return p0
 
-    .line 972
+    .line 985
     :cond_2
     const v1, 0x3f3851ec    # 0.72f
 
@@ -2713,14 +2869,14 @@
 
     if-gez v2, :cond_3
 
-    .line 973
+    .line 986
     sub-float p1, p0, p1
 
     const/high16 v0, 0x3f000000    # 0.5f
 
     div-float/2addr p1, v0
 
-    .line 974
+    .line 987
     const-wide v0, 0x400921fb54442d18L    # Math.PI
 
     float-to-double v2, p1
@@ -2741,7 +2897,7 @@
 
     return p0
 
-    .line 976
+    .line 989
     :cond_3
     const p1, 0x3f6b851f    # 0.92f
 
@@ -2769,13 +2925,13 @@
 
     return p0
 
-    .line 978
+    .line 991
     :cond_4
     const/4 v1, 0x3
 
     if-ne p1, v1, :cond_5
 
-    .line 980
+    .line 993
     const p1, 0x3c9374bc    # 0.018f
 
     mul-float/2addr p1, p0
@@ -2802,7 +2958,7 @@
 
     return p0
 
-    .line 983
+    .line 996
     :cond_5
     const p1, 0x3e3851ec    # 0.18f
 
@@ -4035,7 +4191,7 @@
 .method private static clamp(FFF)F
     .locals 1
 
-    .line 1042
+    .line 1055
     cmpg-float v0, p0, p1
 
     if-gez v0, :cond_0
@@ -4059,7 +4215,7 @@
 .method private static clamp01(F)F
     .locals 2
 
-    .line 1038
+    .line 1051
     const/4 v0, 0x0
 
     cmpg-float v1, p0, v0
@@ -4088,7 +4244,7 @@
 .method private static clampByte(I)I
     .locals 1
 
-    .line 755
+    .line 768
     if-gez p0, :cond_0
 
     const/4 p0, 0x0
@@ -4109,17 +4265,17 @@
 .method private static countWords(Ljava/lang/String;II)I
     .locals 2
 
-    .line 1211
+    .line 1224
     nop
 
-    .line 1212
+    .line 1225
     const/4 v0, 0x0
 
-    .line 1213
+    .line 1226
     :goto_0
     if-ge p1, p2, :cond_2
 
-    .line 1214
+    .line 1227
     :goto_1
     if-ge p1, p2, :cond_0
 
@@ -4133,30 +4289,30 @@
 
     if-eqz v1, :cond_0
 
-    .line 1215
+    .line 1228
     add-int/lit8 p1, p1, 0x1
 
     goto :goto_1
 
-    .line 1217
+    .line 1230
     :cond_0
     if-lt p1, p2, :cond_1
 
-    .line 1218
+    .line 1231
     goto :goto_2
 
-    .line 1220
+    .line 1233
     :cond_1
     add-int/lit8 v0, v0, 0x1
 
-    .line 1221
+    .line 1234
     invoke-static {p0, p1, p2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->wordEnd(Ljava/lang/String;II)I
 
     move-result p1
 
     goto :goto_0
 
-    .line 1223
+    .line 1236
     :cond_2
     :goto_2
     return v0
@@ -4165,7 +4321,7 @@
 .method private static deterministicGrain6(II)F
     .locals 1
 
-    .line 1020
+    .line 1033
     const v0, -0x61c8864f
 
     mul-int/2addr p0, v0
@@ -4176,22 +4332,22 @@
 
     xor-int/2addr p0, p1
 
-    .line 1021
+    .line 1034
     ushr-int/lit8 p1, p0, 0xf
 
     xor-int/2addr p0, p1
 
-    .line 1022
+    .line 1035
     const p1, 0x2c1b3c6d
 
     mul-int/2addr p0, p1
 
-    .line 1023
+    .line 1036
     ushr-int/lit8 p1, p0, 0xc
 
     xor-int/2addr p0, p1
 
-    .line 1025
+    .line 1038
     and-int/lit16 p1, p0, 0xff
 
     ushr-int/lit8 v0, p0, 0x8
@@ -4200,7 +4356,7 @@
 
     add-int/2addr p1, v0
 
-    .line 1026
+    .line 1039
     ushr-int/lit8 v0, p0, 0x10
 
     and-int/lit16 v0, v0, 0xff
@@ -4211,7 +4367,7 @@
 
     add-int/2addr v0, p0
 
-    .line 1027
+    .line 1040
     add-int/2addr p1, v0
 
     int-to-float p0, p1
@@ -4230,7 +4386,7 @@
 .method private static eqKey(Ljava/lang/String;IILjava/lang/String;)Z
     .locals 7
 
-    .line 1235
+    .line 1248
     sub-int/2addr p2, p1
 
     invoke-virtual {p3}, Ljava/lang/String;->length()I
@@ -4995,7 +5151,7 @@
 .method private static fastCbrtPos(F)F
     .locals 5
 
-    .line 1002
+    .line 1015
     const/4 v0, 0x0
 
     cmpg-float v1, p0, v0
@@ -5004,30 +5160,30 @@
 
     return v0
 
-    .line 1003
+    .line 1016
     :cond_0
     invoke-static {p0}, Ljava/lang/Float;->floatToRawIntBits(F)I
 
     move-result v0
 
-    .line 1004
+    .line 1017
     div-int/lit8 v0, v0, 0x3
 
     const v1, 0x2a5137a0
 
     add-int/2addr v0, v1
 
-    .line 1005
+    .line 1018
     invoke-static {v0}, Ljava/lang/Float;->intBitsToFloat(I)F
 
     move-result v0
 
-    .line 1007
+    .line 1020
     mul-float v1, v0, v0
 
     mul-float/2addr v1, v0
 
-    .line 1008
+    .line 1021
     const/high16 v2, 0x40000000    # 2.0f
 
     mul-float v3, p0, v2
@@ -5042,12 +5198,12 @@
 
     div-float/2addr v0, v1
 
-    .line 1009
+    .line 1022
     mul-float v1, v0, v0
 
     mul-float/2addr v1, v0
 
-    .line 1010
+    .line 1023
     add-float/2addr v3, v1
 
     mul-float/2addr v0, v3
@@ -5064,7 +5220,7 @@
 .method private static fastExpNeg(F)F
     .locals 2
 
-    .line 996
+    .line 1009
     const/high16 v0, 0x41200000    # 10.0f
 
     cmpl-float v0, p0, v0
@@ -5075,7 +5231,7 @@
 
     return v1
 
-    .line 997
+    .line 1010
     :cond_0
     cmpg-float v0, p0, v1
 
@@ -5085,7 +5241,7 @@
 
     return p0
 
-    .line 998
+    .line 1011
     :cond_1
     neg-float p0, p0
 
@@ -5135,30 +5291,30 @@
 .method private static gaussianHueWeight(FFF)F
     .locals 0
 
-    .line 987
+    .line 1000
     sub-float/2addr p0, p1
 
     invoke-static {p0}, Ljava/lang/Math;->abs(F)F
 
     move-result p0
 
-    .line 988
+    .line 1001
     const/high16 p1, 0x43340000    # 180.0f
 
     cmpl-float p1, p0, p1
 
     if-lez p1, :cond_0
 
-    .line 989
+    .line 1002
     const/high16 p1, 0x43b40000    # 360.0f
 
     sub-float p0, p1, p0
 
-    .line 991
+    .line 1004
     :cond_0
     div-float/2addr p0, p2
 
-    .line 992
+    .line 1005
     const/high16 p1, 0x3f000000    # 0.5f
 
     mul-float/2addr p1, p0
@@ -5175,7 +5331,7 @@
 .method private static gradePixel(IFFFZFIFZII)I
     .locals 18
 
-    .line 761
+    .line 774
     move/from16 v0, p1
 
     move/from16 v1, p5
@@ -5196,10 +5352,10 @@
 
     if-gtz v4, :cond_0
 
-    .line 762
+    .line 775
     return p0
 
-    .line 764
+    .line 777
     :cond_0
     const/high16 v4, 0x3f800000    # 1.0f
 
@@ -5215,14 +5371,14 @@
 
     if-ltz v5, :cond_1
 
-    .line 765
+    .line 778
     const v0, 0xffffff
 
     or-int v0, p0, v0
 
     return v0
 
-    .line 769
+    .line 782
     :cond_1
     const v5, 0x3e59b3d0    # 0.2126f
 
@@ -5240,7 +5396,7 @@
 
     add-float/2addr v6, v9
 
-    .line 770
+    .line 783
     invoke-static/range {p2 .. p3}, Ljava/lang/Math;->max(FF)F
 
     move-result v9
@@ -5253,7 +5409,7 @@
 
     move-result v9
 
-    .line 771
+    .line 784
     const v10, 0x3f1eb852    # 0.62f
 
     cmpl-float v11, v9, v10
@@ -5264,12 +5420,12 @@
 
     if-lez v11, :cond_4
 
-    .line 772
+    .line 785
     sub-float v6, v9, v10
 
     div-float/2addr v6, v13
 
-    .line 773
+    .line 786
     const v11, 0x3f91eb85    # 1.14f
 
     mul-float/2addr v11, v6
@@ -5294,7 +5450,7 @@
 
     add-float/2addr v11, v10
 
-    .line 774
+    .line 787
     const/4 v6, 0x1
 
     if-ne v2, v6, :cond_2
@@ -5303,23 +5459,23 @@
 
     if-lez v6, :cond_2
 
-    .line 775
+    .line 788
     move v11, v9
 
-    .line 777
+    .line 790
     :cond_2
     div-float/2addr v11, v9
 
-    .line 778
+    .line 791
     mul-float/2addr v0, v11
 
-    .line 779
+    .line 792
     mul-float v6, p2, v11
 
-    .line 780
+    .line 793
     mul-float v11, v11, p3
 
-    .line 782
+    .line 795
     const v14, 0x3f5c28f6    # 0.86f
 
     cmpl-float v15, v9, v14
@@ -5328,7 +5484,7 @@
 
     if-nez p4, :cond_3
 
-    .line 783
+    .line 796
     invoke-static {v14, v4, v9}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
 
     move-result v9
@@ -5337,7 +5493,7 @@
 
     mul-float/2addr v9, v14
 
-    .line 784
+    .line 797
     mul-float v14, v0, v5
 
     mul-float v15, v6, v7
@@ -5348,28 +5504,28 @@
 
     add-float/2addr v14, v15
 
-    .line 785
+    .line 798
     sub-float v15, v14, v0
 
     mul-float/2addr v15, v9
 
     add-float/2addr v0, v15
 
-    .line 786
+    .line 799
     sub-float v15, v14, v6
 
     mul-float/2addr v15, v9
 
     add-float/2addr v6, v15
 
-    .line 787
+    .line 800
     sub-float/2addr v14, v11
 
     mul-float/2addr v14, v9
 
     add-float/2addr v11, v14
 
-    .line 789
+    .line 802
     :cond_3
     mul-float/2addr v5, v0
 
@@ -5383,7 +5539,7 @@
 
     goto :goto_0
 
-    .line 771
+    .line 784
     :cond_4
     move/from16 v11, p3
 
@@ -5391,7 +5547,7 @@
 
     move/from16 v6, p2
 
-    .line 793
+    .line 806
     :goto_0
     const/high16 v7, -0x3ef00000    # -9.0f
 
@@ -5403,7 +5559,7 @@
 
     if-nez p4, :cond_5
 
-    .line 794
+    .line 807
     float-to-double v14, v1
 
     invoke-static {v14, v15}, Ljava/lang/Math;->exp(D)D
@@ -5420,33 +5576,33 @@
 
     move-result v1
 
-    .line 795
+    .line 808
     invoke-static {v1, v5, v2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->localBaseGain(FFI)F
 
     move-result v1
 
-    .line 796
+    .line 809
     mul-float/2addr v0, v1
 
     invoke-static {v3, v0}, Ljava/lang/Math;->max(FF)F
 
     move-result v0
 
-    .line 797
+    .line 810
     mul-float/2addr v6, v1
 
     invoke-static {v3, v6}, Ljava/lang/Math;->max(FF)F
 
     move-result v6
 
-    .line 798
+    .line 811
     mul-float/2addr v11, v1
 
     invoke-static {v3, v11}, Ljava/lang/Math;->max(FF)F
 
     move-result v11
 
-    .line 802
+    .line 815
     :cond_5
     const v1, 0x3ed30eb1
 
@@ -5464,7 +5620,7 @@
 
     add-float/2addr v1, v5
 
-    .line 803
+    .line 816
     const v5, 0x3e58fd3b
 
     mul-float/2addr v5, v0
@@ -5481,7 +5637,7 @@
 
     add-float/2addr v5, v7
 
-    .line 804
+    .line 817
     const v7, 0x3db4d7ec
 
     mul-float/2addr v0, v7
@@ -5498,22 +5654,22 @@
 
     add-float/2addr v0, v11
 
-    .line 806
+    .line 819
     invoke-static {v1}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->fastCbrtPos(F)F
 
     move-result v1
 
-    .line 807
+    .line 820
     invoke-static {v5}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->fastCbrtPos(F)F
 
     move-result v5
 
-    .line 808
+    .line 821
     invoke-static {v0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->fastCbrtPos(F)F
 
     move-result v0
 
-    .line 810
+    .line 823
     const v6, 0x3e578152
 
     mul-float/2addr v6, v1
@@ -5530,7 +5686,7 @@
 
     sub-float/2addr v6, v7
 
-    .line 811
+    .line 824
     const v7, 0x3ffd2f0e
 
     mul-float/2addr v7, v1
@@ -5547,7 +5703,7 @@
 
     add-float/2addr v7, v9
 
-    .line 812
+    .line 825
     const v9, 0x3cd434b4
 
     mul-float/2addr v1, v9
@@ -5564,24 +5720,24 @@
 
     sub-float/2addr v1, v0
 
-    .line 815
+    .line 828
     invoke-static {v6, v2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->applyLightnessCurve(FI)F
 
     move-result v0
 
-    .line 817
+    .line 830
     const v5, 0x3f6b851f    # 0.92f
 
     const/4 v9, 0x3
 
     if-eqz p8, :cond_7
 
-    .line 819
+    .line 832
     cmpl-float v11, p7, v3
 
     if-lez v11, :cond_6
 
-    .line 820
+    .line 833
     const v11, 0x3f147ae1    # 0.58f
 
     invoke-static {v11, v5, v0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
@@ -5590,7 +5746,7 @@
 
     sub-float v11, v4, v11
 
-    .line 821
+    .line 834
     mul-float v11, v11, p7
 
     sub-float v11, v4, v11
@@ -5601,11 +5757,11 @@
 
     move-result v0
 
-    .line 824
+    .line 837
     :cond_6
     if-ne v2, v9, :cond_7
 
-    .line 825
+    .line 838
     const v11, 0x3d75c28f    # 0.06f
 
     const v14, 0x3e4ccccd    # 0.2f
@@ -5626,12 +5782,12 @@
 
     mul-float/2addr v11, v14
 
-    .line 826
+    .line 839
     cmpl-float v14, v11, v3
 
     if-lez v14, :cond_7
 
-    .line 827
+    .line 840
     invoke-static/range {p9 .. p10}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->deterministicGrain6(II)F
 
     move-result v14
@@ -5648,21 +5804,21 @@
 
     move-result v0
 
-    .line 832
+    .line 845
     :cond_7
     if-eqz p4, :cond_8
 
-    .line 833
+    .line 846
     mul-float v1, v0, v0
 
     mul-float/2addr v1, v0
 
-    .line 834
+    .line 847
     invoke-static {v1}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->toSrgbByte(F)I
 
     move-result v0
 
-    .line 835
+    .line 848
     shl-int/lit8 v1, v0, 0x10
 
     or-int v1, p0, v1
@@ -5675,7 +5831,7 @@
 
     return v0
 
-    .line 838
+    .line 851
     :cond_8
     mul-float v11, v7, v7
 
@@ -5691,13 +5847,13 @@
 
     double-to-float v11, v14
 
-    .line 839
+    .line 852
     nop
 
-    .line 840
+    .line 853
     nop
 
-    .line 842
+    .line 855
     const v14, 0x38d1b717    # 1.0E-4f
 
     cmpl-float v14, v11, v14
@@ -5706,7 +5862,7 @@
 
     if-lez v14, :cond_f
 
-    .line 843
+    .line 856
     move v14, v3
 
     move/from16 v16, v4
@@ -5727,17 +5883,17 @@
 
     double-to-float v3, v3
 
-    .line 844
+    .line 857
     cmpg-float v4, v3, v14
 
     if-gez v4, :cond_9
 
-    .line 845
+    .line 858
     const/high16 v4, 0x43b40000    # 360.0f
 
     add-float/2addr v3, v4
 
-    .line 848
+    .line 861
     :cond_9
     const v4, 0x3c449ba6    # 0.012f
 
@@ -5745,7 +5901,7 @@
 
     move-result v4
 
-    .line 851
+    .line 864
     const/high16 v8, 0x43080000    # 136.0f
 
     const/high16 v9, 0x41b00000    # 22.0f
@@ -5756,24 +5912,24 @@
 
     mul-float/2addr v8, v4
 
-    .line 852
+    .line 865
     const v9, 0x3c23d70a    # 0.01f
 
     cmpl-float v17, v8, v9
 
     if-lez v17, :cond_a
 
-    .line 853
+    .line 866
     mul-float/2addr v12, v8
 
     sub-float v12, v16, v12
 
-    .line 854
+    .line 867
     const v17, 0x3d8efa35
 
     mul-float v8, v8, v17
 
-    .line 855
+    .line 868
     neg-float v8, v8
 
     move/from16 p4, v14
@@ -5790,14 +5946,14 @@
 
     double-to-float v5, v5
 
-    .line 856
+    .line 869
     invoke-static {v14, v15}, Ljava/lang/Math;->sin(D)D
 
     move-result-wide v14
 
     double-to-float v6, v14
 
-    .line 857
+    .line 870
     mul-float v14, v7, v5
 
     mul-float v15, v1, v6
@@ -5806,7 +5962,7 @@
 
     mul-float/2addr v14, v12
 
-    .line 858
+    .line 871
     mul-float/2addr v7, v6
 
     mul-float/2addr v1, v5
@@ -5815,15 +5971,15 @@
 
     mul-float v1, v7, v12
 
-    .line 859
+    .line 872
     nop
 
-    .line 860
+    .line 873
     move v7, v14
 
     goto :goto_1
 
-    .line 852
+    .line 865
     :cond_a
     move/from16 p5, v6
 
@@ -5831,7 +5987,7 @@
 
     move/from16 p3, v15
 
-    .line 864
+    .line 877
     :goto_1
     const/high16 v5, 0x435c0000    # 220.0f
 
@@ -5851,19 +6007,19 @@
 
     mul-float/2addr v5, v4
 
-    .line 865
+    .line 878
     cmpl-float v9, v5, v9
 
     const/4 v10, 0x2
 
     if-lez v9, :cond_c
 
-    .line 866
+    .line 879
     const v9, 0x3e17e9d8
 
     mul-float/2addr v9, v5
 
-    .line 867
+    .line 880
     float-to-double v12, v9
 
     invoke-static {v12, v13}, Ljava/lang/Math;->cos(D)D
@@ -5872,14 +6028,14 @@
 
     double-to-float v9, v14
 
-    .line 868
+    .line 881
     invoke-static {v12, v13}, Ljava/lang/Math;->sin(D)D
 
     move-result-wide v12
 
     double-to-float v12, v12
 
-    .line 869
+    .line 882
     if-ne v2, v10, :cond_b
 
     const v13, 0x3db851ec    # 0.09f
@@ -5894,7 +6050,7 @@
 
     add-float v13, v13, v16
 
-    .line 870
+    .line 883
     mul-float v5, v7, v9
 
     mul-float v14, v1, v12
@@ -5903,7 +6059,7 @@
 
     mul-float/2addr v5, v13
 
-    .line 871
+    .line 884
     mul-float/2addr v7, v12
 
     mul-float/2addr v1, v9
@@ -5912,13 +6068,13 @@
 
     mul-float v1, v7, v13
 
-    .line 872
+    .line 885
     nop
 
-    .line 873
+    .line 886
     move v7, v5
 
-    .line 877
+    .line 890
     :cond_c
     const/high16 v5, 0x42280000    # 42.0f
 
@@ -5928,7 +6084,7 @@
 
     move-result v3
 
-    .line 878
+    .line 891
     const v5, 0x3e3851ec    # 0.18f
 
     const v9, 0x3e99999a    # 0.3f
@@ -5939,7 +6095,7 @@
 
     mul-float/2addr v3, v5
 
-    .line 879
+    .line 892
     const v5, 0x3f570a3d    # 0.84f
 
     const v9, 0x3f70a3d7    # 0.94f
@@ -5952,7 +6108,7 @@
 
     mul-float/2addr v3, v5
 
-    .line 880
+    .line 893
     const v5, 0x3de147ae    # 0.11f
 
     const v9, 0x3e6147ae    # 0.22f
@@ -5965,12 +6121,12 @@
 
     mul-float/2addr v3, v5
 
-    .line 882
+    .line 895
     const v5, 0x3b83126f    # 0.004f
 
     if-ne v2, v10, :cond_d
 
-    .line 884
+    .line 897
     sub-float v2, v6, v0
 
     const v4, 0x3ef5c28f    # 0.48f
@@ -5981,25 +6137,25 @@
 
     add-float/2addr v0, v2
 
-    .line 885
+    .line 898
     mul-float v8, v3, p1
 
     add-float/2addr v7, v8
 
-    .line 886
+    .line 899
     mul-float/2addr v3, v5
 
     add-float/2addr v1, v3
 
     goto :goto_3
 
-    .line 887
+    .line 900
     :cond_d
     const/4 v9, 0x3
 
     if-ne v2, v9, :cond_e
 
-    .line 889
+    .line 902
     const v2, 0x3f0ccccd    # 0.55f
 
     const v5, 0x3f59999a    # 0.85f
@@ -6022,7 +6178,7 @@
 
     mul-float/2addr v2, v4
 
-    .line 890
+    .line 903
     const v4, 0x3c75c28f    # 0.015f
 
     const v5, 0x3d23d70a    # 0.04f
@@ -6033,7 +6189,7 @@
 
     mul-float/2addr v4, v3
 
-    .line 891
+    .line 904
     const v5, 0x3c0b4396    # 0.0085f
 
     mul-float/2addr v5, v4
@@ -6046,7 +6202,7 @@
 
     add-float/2addr v7, v5
 
-    .line 892
+    .line 905
     const v5, 0x3c978d50    # 0.0185f
 
     mul-float/2addr v4, v5
@@ -6059,7 +6215,7 @@
 
     add-float/2addr v1, v4
 
-    .line 893
+    .line 906
     mul-float/2addr v3, v5
 
     add-float/2addr v0, v3
@@ -6068,29 +6224,29 @@
 
     move-result v0
 
-    .line 894
+    .line 907
     goto :goto_3
 
-    .line 896
+    .line 909
     :cond_e
     mul-float v8, v3, p1
 
     add-float/2addr v7, v8
 
-    .line 897
+    .line 910
     mul-float/2addr v3, v5
 
     add-float/2addr v1, v3
 
     goto :goto_3
 
-    .line 842
+    .line 855
     :cond_f
     move/from16 p4, v3
 
     move/from16 p3, v15
 
-    .line 902
+    .line 915
     :goto_3
     cmpl-float v2, v0, v6
 
@@ -6106,7 +6262,7 @@
 
     if-lez v3, :cond_10
 
-    .line 903
+    .line 916
     const v3, 0x3f7ae148    # 0.98f
 
     invoke-static {v2, v3, v0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
@@ -6121,13 +6277,13 @@
 
     sub-float v4, v16, v2
 
-    .line 904
+    .line 917
     mul-float/2addr v7, v4
 
-    .line 905
+    .line 918
     mul-float/2addr v1, v4
 
-    .line 909
+    .line 922
     :cond_10
     const v2, 0x3ecaecc9
 
@@ -6141,7 +6297,7 @@
 
     add-float/2addr v2, v3
 
-    .line 910
+    .line 923
     const v3, 0x3dd8308c
 
     mul-float/2addr v3, v7
@@ -6154,7 +6310,7 @@
 
     sub-float/2addr v3, v4
 
-    .line 911
+    .line 924
     const v4, 0x3db7437b
 
     mul-float/2addr v7, v4
@@ -6167,22 +6323,22 @@
 
     sub-float/2addr v4, v1
 
-    .line 913
+    .line 926
     mul-float v1, v2, v2
 
     mul-float/2addr v1, v2
 
-    .line 914
+    .line 927
     mul-float v2, v3, v3
 
     mul-float/2addr v2, v3
 
-    .line 915
+    .line 928
     mul-float v3, v4, v4
 
     mul-float/2addr v3, v4
 
-    .line 917
+    .line 930
     const v4, 0x408274ab
 
     mul-float/2addr v4, v1
@@ -6199,7 +6355,7 @@
 
     add-float/2addr v4, v5
 
-    .line 918
+    .line 931
     const v5, -0x405da3d3
 
     mul-float/2addr v5, v1
@@ -6216,7 +6372,7 @@
 
     sub-float/2addr v5, v6
 
-    .line 919
+    .line 932
     const v6, -0x447680ad
 
     mul-float/2addr v1, v6
@@ -6233,7 +6389,7 @@
 
     add-float/2addr v1, v3
 
-    .line 922
+    .line 935
     invoke-static {v5, v1}, Ljava/lang/Math;->max(FF)F
 
     move-result v2
@@ -6242,7 +6398,7 @@
 
     move-result v2
 
-    .line 923
+    .line 936
     invoke-static {v5, v1}, Ljava/lang/Math;->min(FF)F
 
     move-result v3
@@ -6251,7 +6407,7 @@
 
     move-result v3
 
-    .line 924
+    .line 937
     cmpg-float v6, v3, p4
 
     if-ltz v6, :cond_11
@@ -6262,23 +6418,23 @@
 
     if-lez v7, :cond_14
 
-    .line 925
+    .line 938
     :cond_11
     mul-float v7, v0, v0
 
     mul-float/2addr v7, v0
 
-    .line 926
+    .line 939
     nop
 
-    .line 927
+    .line 940
     if-gez v6, :cond_12
 
     cmpl-float v0, v7, v3
 
     if-lez v0, :cond_12
 
-    .line 928
+    .line 941
     sub-float v0, v7, v3
 
     div-float v0, v7, v0
@@ -6291,11 +6447,11 @@
 
     goto :goto_4
 
-    .line 927
+    .line 940
     :cond_12
     const/high16 v3, 0x3f800000    # 1.0f
 
-    .line 930
+    .line 943
     move v0, v3
 
     :goto_4
@@ -6307,7 +6463,7 @@
 
     if-lez v6, :cond_13
 
-    .line 931
+    .line 944
     sub-float/2addr v3, v7
 
     sub-float/2addr v2, v7
@@ -6318,34 +6474,34 @@
 
     move-result v0
 
-    .line 933
+    .line 946
     :cond_13
     invoke-static {v0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->clamp01(F)F
 
     move-result v0
 
-    .line 934
+    .line 947
     sub-float/2addr v4, v7
 
     mul-float/2addr v4, v0
 
     add-float/2addr v4, v7
 
-    .line 935
+    .line 948
     sub-float/2addr v5, v7
 
     mul-float/2addr v5, v0
 
     add-float/2addr v5, v7
 
-    .line 936
+    .line 949
     sub-float/2addr v1, v7
 
     mul-float/2addr v1, v0
 
     add-float/2addr v1, v7
 
-    .line 939
+    .line 952
     :cond_14
     invoke-static {v4}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->toSrgbByte(F)I
 
@@ -6375,7 +6531,7 @@
 .method private static isSpace(C)Z
     .locals 1
 
-    .line 1239
+    .line 1252
     const/16 v0, 0x20
 
     if-eq p0, v0, :cond_1
@@ -6402,7 +6558,7 @@
 .method private static localBaseGain(FFI)F
     .locals 5
 
-    .line 944
+    .line 957
     const v0, 0x38d1b717    # 1.0E-4f
 
     cmpg-float p1, p1, v0
@@ -6411,10 +6567,10 @@
 
     if-gtz p1, :cond_0
 
-    .line 945
+    .line 958
     return v1
 
-    .line 947
+    .line 960
     :cond_0
     const p1, 0x3ca3d70a    # 0.02f
 
@@ -6436,10 +6592,10 @@
 
     mul-float/2addr p1, v2
 
-    .line 948
+    .line 961
     nop
 
-    .line 949
+    .line 962
     const/4 v2, 0x2
 
     const v3, 0x3da3d70a    # 0.08f
@@ -6448,7 +6604,7 @@
 
     if-ne p2, v2, :cond_1
 
-    .line 951
+    .line 964
     const p2, 0x3ed70a3d    # 0.42f
 
     invoke-static {v3, p2, p0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
@@ -6465,7 +6621,7 @@
 
     mul-float/2addr p2, v2
 
-    .line 952
+    .line 965
     const v2, 0x3df5c28f    # 0.12f
 
     mul-float/2addr p2, v2
@@ -6474,7 +6630,7 @@
 
     mul-float/2addr p2, p0
 
-    .line 953
+    .line 966
     goto :goto_0
 
     :cond_1
@@ -6482,7 +6638,7 @@
 
     if-ne p2, v2, :cond_2
 
-    .line 954
+    .line 967
     const/high16 p2, 0x3e800000    # 0.25f
 
     invoke-static {v4, p2, p0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
@@ -6501,14 +6657,14 @@
 
     mul-float/2addr p2, v2
 
-    .line 955
+    .line 968
     mul-float/2addr p2, v4
 
     add-float/2addr p2, v1
 
     mul-float/2addr p2, p0
 
-    .line 956
+    .line 969
     goto :goto_0
 
     :cond_2
@@ -6516,7 +6672,7 @@
 
     if-ne p2, v2, :cond_3
 
-    .line 957
+    .line 970
     const p2, 0x3eb33333    # 0.35f
 
     invoke-static {v3, p2, p0}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->smoothstep(FFF)F
@@ -6535,7 +6691,7 @@
 
     mul-float/2addr p2, v2
 
-    .line 958
+    .line 971
     const v2, 0x3d23d70a    # 0.04f
 
     mul-float/2addr p2, v2
@@ -6546,11 +6702,11 @@
 
     goto :goto_0
 
-    .line 956
+    .line 969
     :cond_3
     move p2, p0
 
-    .line 960
+    .line 973
     :goto_0
     invoke-static {v0, p0}, Ljava/lang/Math;->max(FF)F
 
@@ -6572,7 +6728,7 @@
 
     add-float/2addr p2, v1
 
-    .line 961
+    .line 974
     const p0, 0x3f51eb85    # 0.82f
 
     const p1, 0x3f947ae1    # 1.16f
@@ -6587,17 +6743,17 @@
 .method public static parseCubeLut(Ljava/lang/String;[I)[F
     .locals 19
 
-    .line 1051
+    .line 1064
     move-object/from16 v0, p0
 
     move-object/from16 v1, p1
 
     if-eqz v0, :cond_1d
 
-    .line 1054
+    .line 1067
     nop
 
-    .line 1055
+    .line 1068
     invoke-virtual {v0}, Ljava/lang/String;->isEmpty()Z
 
     move-result v2
@@ -6614,34 +6770,34 @@
 
     if-ne v2, v5, :cond_0
 
-    .line 1056
+    .line 1069
     const/4 v2, 0x1
 
     goto :goto_0
 
-    .line 1058
+    .line 1071
     :cond_0
     move v2, v3
 
     :goto_0
     nop
 
-    .line 1059
+    .line 1072
     nop
 
-    .line 1060
+    .line 1073
     nop
 
-    .line 1061
+    .line 1074
     nop
 
-    .line 1062
+    .line 1075
     nop
 
-    .line 1063
+    .line 1076
     nop
 
-    .line 1064
+    .line 1077
     invoke-virtual {v0}, Ljava/lang/String;->length()I
 
     move-result v5
@@ -6656,16 +6812,16 @@
 
     move-object v9, v8
 
-    .line 1065
+    .line 1078
     :goto_1
     const/4 v11, 0x2
 
     if-gt v2, v5, :cond_18
 
-    .line 1066
+    .line 1079
     move v13, v2
 
-    .line 1067
+    .line 1080
     :goto_2
     const/16 v14, 0xd
 
@@ -6673,38 +6829,38 @@
 
     if-ge v13, v5, :cond_2
 
-    .line 1068
+    .line 1081
     const/16 v16, 0x1
 
     invoke-virtual {v0, v13}, Ljava/lang/String;->charAt(I)C
 
     move-result v4
 
-    .line 1069
+    .line 1082
     if-eq v4, v15, :cond_3
 
     if-ne v4, v14, :cond_1
 
-    .line 1070
+    .line 1083
     goto :goto_3
 
-    .line 1072
+    .line 1085
     :cond_1
     add-int/lit8 v13, v13, 0x1
 
-    .line 1073
+    .line 1086
     goto :goto_2
 
-    .line 1067
+    .line 1080
     :cond_2
     const/16 v16, 0x1
 
-    .line 1074
+    .line 1087
     :cond_3
     :goto_3
     nop
 
-    .line 1075
+    .line 1088
     :goto_4
     if-ge v2, v13, :cond_4
 
@@ -6718,16 +6874,16 @@
 
     if-eqz v4, :cond_4
 
-    .line 1076
+    .line 1089
     add-int/lit8 v2, v2, 0x1
 
     goto :goto_4
 
-    .line 1078
+    .line 1091
     :cond_4
     move v4, v13
 
-    .line 1079
+    .line 1092
     :goto_5
     if-le v4, v2, :cond_5
 
@@ -6743,14 +6899,14 @@
 
     if-eqz v15, :cond_5
 
-    .line 1080
+    .line 1093
     add-int/lit8 v4, v4, -0x1
 
     const/16 v15, 0xa
 
     goto :goto_5
 
-    .line 1082
+    .line 1095
     :cond_5
     if-ge v2, v4, :cond_15
 
@@ -6762,17 +6918,17 @@
 
     if-eq v15, v14, :cond_15
 
-    .line 1083
+    .line 1096
     invoke-static {v0, v2, v4}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->countWords(Ljava/lang/String;II)I
 
     move-result v14
 
-    .line 1084
+    .line 1097
     invoke-static {v0, v2, v4}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->wordEnd(Ljava/lang/String;II)I
 
     move-result v15
 
-    .line 1085
+    .line 1098
     const-string v3, "TITLE"
 
     invoke-static {v0, v2, v15, v3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->eqKey(Ljava/lang/String;IILjava/lang/String;)Z
@@ -6781,7 +6937,7 @@
 
     if-nez v3, :cond_14
 
-    .line 1086
+    .line 1099
     const-string v3, "LUT_IN_VIDEO_RANGE"
 
     invoke-static {v0, v2, v15, v3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->eqKey(Ljava/lang/String;IILjava/lang/String;)Z
@@ -6794,7 +6950,7 @@
 
     goto/16 :goto_8
 
-    .line 1088
+    .line 1101
     :cond_6
     const-string v3, "DOMAIN_MIN"
 
@@ -6804,7 +6960,7 @@
 
     if-nez v18, :cond_11
 
-    .line 1089
+    .line 1102
     const-string v12, "DOMAIN_MAX"
 
     invoke-static {v0, v2, v15, v12}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->eqKey(Ljava/lang/String;IILjava/lang/String;)Z
@@ -6815,7 +6971,7 @@
 
     goto/16 :goto_6
 
-    .line 1099
+    .line 1112
     :cond_7
     const-string v3, "LUT_1D_SIZE"
 
@@ -6825,7 +6981,7 @@
 
     if-nez v3, :cond_10
 
-    .line 1100
+    .line 1113
     const-string v3, "LUT_1D_INPUT_RANGE"
 
     invoke-static {v0, v2, v15, v3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->eqKey(Ljava/lang/String;IILjava/lang/String;)Z
@@ -6834,7 +6990,7 @@
 
     if-nez v3, :cond_10
 
-    .line 1102
+    .line 1115
     const-string v3, "LUT_3D_SIZE"
 
     invoke-static {v0, v2, v15, v3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->eqKey(Ljava/lang/String;IILjava/lang/String;)Z
@@ -6843,12 +6999,12 @@
 
     if-eqz v3, :cond_a
 
-    .line 1103
+    .line 1116
     if-ne v14, v11, :cond_9
 
     if-nez v9, :cond_9
 
-    .line 1106
+    .line 1119
     invoke-static {v0, v15, v4}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->word(Ljava/lang/String;II)Ljava/lang/String;
 
     move-result-object v2
@@ -6857,7 +7013,7 @@
 
     move-result v2
 
-    .line 1107
+    .line 1120
     int-to-long v3, v2
 
     mul-long v14, v3, v3
@@ -6868,19 +7024,19 @@
 
     mul-long/2addr v14, v3
 
-    .line 1108
+    .line 1121
     const-wide/32 v3, 0x7fffffff
 
     cmp-long v3, v14, v3
 
     if-gtz v3, :cond_8
 
-    .line 1111
+    .line 1124
     long-to-int v3, v14
 
     new-array v3, v3, [F
 
-    .line 1112
+    .line 1125
     move v6, v2
 
     move-object v9, v3
@@ -6889,7 +7045,7 @@
 
     goto/16 :goto_8
 
-    .line 1109
+    .line 1122
     :cond_8
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -6899,7 +7055,7 @@
 
     throw v0
 
-    .line 1104
+    .line 1117
     :cond_9
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -6909,7 +7065,7 @@
 
     throw v0
 
-    .line 1112
+    .line 1125
     :cond_a
     const-string v3, "LUT_3D_INPUT_RANGE"
 
@@ -6919,7 +7075,7 @@
 
     if-eqz v3, :cond_c
 
-    .line 1113
+    .line 1126
     const/4 v3, 0x3
 
     if-ne v14, v3, :cond_b
@@ -6928,7 +7084,7 @@
 
     goto/16 :goto_8
 
-    .line 1114
+    .line 1127
     :cond_b
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -6938,44 +7094,44 @@
 
     throw v0
 
-    .line 1117
+    .line 1130
     :cond_c
     const/4 v3, 0x3
 
     if-eqz v9, :cond_f
 
-    .line 1120
+    .line 1133
     if-ne v14, v3, :cond_e
 
-    .line 1123
+    .line 1136
     add-int/lit8 v3, v10, 0x3
 
     array-length v12, v9
 
     if-gt v3, v12, :cond_d
 
-    .line 1126
+    .line 1139
     const/4 v3, 0x0
 
     invoke-static {v0, v2, v4, v3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->readTriple(Ljava/lang/String;IIZ)[F
 
     move-result-object v2
 
-    .line 1127
+    .line 1140
     add-int/lit8 v4, v10, 0x1
 
     aget v12, v2, v3
 
     aput v12, v9, v10
 
-    .line 1128
+    .line 1141
     add-int/lit8 v3, v4, 0x1
 
     aget v10, v2, v16
 
     aput v10, v9, v4
 
-    .line 1129
+    .line 1142
     add-int/lit8 v4, v3, 0x1
 
     aget v2, v2, v11
@@ -6988,7 +7144,7 @@
 
     goto :goto_8
 
-    .line 1124
+    .line 1137
     :cond_d
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -6998,7 +7154,7 @@
 
     throw v0
 
-    .line 1121
+    .line 1134
     :cond_e
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -7008,7 +7164,7 @@
 
     throw v0
 
-    .line 1118
+    .line 1131
     :cond_f
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -7018,7 +7174,7 @@
 
     throw v0
 
-    .line 1101
+    .line 1114
     :cond_10
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -7028,41 +7184,41 @@
 
     throw v0
 
-    .line 1090
+    .line 1103
     :cond_11
     :goto_6
     const/4 v12, 0x4
 
     if-ne v14, v12, :cond_13
 
-    .line 1093
+    .line 1106
     move/from16 v12, v16
 
     invoke-static {v0, v2, v4, v12}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->readTriple(Ljava/lang/String;IIZ)[F
 
     move-result-object v4
 
-    .line 1094
+    .line 1107
     invoke-static {v0, v2, v15, v3}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->eqKey(Ljava/lang/String;IILjava/lang/String;)Z
 
     move-result v2
 
     if-eqz v2, :cond_12
 
-    .line 1095
+    .line 1108
     move-object v7, v4
 
     goto :goto_7
 
-    .line 1097
+    .line 1110
     :cond_12
     move-object v8, v4
 
-    .line 1099
+    .line 1112
     :goto_7
     goto :goto_8
 
-    .line 1091
+    .line 1104
     :cond_13
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -7072,28 +7228,28 @@
 
     throw v0
 
-    .line 1085
+    .line 1098
     :cond_14
     move/from16 v12, v16
 
     goto :goto_8
 
-    .line 1082
+    .line 1095
     :cond_15
     move/from16 v12, v16
 
-    .line 1132
+    .line 1145
     :goto_8
     if-lt v13, v5, :cond_16
 
-    .line 1133
+    .line 1146
     goto :goto_9
 
-    .line 1135
+    .line 1148
     :cond_16
     add-int/lit8 v2, v13, 0x1
 
-    .line 1136
+    .line 1149
     if-ge v13, v5, :cond_17
 
     invoke-virtual {v0, v13}, Ljava/lang/String;->charAt(I)C
@@ -7106,7 +7262,7 @@
 
     if-ge v2, v5, :cond_17
 
-    .line 1137
+    .line 1150
     invoke-virtual {v0, v2}, Ljava/lang/String;->charAt(I)C
 
     move-result v3
@@ -7115,16 +7271,16 @@
 
     if-ne v3, v4, :cond_17
 
-    .line 1138
+    .line 1151
     add-int/lit8 v2, v2, 0x1
 
-    .line 1140
+    .line 1153
     :cond_17
     const/4 v3, 0x0
 
     goto/16 :goto_1
 
-    .line 1141
+    .line 1154
     :cond_18
     :goto_9
     if-lt v6, v11, :cond_1c
@@ -7135,12 +7291,12 @@
 
     if-ne v10, v0, :cond_1c
 
-    .line 1144
+    .line 1157
     if-eqz v7, :cond_1a
 
     if-eqz v8, :cond_1a
 
-    .line 1145
+    .line 1158
     const/4 v3, 0x0
 
     :goto_a
@@ -7148,7 +7304,7 @@
 
     if-ge v3, v0, :cond_1a
 
-    .line 1146
+    .line 1159
     aget v2, v7, v3
 
     aget v4, v8, v3
@@ -7157,12 +7313,12 @@
 
     if-gez v2, :cond_19
 
-    .line 1145
+    .line 1158
     add-int/lit8 v3, v3, 0x1
 
     goto :goto_a
 
-    .line 1147
+    .line 1160
     :cond_19
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -7172,7 +7328,7 @@
 
     throw v0
 
-    .line 1151
+    .line 1164
     :cond_1a
     if-eqz v1, :cond_1b
 
@@ -7180,16 +7336,16 @@
 
     if-lez v0, :cond_1b
 
-    .line 1152
+    .line 1165
     const/16 v17, 0x0
 
     aput v6, v1, v17
 
-    .line 1154
+    .line 1167
     :cond_1b
     return-object v9
 
-    .line 1142
+    .line 1155
     :cond_1c
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -7199,7 +7355,7 @@
 
     throw v0
 
-    .line 1052
+    .line 1065
     :cond_1d
     new-instance v0, Ljava/lang/IllegalArgumentException;
 
@@ -7213,7 +7369,7 @@
 .method private static parseFinite(Ljava/lang/String;)F
     .locals 1
 
-    .line 1193
+    .line 1206
     :try_start_0
     invoke-static {p0}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
 
@@ -7221,20 +7377,20 @@
     :try_end_0
     .catch Ljava/lang/NumberFormatException; {:try_start_0 .. :try_end_0} :catch_0
 
-    .line 1196
+    .line 1209
     nop
 
-    .line 1197
+    .line 1210
     invoke-static {p0}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v0
 
     if-eqz v0, :cond_0
 
-    .line 1200
+    .line 1213
     return p0
 
-    .line 1198
+    .line 1211
     :cond_0
     new-instance p0, Ljava/lang/IllegalArgumentException;
 
@@ -7244,11 +7400,11 @@
 
     throw p0
 
-    .line 1194
+    .line 1207
     :catch_0
     move-exception p0
 
-    .line 1195
+    .line 1208
     new-instance p0, Ljava/lang/IllegalArgumentException;
 
     const-string v0, "cube sample is not a number"
@@ -7261,7 +7417,7 @@
 .method private static parseSize(Ljava/lang/String;)I
     .locals 4
 
-    .line 1158
+    .line 1171
     invoke-virtual {p0}, Ljava/lang/String;->isEmpty()Z
 
     move-result v0
@@ -7288,7 +7444,7 @@
 
     if-eq v0, v2, :cond_1
 
-    .line 1163
+    .line 1176
     :try_start_0
     invoke-static {p0}, Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I
 
@@ -7296,10 +7452,10 @@
     :try_end_0
     .catch Ljava/lang/NumberFormatException; {:try_start_0 .. :try_end_0} :catch_0
 
-    .line 1166
+    .line 1179
     nop
 
-    .line 1167
+    .line 1180
     const/4 v0, 0x2
 
     if-lt p0, v0, :cond_0
@@ -7308,10 +7464,10 @@
 
     if-gt p0, v0, :cond_0
 
-    .line 1170
+    .line 1183
     return p0
 
-    .line 1168
+    .line 1181
     :cond_0
     new-instance p0, Ljava/lang/IllegalArgumentException;
 
@@ -7319,18 +7475,18 @@
 
     throw p0
 
-    .line 1164
+    .line 1177
     :catch_0
     move-exception p0
 
-    .line 1165
+    .line 1178
     new-instance p0, Ljava/lang/IllegalArgumentException;
 
     invoke-direct {p0, v1}, Ljava/lang/IllegalArgumentException;-><init>(Ljava/lang/String;)V
 
     throw p0
 
-    .line 1159
+    .line 1172
     :cond_1
     new-instance p0, Ljava/lang/IllegalArgumentException;
 
@@ -7342,30 +7498,30 @@
 .method private static readTriple(Ljava/lang/String;IIZ)[F
     .locals 3
 
-    .line 1174
+    .line 1187
     nop
 
-    .line 1175
+    .line 1188
     if-eqz p3, :cond_0
 
-    .line 1176
+    .line 1189
     invoke-static {p0, p1, p2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->wordEnd(Ljava/lang/String;II)I
 
     move-result p1
 
-    .line 1178
+    .line 1191
     :cond_0
     const/4 p3, 0x3
 
     new-array v0, p3, [F
 
-    .line 1179
+    .line 1192
     const/4 v1, 0x0
 
     :goto_0
     if-ge v1, p3, :cond_2
 
-    .line 1180
+    .line 1193
     :goto_1
     if-ge p1, p2, :cond_1
 
@@ -7379,18 +7535,18 @@
 
     if-eqz v2, :cond_1
 
-    .line 1181
+    .line 1194
     add-int/lit8 p1, p1, 0x1
 
     goto :goto_1
 
-    .line 1183
+    .line 1196
     :cond_1
     invoke-static {p0, p1, p2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->wordEnd(Ljava/lang/String;II)I
 
     move-result v2
 
-    .line 1184
+    .line 1197
     invoke-virtual {p0, p1, v2}, Ljava/lang/String;->substring(II)Ljava/lang/String;
 
     move-result-object p1
@@ -7401,17 +7557,17 @@
 
     aput p1, v0, v1
 
-    .line 1185
+    .line 1198
     nop
 
-    .line 1179
+    .line 1192
     add-int/lit8 v1, v1, 0x1
 
     move p1, v2
 
     goto :goto_0
 
-    .line 1187
+    .line 1200
     :cond_2
     return-object v0
 .end method
@@ -7419,7 +7575,7 @@
 .method private static sampleBilinearY([FIIFF)F
     .locals 4
 
-    .line 737
+    .line 750
     int-to-float v0, p1
 
     const v1, 0x3f800347    # 1.0001f
@@ -7432,7 +7588,7 @@
 
     move-result p3
 
-    .line 738
+    .line 751
     int-to-float v0, p2
 
     sub-float/2addr v0, v1
@@ -7441,13 +7597,13 @@
 
     move-result p4
 
-    .line 739
+    .line 752
     float-to-int v0, p3
 
-    .line 740
+    .line 753
     float-to-int v1, p4
 
-    .line 741
+    .line 754
     add-int/lit8 v2, v0, 0x1
 
     add-int/lit8 v3, p1, -0x1
@@ -7456,7 +7612,7 @@
 
     move-result v2
 
-    .line 742
+    .line 755
     add-int/lit8 v3, v1, 0x1
 
     add-int/lit8 p2, p2, -0x1
@@ -7465,55 +7621,55 @@
 
     move-result p2
 
-    .line 743
+    .line 756
     int-to-float v3, v0
 
     sub-float/2addr p3, v3
 
-    .line 744
+    .line 757
     int-to-float v3, v1
 
     sub-float/2addr p4, v3
 
-    .line 745
+    .line 758
     mul-int/2addr v1, p1
 
     add-int v3, v1, v0
 
     aget v3, p0, v3
 
-    .line 746
+    .line 759
     add-int/2addr v1, v2
 
     aget v1, p0, v1
 
-    .line 747
+    .line 760
     mul-int/2addr p2, p1
 
     add-int/2addr v0, p2
 
     aget p1, p0, v0
 
-    .line 748
+    .line 761
     add-int/2addr p2, v2
 
     aget p0, p0, p2
 
-    .line 749
+    .line 762
     sub-float/2addr v1, v3
 
     mul-float/2addr v1, p3
 
     add-float/2addr v3, v1
 
-    .line 750
+    .line 763
     sub-float/2addr p0, p1
 
     mul-float/2addr p0, p3
 
     add-float/2addr p1, p0
 
-    .line 751
+    .line 764
     sub-float/2addr p1, v3
 
     mul-float/2addr p1, p4
@@ -7526,7 +7682,7 @@
 .method private static smoothstep(FFF)F
     .locals 0
 
-    .line 1014
+    .line 1027
     sub-float/2addr p2, p0
 
     sub-float/2addr p1, p0
@@ -7537,7 +7693,7 @@
 
     move-result p0
 
-    .line 1015
+    .line 1028
     mul-float p1, p0, p0
 
     const/high16 p2, 0x40000000    # 2.0f
@@ -7556,7 +7712,7 @@
 .method private static toSrgbByte(F)I
     .locals 2
 
-    .line 1031
+    .line 1044
     const/4 v0, 0x0
 
     cmpg-float v0, p0, v0
@@ -7567,7 +7723,7 @@
 
     return p0
 
-    .line 1032
+    .line 1045
     :cond_0
     const/high16 v0, 0x3f800000    # 1.0f
 
@@ -7579,7 +7735,7 @@
 
     return p0
 
-    .line 1033
+    .line 1046
     :cond_1
     const/high16 v0, 0x45800000    # 4096.0f
 
@@ -7591,7 +7747,7 @@
 
     float-to-int p0, p0
 
-    .line 1034
+    .line 1047
     sget-object v0, Lcom/motorola/camera/custom/AppleStyleToneEngine;->LIN_TO_SRGB_BYTE:[I
 
     const/16 v1, 0x1000
@@ -7609,7 +7765,7 @@
 .method private static word(Ljava/lang/String;II)Ljava/lang/String;
     .locals 1
 
-    .line 1204
+    .line 1217
     nop
 
     :goto_0
@@ -7625,12 +7781,12 @@
 
     if-eqz v0, :cond_0
 
-    .line 1205
+    .line 1218
     add-int/lit8 p1, p1, 0x1
 
     goto :goto_0
 
-    .line 1207
+    .line 1220
     :cond_0
     invoke-static {p0, p1, p2}, Lcom/motorola/camera/custom/AppleStyleToneEngine;->wordEnd(Ljava/lang/String;II)I
 
@@ -7646,10 +7802,10 @@
 .method private static wordEnd(Ljava/lang/String;II)I
     .locals 1
 
-    .line 1227
+    .line 1240
     nop
 
-    .line 1228
+    .line 1241
     :goto_0
     if-ge p1, p2, :cond_0
 
@@ -7663,12 +7819,12 @@
 
     if-nez v0, :cond_0
 
-    .line 1229
+    .line 1242
     add-int/lit8 p1, p1, 0x1
 
     goto :goto_0
 
-    .line 1231
+    .line 1244
     :cond_0
     return p1
 .end method

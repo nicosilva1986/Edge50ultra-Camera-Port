@@ -48,51 +48,51 @@
 .method constructor <init>(Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Float;ZLjava/lang/String;Ljava/lang/String;)V
     .locals 0
 
-    .line 719
+    .line 765
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 720
+    .line 766
     iput-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->headingDeg:Ljava/lang/Float;
 
-    .line 721
+    .line 767
     iput-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->trueHeadingDeg:Ljava/lang/Float;
 
-    .line 722
+    .line 768
     iput-object p3, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->pitchDeg:Ljava/lang/Float;
 
-    .line 723
+    .line 769
     iput-object p4, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->rollDeg:Ljava/lang/Float;
 
-    .line 724
+    .line 770
     iput-object p5, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->accuracy:Ljava/lang/Integer;
 
-    .line 725
+    .line 771
     iput-object p6, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->magneticDeclinationDeg:Ljava/lang/Float;
 
-    .line 726
+    .line 772
     iput-object p7, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->cardinal:Ljava/lang/String;
 
-    .line 727
+    .line 773
     iput-object p8, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->sunAzimuthDeg:Ljava/lang/Double;
 
-    .line 728
+    .line 774
     iput-object p9, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->sunElevationDeg:Ljava/lang/Double;
 
-    .line 729
+    .line 775
     iput-object p10, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->cameraSunAngleDeg:Ljava/lang/Double;
 
-    .line 730
+    .line 776
     iput-object p11, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->ev100:Ljava/lang/Float;
 
-    .line 731
+    .line 777
     iput-boolean p12, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->physicalOutdoorBacklit:Z
 
-    .line 732
+    .line 778
     iput-object p13, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->status:Ljava/lang/String;
 
-    .line 733
+    .line 779
     iput-object p14, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->unavailableReason:Ljava/lang/String;
 
-    .line 734
+    .line 780
     return-void
 .end method

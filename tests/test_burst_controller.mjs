@@ -122,6 +122,31 @@ public final class BurstProbe {
                 System.out.println("T " + com.motorola.camera.custom.MultiFrameBurstController.size()
                         + " " + com.motorola.camera.custom.MultiFrameBurstController.retainedBytes()
                         + " " + fail[0]);
+            } else if (op.equals("SG")) {
+                int gen = com.motorola.camera.custom.MultiFrameBurstController.beginSession(p[1]);
+                boolean r1 = com.motorola.camera.custom.MultiFrameBurstController.offerSessionFrame(
+                        gen, p[1], 1000L, 0L, 0, 0f, 0.0001f, 7L, new byte[16], false, false);
+                // Mismatched camera or old generation must be rejected even with matching seqId 7!
+                boolean rWrongCam = com.motorola.camera.custom.MultiFrameBurstController.offerSessionFrame(
+                        gen, "4", 1000L, 0L, 0, 0f, 0.0001f, 7L, new byte[16], false, false);
+                com.motorola.camera.custom.MultiFrameBurstController.noteSessionMetadata(
+                        gen - 1, p[1], 1000L, 10_000_000L, 100, 3000f, 0.0001f, 7L, false, true, 1.0f, 4, 0);
+                com.motorola.camera.custom.MultiFrameBurstController.noteSessionMetadata(
+                        gen, p[1], 1000L, 10_000_000L, 100, 3000f, 0.0001f, 7L, false, true, 1.00f, 4, 0);
+                com.motorola.camera.custom.MultiFrameBurstController.offerSessionFrame(
+                        gen, p[1], 2000L, 10_000_000L, 100, 3000f, 0.0001f, 8L, new byte[16], false, true);
+                com.motorola.camera.custom.MultiFrameBurstController.noteSessionMetadata(
+                        gen, p[1], 2000L, 10_000_000L, 100, 3000f, 0.0001f, 8L, false, true, 1.25f, 4, 0);
+                com.motorola.camera.custom.MultiFrameBurstController.BurstFrameSnapshot[] snaps =
+                        com.motorola.camera.custom.MultiFrameBurstController.snapshotSessionFrames(p[1], 8, 32, 4);
+                float spread = com.motorola.camera.custom.MultiFrameBurstController.computeFocusSpreadDiopters(snaps, 1.0f);
+                boolean driftNonFocus = com.motorola.camera.custom.MultiFrameBurstController.hasFocusDriftOrMotion(
+                        snaps, 1.0f, 0, 0.2f, false);
+                boolean driftFocusStack = com.motorola.camera.custom.MultiFrameBurstController.hasFocusDriftOrMotion(
+                        snaps, 1.0f, 0, 0.2f, true);
+                System.out.println("SG " + (r1 ? 1 : 0) + " " + (rWrongCam ? 1 : 0) + " "
+                        + snaps.length + " " + (snaps.length > 0 ? snaps[0].exposureNs : -1) + " "
+                        + Math.round(spread * 100f) + " " + (driftNonFocus ? 1 : 0) + " " + (driftFocusStack ? 1 : 0));
             } else {
                 throw new IllegalArgumentException(op);
             }
@@ -580,4 +605,9 @@ test('every cited MotCamera5 smali anchor exists once', () => {
     const file = join(smaliRoot, rel);
     assert.equal(countOf(file, needle), 1, rel);
   }
+});
+
+test('strict session join prevents cross-camera/session mixing and detects focus drift', () => {
+  const [line] = probe(['SG 0']);
+  assert.equal(line, 'SG 1 0 2 10000000 25 1 0');
 });

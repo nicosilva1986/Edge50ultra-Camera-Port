@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Gainmap;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
@@ -23,6 +24,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Range;
 import android.util.Rational;
+import android.util.SizeF;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
 import com.motorola.camera.CameraData;
@@ -80,7 +82,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class CustomImagingBridge {
     private static final String TAG = "CustomImagingBridge";
-    private static final String MOD_VERSION = "1.9.1";
+    private static final String MOD_VERSION = "1.9.2";
     public static final String PREF_KEY = "com.motorola.camera.post_processing_profile";
     public static final String LOOK_PRESET = "com.motorola.camera.look_preset";
     public static final String LOOK_INTENSITY = "com.motorola.camera.look_intensity";
@@ -518,6 +520,7 @@ public final class CustomImagingBridge {
     private static final String KEY_ENABLE_SNAPSHOT_ISZ = "org.codeaurora.qcamera3.sessionParameters.EnableSnapshotOnlyInsensorZoom";
     private static final String KEY_ENABLE_XCFA = "org.codeaurora.qcamera3.sessionParameters.EnableXCFAOptimization";
     private static final String KEY_ENABLE_MFNR_AIDE = "org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode";
+    private static final String KEY_ENABLE_MCTF_WITH_REF = "org.codeaurora.qcamera3.sessionParameters.enableMCTFwithReferenceFrame";
     private static final String KEY_ENABLE_VSR = "org.codeaurora.qcamera3.sessionParameters.EnableVSR";
     private static final String KEY_ENABLE_AUTO_HDR = "org.codeaurora.qcamera3.sessionParameters.EnableAutoHDR";
     private static final String KEY_ENABLE_MFHDR = "org.codeaurora.qcamera3.sessionParameters.EnableMFHDR";
@@ -534,6 +537,7 @@ public final class CustomImagingBridge {
             KEY_ENABLE_SNAPSHOT_ISZ,
             KEY_ENABLE_XCFA,
             KEY_ENABLE_MFNR_AIDE,
+            KEY_ENABLE_MCTF_WITH_REF,
             KEY_ENABLE_VSR,
             KEY_ENABLE_AUTO_HDR,
             KEY_ENABLE_MFHDR,
@@ -602,21 +606,42 @@ public final class CustomImagingBridge {
         }
         if (builder == null || cameraId == null) return;
         try {
-            int profile = getSelectedProfile();
-            if (profile != ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING
-                    && profile != ScenePostProcSelector.PROFILE_PURE_ISP) {
-                return;
-            }
+            MultiFrameBurstController.beginSession(cameraId);
+            VideoConfigHelper.resetAwbSwitchTracker();
+
             CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
             if (chars == null) return;
             Set<String> sesKeys = getKeyNames(chars, true);
             if (sesKeys.isEmpty()) return;
 
-            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_AUTO_HDR, Integer.class, Integer.valueOf(0));
-            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFHDR, Integer.class, Integer.valueOf(0));
-            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_VSR, Integer.class, Integer.valueOf(0));
-            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFNR_AIDE, Byte.class, Byte.valueOf((byte) 0));
-            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_QLL, Integer.class, Integer.valueOf(0));
+            int profile = getSelectedProfile();
+            if (profile == ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING
+                    || profile == ScenePostProcSelector.PROFILE_PURE_ISP) {
+                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_AUTO_HDR, Integer.class, Integer.valueOf(0));
+                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFHDR, Integer.class, Integer.valueOf(0));
+                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_VSR, Integer.class, Integer.valueOf(0));
+                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFNR_AIDE, Byte.class, Byte.valueOf((byte) 0));
+                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MCTF_WITH_REF, Byte.class, Byte.valueOf((byte) 0));
+                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_QLL, Integer.class, Integer.valueOf(0));
+                return;
+            }
+
+            if (SettingsHelper.isVideoMode()) {
+                if (!SettingsHelper.isDualCaptureVideoMode()) {
+                    setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MCTF_WITH_REF, Byte.class, Byte.valueOf((byte) 1));
+                }
+                return;
+            }
+
+            // Preserve EnableInsensorZoom as configured by RequestBuilderHelper.setInsensorZoomForSession;
+            // only gate Snapshot-Only ISZ in supported HAL sessions for adaptive / graded photo profiles.
+            boolean allowSnapIsz = profile == ScenePostProcSelector.PROFILE_AUTO_SCENE_ADAPTIVE
+                    || profile == ScenePostProcSelector.PROFILE_DETAIL_HDR
+                    || (profile >= ScenePostProcSelector.PROFILE_IPHONE_NATURAL
+                        && profile <= ScenePostProcSelector.PROFILE_IPHONE_AMBER);
+            if (allowSnapIsz && shouldAllowInSensorCrop()) {
+                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_SNAPSHOT_ISZ, Integer.class, Integer.valueOf(1));
+            }
         } catch (Throwable t) {
             Log.w(TAG, "applySessionParameterOverrides failed", t);
         }
@@ -1310,9 +1335,33 @@ public final class CustomImagingBridge {
                 AppleStyleToneEngine.applyToArgbPixels(strip, sw, rows, lutStyle, w, h, topY));
     }
 
+    private static float calibratedFocalLengthPx(String cameraId, float focalMm) {
+        if (!(Float.isFinite(focalMm) && focalMm > 0f)) return 0f;
+        try {
+            if (cameraId != null) {
+                CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
+                if (chars != null) {
+                    Rect active = chars.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+                    SizeF phys = chars.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
+                    if (active != null && active.width() > 0 && phys != null
+                            && Float.isFinite(phys.getWidth()) && phys.getWidth() > 0.1f) {
+                        return focalMm * (active.width() / phys.getWidth());
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        return focalMm * 500f;
+    }
+
     public static void noteZslCaptureCompleted(CaptureRequest request, TotalCaptureResult result) {
         if (result == null) return;
         try {
+            if (SettingsHelper.isVideoMode()) {
+                String activePhys = result.get(CaptureResult.LOGICAL_MULTI_CAMERA_ACTIVE_PHYSICAL_ID);
+                if (activePhys != null && !activePhys.isEmpty()) {
+                    VideoConfigHelper.onVideoFramePhysicalCamera(activePhys);
+                }
+            }
             Long tsObj = result.get(CaptureResult.SENSOR_TIMESTAMP);
             Long expObj = result.get(CaptureResult.SENSOR_EXPOSURE_TIME);
             Integer isoObj = result.get(CaptureResult.SENSOR_SENSITIVITY);
@@ -1321,14 +1370,24 @@ public final class CustomImagingBridge {
             long ts = tsObj.longValue();
             long exp = expObj.longValue();
             int iso = isoObj.intValue();
-            float flPx = flObj.floatValue() > 0f ? flObj.floatValue() * 500f : 0f;
+            String camId = MultiFrameBurstController.activeCameraId();
+            if (camId == null) camId = SettingsManager.getCurrentCameraId();
+            float flPx = calibratedFocalLengthPx(camId, flObj.floatValue());
             float gyroExc = TelemetryCollector.latestGyroExcursionRad(ts, exp);
+            Float fdObj = result.get(CaptureResult.LENS_FOCUS_DISTANCE);
+            float focusDist = (fdObj != null && Float.isFinite(fdObj.floatValue())) ? fdObj.floatValue() : Float.NaN;
+            Integer afStateObj = result.get(CaptureResult.CONTROL_AF_STATE);
+            int afState = afStateObj != null ? afStateObj.intValue() : 0;
+            Integer lensStateObj = result.get(CaptureResult.LENS_STATE);
+            int lensState = lensStateObj != null ? lensStateObj.intValue() : 0;
             long seqId = ts;
             if (request != null && request.getTag() instanceof SequenceIdentifier) {
                 seqId = ((SequenceIdentifier) request.getTag()).mSeqId;
             }
-            MultiFrameBurstController.noteMetadata(
-                    ts, exp, iso, flPx, gyroExc, seqId, false, exp > 0L && iso > 0);
+            MultiFrameBurstController.noteSessionMetadata(
+                    MultiFrameBurstController.currentSessionGeneration(), camId,
+                    ts, exp, iso, flPx, gyroExc, seqId, false, exp > 0L && iso > 0,
+                    focusDist, afState, lensState);
             Float apObj = result.get(CaptureResult.LENS_APERTURE);
             float aperture = (apObj != null && Float.isFinite(apObj.floatValue()) && apObj.floatValue() > 0f)
                     ? apObj.floatValue() : 1.6f;
@@ -1347,8 +1406,11 @@ public final class CustomImagingBridge {
             if (rem <= 0 || rem > 32 * 1024 * 1024) return;
             byte[] copy = new byte[rem];
             dup.get(copy);
+            String camId = MultiFrameBurstController.activeCameraId();
+            if (camId == null) camId = SettingsManager.getCurrentCameraId();
             float gyroExc = TelemetryCollector.latestGyroExcursionRad(timestampNs, 33_333_333L);
-            MultiFrameBurstController.offer(
+            MultiFrameBurstController.offerSessionFrame(
+                    MultiFrameBurstController.currentSessionGeneration(), camId,
                     timestampNs, 0L, 0, 0f, gyroExc, timestampNs, copy, false, false);
         } catch (Throwable ignored) {}
     }
@@ -1361,8 +1423,11 @@ public final class CustomImagingBridge {
             int minRaw16 = (int) ((long) width * height * 2L);
             int maxBytes = Math.max(minRaw16 + width * 16, minRaw10 + width * 16);
             MultiFrameBurstController.BurstFrameSnapshot[] ringFrames =
-                    MultiFrameBurstController.snapshotMatchingFrames(minRaw10, maxBytes, 5);
-            if (ringFrames.length < 1) return null;
+                    MultiFrameBurstController.snapshotSessionFrames(cameraId, minRaw10, maxBytes, 5);
+            if (ringFrames.length < 1) {
+                MultiFrameBurstController.recordMergeDiagnostics(false, Float.NaN, Float.NaN);
+                return null;
+            }
 
             int engineMode = MultiFrameRawEngine.MODE_HDR_PLUS;
             if ("3".equals(cameraId)) {
@@ -1370,23 +1435,54 @@ public final class CustomImagingBridge {
             } else if (decision != null && decision.zoom >= 1.45f && decision.look != 6) {
                 engineMode = MultiFrameRawEngine.MODE_SUPER_RES;
             }
-            int maxFrames = engineMode == MultiFrameRawEngine.MODE_SUPER_RES ? 8 : 6;
-            MultiFrameRawEngine engine = new MultiFrameRawEngine(engineMode, maxFrames);
 
             long anchorTs = 0L;
             long anchorExp = 10_000_000L;
             int anchorIso = 100;
-            float anchorFlPx = 3000f;
+            float anchorFlPx = calibratedFocalLengthPx(cameraId, 6.0f);
+            float anchorFocus = Float.NaN;
+            int anchorLensState = 0;
             if (result != null) {
                 Long tsObj = result.get(CaptureResult.SENSOR_TIMESTAMP);
                 Long expObj = result.get(CaptureResult.SENSOR_EXPOSURE_TIME);
                 Integer isoObj = result.get(CaptureResult.SENSOR_SENSITIVITY);
                 Float flObj = result.get(CaptureResult.LENS_FOCAL_LENGTH);
+                Float fdObj = result.get(CaptureResult.LENS_FOCUS_DISTANCE);
+                Integer lensObj = result.get(CaptureResult.LENS_STATE);
                 if (tsObj != null && tsObj.longValue() > 0L) anchorTs = tsObj.longValue();
                 if (expObj != null && expObj.longValue() > 0L) anchorExp = expObj.longValue();
                 if (isoObj != null && isoObj.intValue() > 0) anchorIso = isoObj.intValue();
-                if (flObj != null && flObj.floatValue() > 0f) anchorFlPx = flObj.floatValue() * 500f;
+                if (flObj != null && flObj.floatValue() > 0f) {
+                    anchorFlPx = calibratedFocalLengthPx(cameraId, flObj.floatValue());
+                }
+                if (fdObj != null && Float.isFinite(fdObj.floatValue())) anchorFocus = fdObj.floatValue();
+                if (lensObj != null) anchorLensState = lensObj.intValue();
             }
+
+            float anchorGyro = TelemetryCollector.latestGyroExcursionRad(
+                    anchorTs > 0L ? anchorTs : System.nanoTime(), anchorExp);
+            if (anchorGyro < 0f) anchorGyro = 0f;
+            float anchorMotionPx = (anchorFlPx > 0f) ? (anchorFlPx * anchorGyro) : 0f;
+            float focusSpreadD = MultiFrameBurstController.computeFocusSpreadDiopters(ringFrames, anchorFocus);
+            long minTs = Long.MAX_VALUE;
+            long maxTs = anchorTs > 0L ? anchorTs : Long.MIN_VALUE;
+            for (MultiFrameBurstController.BurstFrameSnapshot f : ringFrames) {
+                if (f.timestampNs > 0L) {
+                    if (f.timestampNs < minTs) minTs = f.timestampNs;
+                    if (f.timestampNs > maxTs) maxTs = f.timestampNs;
+                }
+            }
+            float gapMs = (maxTs > minTs && minTs < Long.MAX_VALUE) ? ((maxTs - minTs) / 1_000_000.0f) : Float.NaN;
+
+            if (MultiFrameBurstController.hasFocusDriftOrMotion(
+                    ringFrames, anchorFocus, anchorLensState, anchorMotionPx,
+                    engineMode == MultiFrameRawEngine.MODE_FOCUS_STACK)) {
+                MultiFrameBurstController.recordMergeDiagnostics(true, focusSpreadD, gapMs);
+                return null;
+            }
+
+            int maxFrames = engineMode == MultiFrameRawEngine.MODE_SUPER_RES ? 8 : 6;
+            MultiFrameRawEngine engine = new MultiFrameRawEngine(engineMode, maxFrames);
 
             long lastTs = -1L;
             int added = 0;
@@ -1403,17 +1499,24 @@ public final class CustomImagingBridge {
                 lastTs = f.timestampNs;
                 added++;
             }
-            if (added == 0) return null;
+            if (added == 0) {
+                MultiFrameBurstController.recordMergeDiagnostics(false, focusSpreadD, gapMs);
+                return null;
+            }
             int[] anchorUnpacked = unpackRawAuto(anchorRawBytes, width, height, minRaw10, minRaw16);
-            if (anchorUnpacked == null) return null;
+            if (anchorUnpacked == null) {
+                MultiFrameBurstController.recordMergeDiagnostics(false, focusSpreadD, gapMs);
+                return null;
+            }
             long finalAnchorTs = anchorTs > lastTs ? anchorTs : (lastTs + 1L);
-            float anchorGyro = TelemetryCollector.latestGyroExcursionRad(finalAnchorTs, anchorExp);
-            if (anchorGyro < 0f) anchorGyro = 0f;
             engine.addFrame(new MultiFrameRawEngine.FrameInput(
                     anchorUnpacked, width, height, cfa, black4, white, finalAnchorTs, anchorExp, anchorIso,
                     anchorGyro, anchorFlPx));
-            return engine.size() >= 2 ? engine.merge() : null;
+            MultiFrameRawEngine.Result res = engine.size() >= 2 ? engine.merge() : null;
+            MultiFrameBurstController.recordMergeDiagnostics(res == null || res.acceptedFrames < 2, focusSpreadD, gapMs);
+            return res;
         } catch (Throwable t) {
+            MultiFrameBurstController.recordMergeDiagnostics(false, Float.NaN, Float.NaN);
             Log.w(TAG, "MultiFrameRaw merge skipped (singleRaw fallback)", t);
             return null;
         }
@@ -1555,6 +1658,8 @@ public final class CustomImagingBridge {
             int[] argb;
             String captureMethod = "singleRaw";
             String burstSummary = "";
+            Integer mergeCount = null;
+            String rawDepth = null;
             MultiFrameRawEngine.Result merged = tryMultiFrameRawMerge(
                     rawBytes, width, height, cfa, black4, white, result, decision, cameraId);
             if (merged != null) {
@@ -1564,11 +1669,13 @@ public final class CustomImagingBridge {
                 black4 = merged.blackLevel4;
                 white = merged.whiteLevel;
                 captureMethod = "rawBurst";
+                mergeCount = Integer.valueOf(merged.acceptedFrames);
                 burstSummary = " rawBurst=" + merged.acceptedFrames + (merged.superResolved ? " sr=1" : "");
                 argb = CleanBayerRawProcessor.processRawToArgb(
                         merged.raw, width, height, cfa, black4, white, wb, ccm, 0.25f,
                         lscGrid, lscCols, lscRows, isoSensitivity);
             } else {
+                mergeCount = Integer.valueOf(1);
                 argb = CleanBayerRawProcessor.processRawToArgb(
                         unpacked, width, height, cfa, black4, white, wb, ccm, 0.25f,
                         lscGrid, lscCols, lscRows, isoSensitivity);
@@ -1598,7 +1705,8 @@ public final class CustomImagingBridge {
 
             jpegBytes = ExifUtility.appendExifToJpeg(jpegBytes, result, null, cameraId, null);
             try {
-                String telemetryNote = recordShotTelemetry(null, result, cameraId, decision, captureMethod, cleanName);
+                String telemetryNote = recordShotTelemetry(
+                        null, result, cameraId, decision, captureMethod, cleanName, mergeCount, rawDepth);
                 TelemetryCollector.CompassSnapshot rawCompass = latestCompassForContainer(null, captureMethod, cleanName);
                 String summary = decision.summary + (telemetryNote.isEmpty() ? "" : " " + telemetryNote);
                 if (jpegBytes != null) {
@@ -1905,6 +2013,122 @@ public final class CustomImagingBridge {
         return current;
     }
 
+    public static Range<Integer> resolveQualcommVideoFpsRange(String cameraId, Range<Integer> current) {
+        if (current == null || current.getUpper() == null) {
+            return current;
+        }
+        int targetUpper = current.getUpper().intValue();
+        try {
+            if (SettingsHelper.isSlowMotionMode() || SettingsHelper.isDualCaptureVideoMode()) {
+                VideoConfigHelper.noteResolvedVideoFps(targetUpper);
+                return current;
+            }
+            if (cameraId != null) {
+                CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
+                if (chars != null) {
+                    Range<Integer>[] avail = chars.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+                    if (avail != null && avail.length > 0) {
+                        int[][] pairs = new int[avail.length][];
+                        for (int i = 0; i < avail.length; i++) {
+                            Range<Integer> r = avail[i];
+                            if (r == null || r.getLower() == null || r.getUpper() == null) continue;
+                            pairs[i] = new int[] { r.getLower().intValue(), r.getUpper().intValue() };
+                        }
+                        int[] chosen = VideoConfigHelper.resolveVideoAeRange(targetUpper, pairs, false);
+                        if (chosen != null) {
+                            for (Range<Integer> r : avail) {
+                                if (r != null && r.getLower() != null && r.getUpper() != null
+                                        && r.getLower().intValue() == chosen[0]
+                                        && r.getUpper().intValue() == chosen[1]) {
+                                    VideoConfigHelper.noteResolvedVideoFps(chosen[1]);
+                                    return r;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "resolveQualcommVideoFpsRange fallback", t);
+        }
+        VideoConfigHelper.noteResolvedVideoFps(targetUpper);
+        return current;
+    }
+
+    public static void applyVideoRequestOverrides(String cameraId, CaptureRequest.Builder builder, int modeFlag) {
+        if (builder == null || cameraId == null) return;
+        try {
+            CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
+            if (chars == null) return;
+
+            int upperFps = 30;
+            Range<Integer> fpsRange = builder.get(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE);
+            if (fpsRange != null && fpsRange.getUpper() != null) {
+                upperFps = fpsRange.getUpper().intValue();
+            } else if (VideoConfigHelper.latestVideoAeUpperFps() > 0) {
+                upperFps = VideoConfigHelper.latestVideoAeUpperFps();
+            }
+
+            int edgeMode = VideoConfigHelper.resolveVideoEdgeMode();
+            int[] availEdge = chars.get(CameraCharacteristics.EDGE_AVAILABLE_EDGE_MODES);
+            if (SettingsHelper.isContainedInArray(availEdge, edgeMode)) {
+                builder.set(CaptureRequest.EDGE_MODE, Integer.valueOf(edgeMode));
+            }
+
+            int nrMode = VideoConfigHelper.resolveVideoNoiseReductionMode(upperFps);
+            int[] availNr = chars.get(CameraCharacteristics.NOISE_REDUCTION_AVAILABLE_NOISE_REDUCTION_MODES);
+            if (SettingsHelper.isContainedInArray(availNr, nrMode)) {
+                builder.set(CaptureRequest.NOISE_REDUCTION_MODE, Integer.valueOf(nrMode));
+            }
+
+            int[] availOis = chars.get(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION);
+            Integer currentOis = builder.get(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE);
+            boolean dualCapture = SettingsHelper.isDualCaptureMode() || SettingsHelper.isDualCaptureVideoMode();
+            if (VideoConfigHelper.shouldSetVideoOis(availOis, currentOis, dualCapture)) {
+                builder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, Integer.valueOf(1));
+            }
+
+            if (modeFlag == 3) {
+                Boolean awbOverride = VideoConfigHelper.nextVideoAwbLockOverride();
+                if (awbOverride != null) {
+                    builder.set(CaptureRequest.CONTROL_AWB_LOCK, awbOverride);
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "applyVideoRequestOverrides failed", t);
+        }
+    }
+
+    public static void applyVideoSnapshotOverrides(String cameraId, CaptureRequest.Builder builder) {
+        if (builder == null || cameraId == null) return;
+        try {
+            CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
+            if (chars == null) return;
+
+            int upperFps = 30;
+            Range<Integer> fpsRange = builder.get(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE);
+            if (fpsRange != null && fpsRange.getUpper() != null) {
+                upperFps = fpsRange.getUpper().intValue();
+            } else if (VideoConfigHelper.latestVideoAeUpperFps() > 0) {
+                upperFps = VideoConfigHelper.latestVideoAeUpperFps();
+            }
+
+            int edgeMode = VideoConfigHelper.resolveVideoEdgeMode();
+            int[] availEdge = chars.get(CameraCharacteristics.EDGE_AVAILABLE_EDGE_MODES);
+            if (SettingsHelper.isContainedInArray(availEdge, edgeMode)) {
+                builder.set(CaptureRequest.EDGE_MODE, Integer.valueOf(edgeMode));
+            }
+
+            int nrMode = VideoConfigHelper.resolveVideoNoiseReductionMode(upperFps);
+            int[] availNr = chars.get(CameraCharacteristics.NOISE_REDUCTION_AVAILABLE_NOISE_REDUCTION_MODES);
+            if (SettingsHelper.isContainedInArray(availNr, nrMode)) {
+                builder.set(CaptureRequest.NOISE_REDUCTION_MODE, Integer.valueOf(nrMode));
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "applyVideoSnapshotOverrides failed", t);
+        }
+    }
+
     private static TotalCaptureResult extractCaptureResult(SaveImageService.ImageContainer container) {
         if (container == null || container.mMediaData == null) return null;
         if (container.mMediaData.mImageDataHolder != null && container.mMediaData.mImageDataHolder.mResult != null) {
@@ -2044,6 +2268,18 @@ public final class CustomImagingBridge {
                                               ShotDecision decision,
                                               String captureMethod,
                                               String explicitShotId) {
+        return recordShotTelemetry(container, directResult, directCameraId, decision,
+                captureMethod, explicitShotId, null, null);
+    }
+
+    private static String recordShotTelemetry(SaveImageService.ImageContainer container,
+                                              TotalCaptureResult directResult,
+                                              String directCameraId,
+                                              ShotDecision decision,
+                                              String captureMethod,
+                                              String explicitShotId,
+                                              Integer mergeCount,
+                                              String depthSource) {
         try {
             TotalCaptureResult result = directResult != null ? directResult : extractCaptureResult(container);
             String cameraId = extractCameraId(container, directCameraId);
@@ -2061,7 +2297,16 @@ public final class CustomImagingBridge {
                     && SettingsHelper.isPortraitMode(container.mMediaData.mCaptureRecord.mCaptureMode);
             Float lux = decision != null && Float.isFinite(decision.lux) ? Float.valueOf(decision.lux) : null;
             boolean realtimeClock = isRealtimeTimestampClock(cameraId);
-            TelemetryCollector.ShotMetadata meta = TelemetryCollector.shotMetadata(shotId, lux, realtimeClock);
+            float rawGapMs = MultiFrameBurstController.latestMergeGapMs();
+            Float gapMs = Float.isFinite(rawGapMs) ? Float.valueOf(rawGapMs) : null;
+            float rawSpread = MultiFrameBurstController.latestMergeFocusSpread();
+            Float focusSpreadD = Float.isFinite(rawSpread) ? Float.valueOf(rawSpread) : null;
+            Boolean motionRejected = MultiFrameBurstController.wasLastMergeMotionRejected() ? Boolean.TRUE : null;
+            int rawFps = VideoConfigHelper.latestVideoAeUpperFps();
+            Integer aeFps = rawFps > 0 ? Integer.valueOf(rawFps) : null;
+            TelemetryCollector.ShotMetadata meta = TelemetryCollector.shotMetadata(
+                    shotId, lux, realtimeClock, gapMs, focusSpreadD, motionRejected,
+                    aeFps, null, mergeCount, depthSource);
             int lookId = decision != null ? decision.look : 0;
             int bokehId = (portraitShot && decision != null) ? decision.bokeh : 0;
             int profileId = decision != null ? decision.profile : getSelectedProfile();

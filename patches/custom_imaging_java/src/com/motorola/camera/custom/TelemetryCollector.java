@@ -49,6 +49,9 @@ public final class TelemetryCollector {
         "CONTROL_AF_STATE", "CONTROL_AE_STATE", "CONTROL_AWB_STATE", "STATISTICS_SCENE_FLICKER",
         "COLOR_CORRECTION_GAINS", "COLOR_CORRECTION_TRANSFORM"
     };
+    private static final String[] EXTRA_DIAG_KEYS = {
+        "LENS_OPTICAL_STABILIZATION_MODE", "LENS_STATE", "LOGICAL_MULTI_CAMERA_ACTIVE_PHYSICAL_ID"
+    };
     // Resolve public SDK fields once. The port's existing compile-only CaptureResult stub is partial.
     private static final Map<String, CaptureResult.Key<?>> RESULT_KEYS = resultKeys();
     private static volatile Session active;
@@ -80,24 +83,43 @@ public final class TelemetryCollector {
 
     /** Snapshot this identity at request time. Set realtimeClock only for SENSOR_INFO_TIMESTAMP_SOURCE_REALTIME. */
     public static final class ShotMetadata {
-        public final String shotId, cameraId;
-        public final Boolean isFront;
-        public final Float iqLuxIdx;
+        public final String shotId, cameraId, depthSource;
+        public final Boolean isFront, motionRejected;
+        public final Float iqLuxIdx, gapMs, focusSpreadD;
+        public final Integer aeFps, oisMode, mergeCount;
         public final boolean realtimeClock;
         private final long generation;
 
-        private ShotMetadata(String shotId, Float iqLuxIdx, boolean realtimeClock, Session session) {
+        private ShotMetadata(String shotId, Float iqLuxIdx, boolean realtimeClock, Session session,
+                             Float gapMs, Float focusSpreadD, Boolean motionRejected,
+                             Integer aeFps, Integer oisMode, Integer mergeCount, String depthSource) {
             this.shotId = shotId;
             this.iqLuxIdx = iqLuxIdx;
             this.realtimeClock = realtimeClock;
             this.cameraId = session == null ? null : session.cameraId;
             this.isFront = session == null ? null : session.front;
             this.generation = session == null ? 0 : session.id;
+            this.gapMs = gapMs;
+            this.focusSpreadD = focusSpreadD;
+            this.motionRejected = motionRejected;
+            this.aeFps = aeFps;
+            this.oisMode = oisMode;
+            this.mergeCount = mergeCount;
+            this.depthSource = depthSource;
         }
     }
 
     public static ShotMetadata shotMetadata(String shotId, Float iqLuxIdx, boolean realtimeClock) {
-        return new ShotMetadata(shotId, iqLuxIdx, realtimeClock, active);
+        return new ShotMetadata(shotId, iqLuxIdx, realtimeClock, active,
+                null, null, null, null, null, null, null);
+    }
+
+    public static ShotMetadata shotMetadata(String shotId, Float iqLuxIdx, boolean realtimeClock,
+                                            Float gapMs, Float focusSpreadD, Boolean motionRejected,
+                                            Integer aeFps, Integer oisMode, Integer mergeCount,
+                                            String depthSource) {
+        return new ShotMetadata(shotId, iqLuxIdx, realtimeClock, active,
+                gapMs, focusSpreadD, motionRejected, aeFps, oisMode, mergeCount, depthSource);
     }
 
     public static void onCameraActive(Context ctx, String cameraId, boolean isFront) {
@@ -486,6 +508,11 @@ public final class TelemetryCollector {
                 keys.put(name, (CaptureResult.Key<?>) CaptureResult.class.getField(name).get(null));
             } catch (ReflectiveOperationException | SecurityException ignored) {}
         }
+        for (String name : EXTRA_DIAG_KEYS) {
+            try {
+                keys.put(name, (CaptureResult.Key<?>) CaptureResult.class.getField(name).get(null));
+            } catch (ReflectiveOperationException | SecurityException ignored) {}
+        }
         return keys;
     }
 
@@ -686,6 +713,25 @@ public final class TelemetryCollector {
         thermal.put("reasons", thermalReasons);
         shot.put("thermalC", thermal);
         shot.put("compass", compassJson(compass != null ? compass : sampleCompass(result, meta)));
+        Object tagOis = readTag(result, "LENS_OPTICAL_STABILIZATION_MODE");
+        Integer effectiveOis = meta != null && meta.oisMode != null ? meta.oisMode
+                : (tagOis instanceof Integer ? (Integer) tagOis : null);
+        if (meta != null && (meta.gapMs != null || meta.focusSpreadD != null || meta.motionRejected != null
+                || meta.aeFps != null || effectiveOis != null || meta.mergeCount != null || meta.depthSource != null)) {
+            Map<String,Object> diag = new LinkedHashMap<>();
+            if (meta.gapMs != null && Float.isFinite(meta.gapMs)) diag.put("gapMs", meta.gapMs);
+            if (meta.focusSpreadD != null && Float.isFinite(meta.focusSpreadD)) diag.put("focusSpreadD", meta.focusSpreadD);
+            if (meta.motionRejected != null) diag.put("motionRejected", meta.motionRejected);
+            if (meta.aeFps != null) diag.put("aeFps", meta.aeFps);
+            if (effectiveOis != null) diag.put("oisMode", effectiveOis);
+            if (meta.mergeCount != null) diag.put("mergeCount", meta.mergeCount);
+            if (meta.depthSource != null && !meta.depthSource.isEmpty()) diag.put("depthSource", meta.depthSource);
+            shot.put("diagnostics", diag);
+        } else if (effectiveOis != null) {
+            Map<String,Object> diag = new LinkedHashMap<>();
+            diag.put("oisMode", effectiveOis);
+            shot.put("diagnostics", diag);
+        }
         Map<String,Object> absent = new LinkedHashMap<>();
         for (String field : new String[]{"humidityPct", "pressureHpa", "ambientTempC"}) {
             shot.put(field, null);
@@ -921,11 +967,33 @@ public final class TelemetryCollector {
                                                int lookId, int bokehId, int profileId) {
         Object iso = readTag(result, "SENSOR_SENSITIVITY");
         Object ns = readTag(result, "SENSOR_EXPOSURE_TIME");
-        return "telemetry=1 capture=" + method(captureMethod) + " look=" + lookId + " bokeh=" + bokehId
-                + " profile=" + profileId + (iso == null ? "" : " ISO=" + iso)
-                + (ns == null ? "" : " exposureNs=" + ns)
-                + (meta == null || meta.iqLuxIdx == null || !Float.isFinite(meta.iqLuxIdx)
-                    ? "" : " iqLuxIdx=" + meta.iqLuxIdx);
+        Object tagOis = readTag(result, "LENS_OPTICAL_STABILIZATION_MODE");
+        Integer effectiveOis = meta != null && meta.oisMode != null ? meta.oisMode
+                : (tagOis instanceof Integer ? (Integer) tagOis : null);
+        StringBuilder sb = new StringBuilder(160);
+        sb.append("telemetry=1 capture=").append(method(captureMethod))
+          .append(" look=").append(lookId)
+          .append(" bokeh=").append(bokehId)
+          .append(" profile=").append(profileId);
+        if (iso != null) sb.append(" ISO=").append(iso);
+        if (ns != null) sb.append(" exposureNs=").append(ns);
+        if (meta != null && meta.iqLuxIdx != null && Float.isFinite(meta.iqLuxIdx)) {
+            sb.append(" iqLuxIdx=").append(meta.iqLuxIdx);
+        }
+        if (effectiveOis != null) sb.append(" ois=").append(effectiveOis);
+        if (meta != null) {
+            if (meta.aeFps != null) sb.append(" aeFps=").append(meta.aeFps);
+            if (meta.mergeCount != null) sb.append(" merge=").append(meta.mergeCount);
+            if (meta.gapMs != null && Float.isFinite(meta.gapMs)) {
+                sb.append(" gapMs=").append(String.format(Locale.ROOT, "%.1f", meta.gapMs));
+            }
+            if (meta.focusSpreadD != null && Float.isFinite(meta.focusSpreadD)) {
+                sb.append(" focusSpreadD=").append(String.format(Locale.ROOT, "%.2f", meta.focusSpreadD));
+            }
+            if (Boolean.TRUE.equals(meta.motionRejected)) sb.append(" motion=1");
+            if (meta.depthSource != null && !meta.depthSource.isEmpty()) sb.append(" depth=").append(meta.depthSource);
+        }
+        return sb.toString();
     }
 
     /** A null destination disables sidecars. Call on a save worker after the media file is finalized. */

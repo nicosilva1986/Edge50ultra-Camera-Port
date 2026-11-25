@@ -45,7 +45,7 @@ final class PortraitBokeh {
         int sw = Math.max(2, (int) (width * scale)), sh = Math.max(2, (int) (height * scale));
         byte[] depth = readDepth(frame, sw, sh);
         if (depth == null) return false;
-        return renderWithDepth(source, depth, sw, sh, focus(depth, sw, sh), style);
+        return renderWithDepth(source, depth, sw, sh, focus(depth, sw, sh), style, 1.0f);
     }
 
     /**
@@ -81,10 +81,29 @@ final class PortraitBokeh {
             depthSource = "radial";
         }
         int focus = "hw".equals(depthSource) ? focus(depth, sw, sh) : SUBJECT_DEPTH;
-        return renderWithDepth(source, depth, sw, sh, focus, style) ? depthSource : null;
+        float radiusScale = computeRadiusScale(result);
+        return renderWithDepth(source, depth, sw, sh, focus, style, radiusScale) ? depthSource : null;
     }
 
-    private static boolean renderWithDepth(Bitmap source, byte[] depth, int sw, int sh, int focus, int style) {
+    private static float computeRadiusScale(TotalCaptureResult result) {
+        if (result == null) return 1.0f;
+        float scale = 1.0f;
+        try {
+            Float fl = result.get(CaptureResult.LENS_FOCAL_LENGTH);
+            if (fl != null && Float.isFinite(fl) && fl > 0.5f) {
+                float flFactor = Math.max(0.75f, Math.min(1.35f, fl / 6.9f));
+                scale *= flFactor;
+            }
+            Float ap = result.get(CaptureResult.LENS_APERTURE);
+            if (ap != null && Float.isFinite(ap) && ap > 0.5f) {
+                float apFactor = Math.max(0.75f, Math.min(1.20f, 1.6f / ap));
+                scale *= apFactor;
+            }
+        } catch (Throwable ignored) {}
+        return Math.max(0.70f, Math.min(1.45f, scale));
+    }
+
+    private static boolean renderWithDepth(Bitmap source, byte[] depth, int sw, int sh, int focus, int style, float radiusScale) {
         int width = source.getWidth(), height = source.getHeight();
         Bitmap small = Bitmap.createScaledBitmap(source, sw, sh, true);
         int[] pixels = new int[sw * sh];
@@ -93,8 +112,8 @@ final class PortraitBokeh {
         } finally {
             if (small != source) small.recycle();
         }
-        int[] blurred = OffscreenBokeh.render(pixels, depth, sw, sh, focus, style);
-        if (blurred == null) blurred = BokehKernel.gather(pixels, depth, sw, sh, focus, style);
+        int[] blurred = OffscreenBokeh.render(pixels, depth, sw, sh, focus, style, radiusScale);
+        if (blurred == null) blurred = BokehKernel.gather(pixels, depth, sw, sh, focus, style, radiusScale);
         Bitmap blur = Bitmap.createBitmap(blurred, sw, sh, Bitmap.Config.ARGB_8888);
         Bitmap expanded = blur;
         try {
@@ -103,7 +122,11 @@ final class PortraitBokeh {
             int[] depthX = new int[width];
             for (int x = 0; x < width; x++) depthX[x] = x * sw / width;
             int[] amounts = new int[256];
-            for (int d = 0; d < amounts.length; d++) amounts[d] = Math.round(256 * Math.min(1, BokehKernel.coc(d, focus) * 3));
+            for (int d = 0; d < amounts.length; d++) {
+                float c = BokehKernel.coc(d, focus);
+                float ramped = Math.min(1f, c * 1.65f);
+                amounts[d] = Math.round(256 * ramped);
+            }
             for (int y = 0; y < height; y++) {
                 source.getPixels(originalRow, 0, width, 0, y, width, 1);
                 expanded.getPixels(blurRow, 0, width, 0, y, width, 1);

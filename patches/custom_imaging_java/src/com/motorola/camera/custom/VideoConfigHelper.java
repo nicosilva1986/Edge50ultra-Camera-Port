@@ -10,8 +10,128 @@ package com.motorola.camera.custom;
 public final class VideoConfigHelper {
     public static final int HEVC_MAX_BITRATE = 70_000_000;
     public static final int AVC_MAX_BITRATE = 100_000_000;
+    public static final int EDGE_OFF = 0;
+    public static final int NR_FAST = 1;
+    public static final int NR_HIGH_QUALITY = 2;
+    public static final int AWB_LOCK_HOLD_FRAMES = 3;
+
+    private static final Object AWB_LOCK = new Object();
+    private static String lastVideoPhysicalId;
+    private static int awbHoldFramesRemaining;
+    private static boolean awbUnlockPending;
+    private static volatile int latestAeUpperFps;
 
     private VideoConfigHelper() {}
+
+    public static int resolveVideoEdgeMode() {
+        return EDGE_OFF;
+    }
+
+    public static int resolveVideoNoiseReductionMode(int upperFps) {
+        // Camera2 allows NR_HIGH_QUALITY (2) to drop frame rate below target at >= 60 fps.
+        return upperFps >= 60 ? NR_FAST : NR_HIGH_QUALITY;
+    }
+
+    /**
+     * Chooses the tightest supported AE FPS range matching {@code targetUpperFps}.
+     * Fixed {@code [target, target]} beats variable ranges unless {@code allowVariableLowLight} is requested.
+     */
+    public static int[] resolveVideoAeRange(int targetUpperFps, int[][] availableRanges,
+                                            boolean allowVariableLowLight) {
+        if (targetUpperFps <= 0 || availableRanges == null) {
+            return null;
+        }
+        int[] exact = null;
+        int[] bestVariable = null;
+        for (int i = 0; i < availableRanges.length; i++) {
+            int[] range = availableRanges[i];
+            if (range == null || range.length < 2 || range[0] <= 0 || range[0] > range[1]) continue;
+            if (range[1] != targetUpperFps) continue;
+            if (range[0] == targetUpperFps) {
+                exact = new int[] { targetUpperFps, targetUpperFps };
+            } else if (bestVariable == null || range[0] > bestVariable[0]) {
+                bestVariable = new int[] { range[0], range[1] };
+            }
+        }
+        if (allowVariableLowLight) {
+            return bestVariable != null ? bestVariable : exact;
+        }
+        return exact != null ? exact : bestVariable;
+    }
+
+    /**
+     * Enables HAL OIS only on single-camera streams where it is supported and not explicitly forced OFF (0).
+     */
+    public static boolean shouldSetVideoOis(int[] availableModes, Integer currentMode, boolean isDualCapture) {
+        if (isDualCapture || availableModes == null) {
+            return false;
+        }
+        if (currentMode != null && currentMode.intValue() == 0) {
+            return false;
+        }
+        for (int mode : availableModes) {
+            if (mode == 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void resetAwbSwitchTracker() {
+        synchronized (AWB_LOCK) {
+            lastVideoPhysicalId = null;
+            awbHoldFramesRemaining = 0;
+            awbUnlockPending = false;
+        }
+    }
+
+    public static void onVideoFramePhysicalCamera(String activePhysicalId) {
+        if (activePhysicalId == null || activePhysicalId.isEmpty()) {
+            return;
+        }
+        synchronized (AWB_LOCK) {
+            if (lastVideoPhysicalId == null) {
+                lastVideoPhysicalId = activePhysicalId;
+                return;
+            }
+            if (!lastVideoPhysicalId.equals(activePhysicalId)) {
+                lastVideoPhysicalId = activePhysicalId;
+                awbHoldFramesRemaining = AWB_LOCK_HOLD_FRAMES;
+                awbUnlockPending = false;
+            }
+        }
+    }
+
+    /**
+     * Returns {@code Boolean.TRUE} for {@link #AWB_LOCK_HOLD_FRAMES} frames after a lens switch,
+     * {@code Boolean.FALSE} once to release our lock, and {@code null} otherwise.
+     */
+    public static Boolean nextVideoAwbLockOverride() {
+        synchronized (AWB_LOCK) {
+            if (awbHoldFramesRemaining > 0) {
+                awbHoldFramesRemaining--;
+                if (awbHoldFramesRemaining == 0) {
+                    awbUnlockPending = true;
+                }
+                return Boolean.TRUE;
+            }
+            if (awbUnlockPending) {
+                awbUnlockPending = false;
+                return Boolean.FALSE;
+            }
+            return null;
+        }
+    }
+
+    public static void noteResolvedVideoFps(int upperFps) {
+        if (upperFps > 0) {
+            latestAeUpperFps = upperFps;
+        }
+    }
+
+    public static int latestVideoAeUpperFps() {
+        return latestAeUpperFps;
+    }
 
     public static int resolveVideoBitrate(int sizeBitrate, int upperFps, boolean isHevc) {
         if (sizeBitrate <= 0) return 0;

@@ -24,15 +24,15 @@
 .method constructor <init>(ILjava/nio/ByteBuffer;)V
     .locals 0
 
-    .line 116
+    .line 119
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 117
+    .line 120
     iput p1, p0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
 
-    .line 118
+    .line 121
     iput-object p2, p0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->pixels:Ljava/nio/ByteBuffer;
 
-    .line 119
+    .line 122
     return-void
 .end method

@@ -30,6 +30,12 @@ public final class CaptureRequest {
     public static final Key<Integer> EDGE_MODE = new Key<>("android.edge.mode", Integer.class);
     public static final Key<Integer> FLASH_MODE = new Key<>("android.flash.mode", Integer.class);
     public static final Key<Integer> CONTROL_AE_MODE = new Key<>("android.control.aeMode", Integer.class);
+    public static final Key<Boolean> CONTROL_AWB_LOCK = new Key<>("android.control.awbLock", Boolean.class);
+    public static final Key<Integer> LENS_OPTICAL_STABILIZATION_MODE =
+            new Key<>("android.lens.opticalStabilizationMode", Integer.class);
+    @SuppressWarnings("unchecked")
+    public static final Key<android.util.Range<Integer>> CONTROL_AE_TARGET_FPS_RANGE =
+            new Key<>("android.control.aeTargetFpsRange", (Class) android.util.Range.class);
 
     public Object getTag() { return null; }
 

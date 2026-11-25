@@ -1035,6 +1035,43 @@ public final class BridgeChecks {
         }
         PersistBehavior.mockLook = null;
         PersistBehavior.mockIntensity = null;
+
+        // 9. v1.9.2 highlight gate (>=0.5% Y>=250) & neutral-safe sky cyan->cobalt protection.
+        int[] belowGate = new int[201];
+        for (int i = 0; i < 201; i++) {
+            belowGate[i] = i == 0 ? 0xFFFDFDFD : 0xFF90C8E8; // 1/201 = 0.497% < ceil=2 -> reject
+        }
+        if (AppleStyleToneEngine.evaluateAutoHighlightGate(belowGate, belowGate.length)) {
+            throw new AssertionError("Below-threshold (<0.5% Y>=250) sky sample must NOT trigger highlight shoulder");
+        }
+        int[] brightSkySample = new int[200];
+        for (int i = 0; i < 200; i++) {
+            brightSkySample[i] = i < 12 ? 0xFFFDFDFD : 0xFF90C8E8; // 6% >=250 -> trigger
+        }
+        if (!AppleStyleToneEngine.evaluateAutoHighlightGate(brightSkySample, brightSkySample.length)) {
+            throw new AssertionError("Bright sky frame (>=0.5% Y>=250) must trigger highlight shoulder");
+        }
+
+        int[] skyAndGrayAndSkin = new int[] {
+            0xFFD8D8D8, // neutral gray highlight (spread 0 -> invariant hue)
+            0xFFE29674, // warm skin tone (R > G > B -> untouched by blue/cyan sky curve)
+            0xFF5CE2FA  // bright cyan-drifted sky (B=250, G=226, R=92 -> pull G slightly toward cobalt before shoulder)
+        };
+        AppleStyleToneEngine.applyAutoLocalToneAndZoomAcutance(
+                skyAndGrayAndSkin, 3, 1, 0, 3, 1,
+                null, null, 0, 0, false, true, false, 1.0f, false, 100);
+        int gGray = skyAndGrayAndSkin[0];
+        if (((gGray >> 16) & 255) != ((gGray >> 8) & 255) || ((gGray >> 8) & 255) != (gGray & 255)) {
+            throw new AssertionError("Highlight roll-off must keep neutral gray strictly achromatic");
+        }
+        if (skyAndGrayAndSkin[1] != 0xFFE29674) {
+            throw new AssertionError("Warm skin highlight below 224 peak must remain untouched: " + Integer.toHexString(skyAndGrayAndSkin[1]));
+        }
+        int skyOut = skyAndGrayAndSkin[2];
+        int skyG = (skyOut >> 8) & 255, skyB = skyOut & 255;
+        if (skyG >= skyB) {
+            throw new AssertionError("Expected bright cyan sky stabilization to keep G well below B");
+        }
     }
 }
 `);

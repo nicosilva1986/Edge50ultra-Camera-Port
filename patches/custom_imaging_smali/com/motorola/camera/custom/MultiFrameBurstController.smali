@@ -20,6 +20,10 @@
 
 .field public static final BYTE_CAP_STANDARD:J = 0x14000000L
 
+.field public static final LENS_STATE_MOVING:I = 0x1
+
+.field public static final MAX_FOCUS_SPREAD_DIOPTERS:F = 0.15f
+
 .field public static final MAX_FRAMES_SR:I = 0x8
 
 .field public static final MAX_FRAMES_STANDARD:I = 0x6
@@ -42,9 +46,19 @@
 
 .field private static aborted:Z
 
+.field private static activeCameraId:Ljava/lang/String;
+
+.field private static activeSessionGeneration:I
+
 .field private static byteCap:J
 
 .field private static count:I
+
+.field private static lastMergeFocusSpread:F
+
+.field private static lastMergeGapMs:F
+
+.field private static lastMergeMotionRejected:Z
 
 .field private static maxFrames:I
 
@@ -65,32 +79,40 @@
 .method static constructor <clinit>()V
     .locals 2
 
-    .line 65
+    .line 72
     const/16 v0, 0x8
 
     new-array v1, v0, [Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     sput-object v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
-    .line 66
+    .line 73
     new-array v0, v0, [Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     sput-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
-    .line 70
+    .line 77
     const/4 v0, 0x6
 
     sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
 
-    .line 71
+    .line 78
     const-wide/32 v0, 0x14000000
 
     sput-wide v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
 
-    .line 75
+    .line 82
     const/4 v0, -0x1
 
     sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->plannedFrames:I
+
+    .line 86
+    const/high16 v0, 0x7fc00000    # Float.NaN
+
+    sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeFocusSpread:F
+
+    .line 87
+    sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeGapMs:F
 
     return-void
 .end method
@@ -98,7 +120,7 @@
 .method private constructor <init>()V
     .locals 0
 
-    .line 77
+    .line 89
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     return-void
@@ -111,13 +133,13 @@
 
     monitor-enter v0
 
-    .line 135
+    .line 173
     const/4 v1, 0x1
 
     :try_start_0
     sput-boolean v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->aborted:Z
 
-    .line 136
+    .line 174
     if-eqz p0, :cond_1
 
     invoke-virtual {p0}, Ljava/lang/String;->length()I
@@ -128,20 +150,20 @@
 
     goto :goto_0
 
-    .line 137
+    .line 175
     :cond_0
     sput-object p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->abortReason:Ljava/lang/String;
 
     goto :goto_1
 
-    .line 136
+    .line 174
     :cond_1
     :goto_0
     const-string p0, "aborted"
 
     sput-object p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->abortReason:Ljava/lang/String;
 
-    .line 138
+    .line 176
     :goto_1
     sget p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
@@ -151,13 +173,13 @@
 
     goto :goto_1
 
-    .line 139
+    .line 177
     :cond_2
     const/4 p0, 0x0
 
     sput p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    .line 140
+    .line 178
     nop
 
     :goto_2
@@ -179,13 +201,13 @@
 
     goto :goto_2
 
-    .line 141
+    .line 179
     :cond_3
     monitor-exit v0
 
     return-void
 
-    .line 134
+    .line 172
     :catchall_0
     move-exception p0
 
@@ -197,10 +219,39 @@
     throw p0
 .end method
 
+.method public static declared-synchronized activeCameraId()Ljava/lang/String;
+    .locals 2
+
+    const-class v0, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v0
+
+    .line 109
+    :try_start_0
+    sget-object v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeCameraId:Ljava/lang/String;
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    monitor-exit v0
+
+    return-object v1
+
+    .line 109
+    :catchall_0
+    move-exception v1
+
+    :try_start_1
+    monitor-exit v0
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw v1
+.end method
+
 .method private static baseCount(IFZ)I
     .locals 5
 
-    .line 298
+    .line 478
     const/4 v0, 0x1
 
     const/4 v1, 0x5
@@ -211,7 +262,7 @@
 
     if-ne p0, v0, :cond_3
 
-    .line 299
+    .line 479
     const/high16 p0, 0x43960000    # 300.0f
 
     cmpl-float p0, p1, p0
@@ -234,7 +285,7 @@
     :cond_1
     move v1, v3
 
-    .line 300
+    .line 480
     :goto_0
     if-eqz p2, :cond_2
 
@@ -242,14 +293,14 @@
 
     goto :goto_1
 
-    .line 301
+    .line 481
     :cond_2
     move v3, v1
 
     :goto_1
     return v3
 
-    .line 303
+    .line 483
     :cond_3
     const/4 v0, 0x2
 
@@ -259,7 +310,7 @@
 
     return v4
 
-    .line 304
+    .line 484
     :cond_4
     if-ne p0, v4, :cond_6
 
@@ -276,29 +327,126 @@
     :cond_5
     return v2
 
-    .line 305
+    .line 485
     :cond_6
     if-ne p0, v3, :cond_7
 
     return v1
 
-    .line 306
+    .line 486
     :cond_7
     if-ne p0, v1, :cond_8
 
     return v2
 
-    .line 307
+    .line 487
     :cond_8
     const/4 p0, -0x1
 
     return p0
 .end method
 
+.method public static declared-synchronized beginSession(Ljava/lang/String;)I
+    .locals 4
+
+    const-class v0, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v0
+
+    .line 92
+    :try_start_0
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+
+    const/4 v2, 0x1
+
+    add-int/2addr v1, v2
+
+    sput v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+
+    .line 93
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+
+    if-gtz v1, :cond_0
+
+    sput v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+
+    .line 94
+    :cond_0
+    sput-object p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeCameraId:Ljava/lang/String;
+
+    .line 95
+    :goto_0
+    sget p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    if-lez p0, :cond_1
+
+    invoke-static {}, Lcom/motorola/camera/custom/MultiFrameBurstController;->evictOldest()V
+
+    goto :goto_0
+
+    .line 96
+    :cond_1
+    const/4 p0, 0x0
+
+    sput p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
+
+    .line 97
+    move v1, p0
+
+    :goto_1
+    sget-object v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+
+    array-length v2, v2
+
+    if-ge v1, v2, :cond_2
+
+    sget-object v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+
+    const/4 v3, 0x0
+
+    aput-object v3, v2, v1
+
+    add-int/lit8 v1, v1, 0x1
+
+    goto :goto_1
+
+    .line 98
+    :cond_2
+    sput-boolean p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeMotionRejected:Z
+
+    .line 99
+    const/high16 p0, 0x7fc00000    # Float.NaN
+
+    sput p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeFocusSpread:F
+
+    .line 100
+    sput p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeGapMs:F
+
+    .line 101
+    sget p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    monitor-exit v0
+
+    return p0
+
+    .line 91
+    :catchall_0
+    move-exception p0
+
+    :try_start_1
+    monitor-exit v0
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw p0
+.end method
+
 .method public static boundRawMaxImages(Ljava/lang/String;Ljava/lang/String;I)I
     .locals 1
 
-    .line 86
+    .line 119
     const/4 v0, 0x0
 
     invoke-static {p0, p1, v0, p2}, Lcom/motorola/camera/custom/MultiFrameBurstController;->boundRawMaxImages(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)I
@@ -311,14 +459,14 @@
 .method public static boundRawMaxImages(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)I
     .locals 1
 
-    .line 91
+    .line 124
     const/4 v0, 0x1
 
     if-ge p3, v0, :cond_0
 
     move p3, v0
 
-    .line 92
+    .line 125
     :cond_0
     invoke-static {p0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->isBoundedZslCamera(Ljava/lang/String;)Z
 
@@ -332,17 +480,17 @@
 
     if-nez p0, :cond_1
 
-    .line 93
+    .line 126
     invoke-static {p2}, Lcom/motorola/camera/custom/MultiFrameBurstController;->isBoundedZslCamera(Ljava/lang/String;)Z
 
     move-result p0
 
     if-nez p0, :cond_1
 
-    .line 94
+    .line 127
     return p3
 
-    .line 96
+    .line 129
     :cond_1
     const/4 p0, 0x6
 
@@ -350,9 +498,133 @@
 
     return p0
 
-    .line 97
+    .line 130
     :cond_2
     return p3
+.end method
+
+.method public static computeFocusSpreadDiopters([Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;F)F
+    .locals 7
+
+    .line 360
+    nop
+
+    .line 361
+    nop
+
+    .line 362
+    nop
+
+    .line 363
+    invoke-static {p1}, Ljava/lang/Float;->isFinite(F)Z
+
+    move-result v0
+
+    const/4 v1, 0x0
+
+    const/4 v2, 0x0
+
+    if-eqz v0, :cond_0
+
+    cmpl-float v0, p1, v1
+
+    if-ltz v0, :cond_0
+
+    .line 364
+    nop
+
+    .line 365
+    nop
+
+    .line 366
+    const/4 v0, 0x1
+
+    move v3, v0
+
+    move v0, p1
+
+    goto :goto_0
+
+    .line 368
+    :cond_0
+    const/high16 p1, 0x7f800000    # Float.POSITIVE_INFINITY
+
+    const/high16 v0, -0x800000    # Float.NEGATIVE_INFINITY
+
+    move v3, v2
+
+    :goto_0
+    if-eqz p0, :cond_4
+
+    .line 369
+    array-length v4, p0
+
+    :goto_1
+    if-ge v2, v4, :cond_4
+
+    aget-object v5, p0, v2
+
+    .line 370
+    if-eqz v5, :cond_3
+
+    iget v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;->focusDistance:F
+
+    invoke-static {v6}, Ljava/lang/Float;->isFinite(F)Z
+
+    move-result v6
+
+    if-eqz v6, :cond_3
+
+    iget v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;->focusDistance:F
+
+    cmpl-float v6, v6, v1
+
+    if-ltz v6, :cond_3
+
+    .line 371
+    iget v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;->focusDistance:F
+
+    cmpg-float v6, v6, p1
+
+    if-gez v6, :cond_1
+
+    iget p1, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;->focusDistance:F
+
+    .line 372
+    :cond_1
+    iget v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;->focusDistance:F
+
+    cmpl-float v6, v6, v0
+
+    if-lez v6, :cond_2
+
+    iget v0, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;->focusDistance:F
+
+    .line 373
+    :cond_2
+    add-int/lit8 v3, v3, 0x1
+
+    .line 369
+    :cond_3
+    add-int/lit8 v2, v2, 0x1
+
+    goto :goto_1
+
+    .line 377
+    :cond_4
+    const/4 p0, 0x2
+
+    if-lt v3, p0, :cond_5
+
+    sub-float/2addr v0, p1
+
+    goto :goto_2
+
+    :cond_5
+    const/high16 v0, 0x7fc00000    # Float.NaN
+
+    :goto_2
+    return v0
 .end method
 
 .method public static declared-synchronized configure(I)V
@@ -362,36 +634,36 @@
 
     monitor-enter v0
 
-    .line 124
+    .line 162
     const/4 v1, 0x3
 
     if-ne p0, v1, :cond_0
 
-    .line 125
+    .line 163
     const/16 p0, 0x8
 
     :try_start_0
     sput p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
 
-    .line 126
+    .line 164
     const-wide/32 v1, 0x1a400000
 
     sput-wide v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
 
     goto :goto_0
 
-    .line 128
+    .line 166
     :cond_0
     const/4 p0, 0x6
 
     sput p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
 
-    .line 129
+    .line 167
     const-wide/32 v1, 0x14000000
 
     sput-wide v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
 
-    .line 131
+    .line 169
     :goto_0
     sget p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
@@ -405,13 +677,13 @@
 
     goto :goto_0
 
-    .line 132
+    .line 170
     :cond_1
     monitor-exit v0
 
     return-void
 
-    .line 123
+    .line 161
     :catchall_0
     move-exception p0
 
@@ -423,13 +695,42 @@
     throw p0
 .end method
 
+.method public static declared-synchronized currentSessionGeneration()I
+    .locals 2
+
+    const-class v0, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v0
+
+    .line 105
+    :try_start_0
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    monitor-exit v0
+
+    return v1
+
+    .line 105
+    :catchall_0
+    move-exception v1
+
+    :try_start_1
+    monitor-exit v0
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw v1
+.end method
+
 .method public static estimateRawBytes(Z)I
     .locals 4
 
-    .line 102
+    .line 135
     nop
 
-    .line 103
+    .line 136
     if-eqz p0, :cond_0
 
     const-wide/32 v0, 0x17ec040
@@ -439,7 +740,7 @@
     :cond_0
     const-wide/32 v0, 0xef3828
 
-    .line 104
+    .line 137
     :goto_0
     const-wide/32 v2, 0x7fffffff
 
@@ -451,7 +752,7 @@
 
     return p0
 
-    .line 105
+    .line 138
     :cond_1
     long-to-int p0, v0
 
@@ -461,30 +762,30 @@
 .method private static evictOldest()V
     .locals 1
 
-    .line 434
+    .line 640
     sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
     if-nez v0, :cond_0
 
     return-void
 
-    .line 435
+    .line 641
     :cond_0
     const/4 v0, 0x0
 
     invoke-static {v0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->removeAt(I)V
 
-    .line 436
+    .line 642
     return-void
 .end method
 
 .method private static exposureOffsets(IIF)[F
     .locals 6
 
-    .line 322
+    .line 502
     new-array v0, p1, [F
 
-    .line 323
+    .line 503
     const/4 v1, 0x0
 
     const/4 v2, 0x0
@@ -499,23 +800,23 @@
 
     if-ne p1, v5, :cond_0
 
-    .line 324
+    .line 504
     const/high16 p0, -0x40000000    # -2.0f
 
     aput p0, v0, v2
 
-    .line 325
+    .line 505
     aput v1, v0, v3
 
-    .line 326
+    .line 506
     const/high16 p0, 0x40000000    # 2.0f
 
     aput p0, v0, v4
 
-    .line 327
+    .line 507
     return-object v0
 
-    .line 329
+    .line 509
     :cond_0
     if-ne p0, v3, :cond_1
 
@@ -525,18 +826,18 @@
 
     if-lez p0, :cond_1
 
-    .line 330
+    .line 510
     add-int/lit8 p0, p1, -0x1
 
     int-to-float p0, p0
 
-    .line 331
+    .line 511
     nop
 
     :goto_0
     if-ge v2, p1, :cond_1
 
-    .line 332
+    .line 512
     int-to-float v1, v2
 
     div-float/2addr v1, p0
@@ -549,51 +850,68 @@
 
     aput v1, v0, v2
 
-    .line 331
+    .line 511
     add-int/lit8 v2, v2, 0x1
 
     goto :goto_0
 
-    .line 335
+    .line 515
     :cond_1
     return-object v0
 .end method
 
-.method private static fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;JJIFFJZZ)V
+.method private static fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;ILjava/lang/String;JJIFFJZZFII)V
     .locals 0
 
-    .line 390
-    iput-wide p1, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+    .line 570
+    iput p1, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->sessionGeneration:I
 
-    .line 391
-    iput-wide p3, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureNs:J
+    .line 571
+    iput-object p2, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->cameraId:Ljava/lang/String;
 
-    .line 392
-    iput p5, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->iso:I
+    .line 572
+    iput-wide p3, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
 
-    .line 393
-    iput p6, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focalLengthPx:F
+    .line 573
+    iput-wide p5, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureNs:J
 
-    .line 394
-    iput p7, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
+    .line 574
+    iput p7, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->iso:I
 
-    .line 395
-    iput-wide p8, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
+    .line 575
+    iput p8, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focalLengthPx:F
 
-    .line 396
-    iput-boolean p10, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->saturated:Z
+    .line 576
+    iput p9, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
 
-    .line 397
-    iput-boolean p11, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureValid:Z
+    .line 577
+    iput p14, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focusDistance:F
 
-    .line 398
+    .line 578
+    iput p15, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->afState:I
+
+    .line 579
+    move/from16 p1, p16
+
+    iput p1, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->lensState:I
+
+    .line 580
+    iput-wide p10, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
+
+    .line 581
+    iput-boolean p12, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->saturated:Z
+
+    .line 582
+    iput-boolean p13, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureValid:Z
+
+    .line 583
     return-void
 .end method
 
 .method private static findSeq(J)I
     .locals 3
 
-    .line 420
+    .line 626
     const/4 v0, 0x0
 
     :goto_0
@@ -601,7 +919,7 @@
 
     if-ge v0, v1, :cond_1
 
-    .line 421
+    .line 627
     sget-object v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     aget-object v1, v1, v0
@@ -614,13 +932,65 @@
 
     return v0
 
-    .line 420
+    .line 626
     :cond_0
     add-int/lit8 v0, v0, 0x1
 
     goto :goto_0
 
-    .line 423
+    .line 629
+    :cond_1
+    const/4 p0, -0x1
+
+    return p0
+.end method
+
+.method private static findSessionTimestamp(ILjava/lang/String;J)I
+    .locals 3
+
+    .line 610
+    const/4 v0, 0x0
+
+    :goto_0
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    if-ge v0, v1, :cond_1
+
+    .line 611
+    sget-object v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+
+    aget-object v1, v1, v0
+
+    .line 612
+    iget v2, v1, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->sessionGeneration:I
+
+    if-ne v2, p0, :cond_0
+
+    iget-object v2, v1, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->cameraId:Ljava/lang/String;
+
+    .line 613
+    invoke-static {v2, p1}, Lcom/motorola/camera/custom/MultiFrameBurstController;->sameCamera(Ljava/lang/String;Ljava/lang/String;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_0
+
+    iget-wide v1, v1, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+
+    cmp-long v1, v1, p2
+
+    if-nez v1, :cond_0
+
+    .line 615
+    return v0
+
+    .line 610
+    :cond_0
+    add-int/lit8 v0, v0, 0x1
+
+    goto :goto_0
+
+    .line 618
     :cond_1
     const/4 p0, -0x1
 
@@ -630,7 +1000,7 @@
 .method private static finish(II[F[FJLjava/lang/String;)Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;
     .locals 12
 
-    .line 292
+    .line 472
     const/4 v0, 0x1
 
     const/4 v1, 0x0
@@ -647,10 +1017,10 @@
     :goto_0
     sput-boolean v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->singleFrame:Z
 
-    .line 293
+    .line 473
     sput p1, Lcom/motorola/camera/custom/MultiFrameBurstController;->plannedFrames:I
 
-    .line 294
+    .line 474
     new-instance v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;
 
     if-eqz p6, :cond_1
@@ -683,7 +1053,7 @@
 .method private static focusFor(IIZ)[F
     .locals 8
 
-    .line 339
+    .line 519
     const/4 v0, 0x0
 
     const/4 v1, 0x4
@@ -694,7 +1064,7 @@
 
     goto :goto_3
 
-    .line 340
+    .line 520
     :cond_0
     const/high16 p0, 0x41000000    # 8.0f
 
@@ -712,7 +1082,7 @@
 
     if-eqz p2, :cond_1
 
-    .line 341
+    .line 521
     new-array p2, v5, [F
 
     aput v4, p2, v0
@@ -731,7 +1101,7 @@
 
     goto :goto_0
 
-    .line 342
+    .line 522
     :cond_1
     new-array p2, v5, [F
 
@@ -749,18 +1119,18 @@
 
     aput p0, p2, v1
 
-    .line 343
+    .line 523
     :goto_0
     array-length p0, p2
 
     if-ne p1, p0, :cond_3
 
-    .line 344
+    .line 524
     array-length p0, p2
 
     new-array p0, p0, [F
 
-    .line 345
+    .line 525
     nop
 
     :goto_1
@@ -776,41 +1146,41 @@
 
     goto :goto_1
 
-    .line 346
+    .line 526
     :cond_2
     return-object p0
 
-    .line 348
+    .line 528
     :cond_3
     new-array p0, p1, [F
 
-    .line 349
+    .line 529
     if-ne p1, v7, :cond_4
 
-    .line 350
+    .line 530
     aget p1, p2, v0
 
     aput p1, p0, v0
 
-    .line 351
+    .line 531
     return-object p0
 
-    .line 353
+    .line 533
     :cond_4
     array-length v1, p2
 
     sub-int/2addr v1, v7
 
-    .line 354
+    .line 534
     add-int/lit8 v2, p1, -0x1
 
-    .line 355
+    .line 535
     nop
 
     :goto_2
     if-ge v0, p1, :cond_6
 
-    .line 356
+    .line 536
     mul-int v3, v0, v1
 
     div-int/lit8 v4, v2, 0x2
@@ -819,27 +1189,27 @@
 
     div-int/2addr v3, v2
 
-    .line 357
+    .line 537
     if-le v3, v1, :cond_5
 
     move v3, v1
 
-    .line 358
+    .line 538
     :cond_5
     aget v3, p2, v3
 
     aput v3, p0, v0
 
-    .line 355
+    .line 535
     add-int/lit8 v0, v0, 0x1
 
     goto :goto_2
 
-    .line 360
+    .line 540
     :cond_6
     return-object p0
 
-    .line 339
+    .line 519
     :cond_7
     :goto_3
     new-array p0, v0, [F
@@ -847,10 +1217,105 @@
     return-object p0
 .end method
 
+.method public static hasFocusDriftOrMotion([Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;FIFZ)Z
+    .locals 2
+
+    .line 383
+    invoke-static {p3}, Ljava/lang/Float;->isFinite(F)Z
+
+    move-result v0
+
+    const/4 v1, 0x1
+
+    if-eqz v0, :cond_0
+
+    const/high16 v0, 0x3f400000    # 0.75f
+
+    cmpl-float p3, p3, v0
+
+    if-ltz p3, :cond_0
+
+    .line 384
+    return v1
+
+    .line 386
+    :cond_0
+    const/4 p3, 0x0
+
+    if-eqz p4, :cond_1
+
+    .line 387
+    return p3
+
+    .line 389
+    :cond_1
+    if-ne p2, v1, :cond_2
+
+    .line 390
+    return v1
+
+    .line 392
+    :cond_2
+    if-eqz p0, :cond_4
+
+    .line 393
+    array-length p2, p0
+
+    move p4, p3
+
+    :goto_0
+    if-ge p4, p2, :cond_4
+
+    aget-object v0, p0, p4
+
+    .line 394
+    if-eqz v0, :cond_3
+
+    iget v0, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;->lensState:I
+
+    if-ne v0, v1, :cond_3
+
+    .line 395
+    return v1
+
+    .line 393
+    :cond_3
+    add-int/lit8 p4, p4, 0x1
+
+    goto :goto_0
+
+    .line 399
+    :cond_4
+    invoke-static {p0, p1}, Lcom/motorola/camera/custom/MultiFrameBurstController;->computeFocusSpreadDiopters([Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;F)F
+
+    move-result p0
+
+    .line 400
+    invoke-static {p0}, Ljava/lang/Float;->isFinite(F)Z
+
+    move-result p1
+
+    if-eqz p1, :cond_5
+
+    const p1, 0x3e19999a    # 0.15f
+
+    cmpl-float p0, p0, p1
+
+    if-lez p0, :cond_5
+
+    goto :goto_1
+
+    :cond_5
+    move v1, p3
+
+    :goto_1
+    return v1
+.end method
+
 .method private static isBoundedZslCamera(Ljava/lang/String;)Z
     .locals 1
 
-    .line 439
+    .line 645
     const-string v0, "0"
 
     invoke-virtual {v0, p0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
@@ -882,69 +1347,86 @@
     return p0
 .end method
 
+.method public static declared-synchronized latestMergeFocusSpread()F
+    .locals 2
+
+    const-class v0, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v0
+
+    .line 414
+    :try_start_0
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeFocusSpread:F
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    monitor-exit v0
+
+    return v1
+
+    .line 414
+    :catchall_0
+    move-exception v1
+
+    :try_start_1
+    monitor-exit v0
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw v1
+.end method
+
+.method public static declared-synchronized latestMergeGapMs()F
+    .locals 2
+
+    const-class v0, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v0
+
+    .line 418
+    :try_start_0
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeGapMs:F
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    monitor-exit v0
+
+    return v1
+
+    .line 418
+    :catchall_0
+    move-exception v1
+
+    :try_start_1
+    monitor-exit v0
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw v1
+.end method
+
 .method public static declared-synchronized noteMetadata(JJIFFJZZ)V
-    .locals 15
+    .locals 19
 
     const-class v1, Lcom/motorola/camera/custom/MultiFrameBurstController;
 
     monitor-enter v1
 
-    .line 176
-    const/4 v0, 0x0
-
-    :goto_0
+    .line 238
     :try_start_0
-    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
 
-    if-ge v0, v2, :cond_3
+    const/16 v17, 0x0
 
-    .line 177
-    sget-object v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+    const/16 v18, 0x1
 
-    aget-object v3, v2, v0
+    const/4 v3, 0x0
 
-    .line 178
-    iget-wide v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+    const/high16 v15, 0x7fc00000    # Float.NaN
 
-    cmp-long v2, v4, p0
+    const/16 v16, 0x0
 
-    if-eqz v2, :cond_1
-
-    iget-wide v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
-
-    cmp-long v2, v4, p7
-
-    if-nez v2, :cond_0
-
-    goto :goto_1
-
-    .line 176
-    :cond_0
-    add-int/lit8 v0, v0, 0x1
-
-    goto :goto_0
-
-    .line 179
-    :cond_1
-    :goto_1
-    const/4 v0, 0x0
-
-    cmpg-float v0, p6, v0
-
-    if-gez v0, :cond_2
-
-    iget v0, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
-
-    move v10, v0
-
-    goto :goto_2
-
-    :cond_2
-    move/from16 v10, p6
-
-    .line 180
-    :goto_2
-    move-wide v4, p0
+    move-wide/from16 v4, p0
 
     move-wide/from16 v6, p2
 
@@ -952,45 +1434,199 @@
 
     move/from16 v9, p5
 
+    move/from16 v10, p6
+
     move-wide/from16 v11, p7
 
     move/from16 v13, p9
 
     move/from16 v14, p10
 
-    invoke-static/range {v3 .. v14}, Lcom/motorola/camera/custom/MultiFrameBurstController;->fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;JJIFFJZZ)V
+    invoke-static/range {v2 .. v18}, Lcom/motorola/camera/custom/MultiFrameBurstController;->noteMetadataInternal(ILjava/lang/String;JJIFFJZZFIIZ)V
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 182
+    .line 241
     monitor-exit v1
 
     return-void
 
-    .line 185
-    :cond_3
+    .line 237
+    :catchall_0
+    move-exception v0
+
     :try_start_1
+    monitor-exit v1
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw v0
+.end method
+
+.method private static noteMetadataInternal(ILjava/lang/String;JJIFFJZZFIIZ)V
+    .locals 22
+
+    .line 260
+    const/4 v0, 0x0
+
+    move v1, v0
+
+    :goto_0
+    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    const/4 v3, 0x1
+
+    if-ge v1, v2, :cond_7
+
+    .line 261
+    sget-object v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+
+    aget-object v4, v2, v1
+
+    .line 262
+    if-eqz p16, :cond_2
+
+    .line 263
+    iget-wide v5, v4, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+
+    cmp-long v2, v5, p2
+
+    if-eqz v2, :cond_1
+
+    iget-wide v5, v4, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
+
+    cmp-long v2, v5, p9
+
+    if-nez v2, :cond_0
+
+    goto :goto_1
+
+    :cond_0
+    move/from16 v5, p0
+
+    move-object/from16 v6, p1
+
+    move v3, v0
+
+    goto :goto_2
+
+    :cond_1
+    :goto_1
+    move/from16 v5, p0
+
+    move-object/from16 v6, p1
+
+    goto :goto_2
+
+    .line 264
+    :cond_2
+    iget v2, v4, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->sessionGeneration:I
+
+    move/from16 v5, p0
+
+    if-ne v2, v5, :cond_3
+
+    iget-object v2, v4, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->cameraId:Ljava/lang/String;
+
+    .line 265
+    move-object/from16 v6, p1
+
+    invoke-static {v2, v6}, Lcom/motorola/camera/custom/MultiFrameBurstController;->sameCamera(Ljava/lang/String;Ljava/lang/String;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_4
+
+    iget-wide v7, v4, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+
+    cmp-long v2, v7, p2
+
+    if-nez v2, :cond_4
+
+    goto :goto_2
+
+    .line 264
+    :cond_3
+    move-object/from16 v6, p1
+
+    .line 265
+    :cond_4
+    move v3, v0
+
+    .line 267
+    :goto_2
+    if-eqz v3, :cond_6
+
+    .line 268
+    const/4 v0, 0x0
+
+    cmpg-float v0, p8, v0
+
+    if-gez v0, :cond_5
+
+    iget v0, v4, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
+
+    move v13, v0
+
+    goto :goto_3
+
+    :cond_5
+    move/from16 v13, p8
+
+    .line 269
+    :goto_3
+    move-wide/from16 v7, p2
+
+    move-wide/from16 v9, p4
+
+    move/from16 v11, p6
+
+    move/from16 v12, p7
+
+    move-wide/from16 v14, p9
+
+    move/from16 v16, p11
+
+    move/from16 v17, p12
+
+    move/from16 v18, p13
+
+    move/from16 v19, p14
+
+    move/from16 v20, p15
+
+    invoke-static/range {v4 .. v20}, Lcom/motorola/camera/custom/MultiFrameBurstController;->fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;ILjava/lang/String;JJIFFJZZFII)V
+
+    .line 271
+    return-void
+
+    .line 260
+    :cond_6
+    add-int/lit8 v1, v1, 0x1
+
+    goto :goto_0
+
+    .line 274
+    :cond_7
     sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    sget-object v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+    sget-object v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
-    array-length v2, v2
+    array-length v1, v1
 
-    const/4 v3, 0x0
+    const/4 v2, 0x0
 
-    const/4 v14, 0x1
+    if-ne v0, v1, :cond_9
 
-    if-ne v0, v2, :cond_5
+    .line 275
+    move v0, v3
 
-    .line 186
-    move v0, v14
+    :goto_4
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    :goto_3
-    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
+    if-ge v0, v1, :cond_8
 
-    if-ge v0, v2, :cond_4
-
-    sget-object v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+    sget-object v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     add-int/lit8 v4, v0, -0x1
 
@@ -998,271 +1634,541 @@
 
     aget-object v5, v5, v0
 
-    aput-object v5, v2, v4
+    aput-object v5, v1, v4
 
     add-int/lit8 v0, v0, 0x1
 
-    goto :goto_3
+    goto :goto_4
 
-    .line 187
-    :cond_4
+    .line 276
+    :cond_8
     sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    sub-int/2addr v0, v14
+    sub-int/2addr v0, v3
 
     sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    .line 188
+    .line 277
     sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
-    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    aput-object v3, v0, v2
+    aput-object v2, v0, v1
 
-    .line 190
-    :cond_5
-    new-instance v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+    .line 279
+    :cond_9
+    new-instance v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
-    invoke-direct {v2, v3}, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;-><init>(Lcom/motorola/camera/custom/MultiFrameBurstController-IA;)V
+    invoke-direct {v5, v2}, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;-><init>(Lcom/motorola/camera/custom/MultiFrameBurstController-IA;)V
 
-    .line 191
-    move-wide v3, p0
+    .line 280
+    move/from16 v6, p0
 
-    move-wide/from16 v5, p2
+    move-object/from16 v7, p1
 
-    move/from16 v7, p4
+    move-wide/from16 v8, p2
 
-    move/from16 v8, p5
+    move-wide/from16 v10, p4
 
-    move/from16 v9, p6
+    move/from16 v12, p6
 
-    move-wide/from16 v10, p7
+    move/from16 v13, p7
 
-    move/from16 v12, p9
+    move/from16 v14, p8
 
-    move/from16 v13, p10
+    move-wide/from16 v15, p9
 
-    invoke-static/range {v2 .. v13}, Lcom/motorola/camera/custom/MultiFrameBurstController;->fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;JJIFFJZZ)V
+    move/from16 v17, p11
 
-    .line 193
+    move/from16 v18, p12
+
+    move/from16 v19, p13
+
+    move/from16 v20, p14
+
+    move/from16 v21, p15
+
+    invoke-static/range {v5 .. v21}, Lcom/motorola/camera/custom/MultiFrameBurstController;->fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;ILjava/lang/String;JJIFFJZZFII)V
+
+    .line 282
     sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
-    sget v3, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    aput-object v2, v0, v3
+    aput-object v5, v0, v1
 
-    .line 194
+    .line 283
     sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    add-int/2addr v0, v14
+    add-int/2addr v0, v3
 
     sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
-    :try_end_1
-    .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 195
-    monitor-exit v1
-
+    .line 284
     return-void
-
-    .line 175
-    :catchall_0
-    move-exception v0
-
-    :try_start_2
-    monitor-exit v1
-    :try_end_2
-    .catchall {:try_start_2 .. :try_end_2} :catchall_0
-
-    throw v0
 .end method
 
-.method public static declared-synchronized offer(JJIFFJ[BZZ)Z
-    .locals 18
-
-    move-object/from16 v0, p9
+.method public static declared-synchronized noteSessionMetadata(ILjava/lang/String;JJIFFJZZFII)V
+    .locals 19
 
     const-class v1, Lcom/motorola/camera/custom/MultiFrameBurstController;
 
     monitor-enter v1
 
-    .line 152
+    .line 248
     :try_start_0
-    sget-boolean v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->aborted:Z
-
-    const/4 v3, 0x0
-
-    if-nez v2, :cond_7
-
-    if-nez v0, :cond_0
-
-    goto/16 :goto_2
-
-    .line 153
-    :cond_0
-    array-length v2, v0
-
-    int-to-long v4, v2
-
-    .line 154
-    sget-wide v6, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
+    sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    cmp-long v2, v4, v6
+    move/from16 v2, p0
 
-    if-lez v2, :cond_1
+    if-eq v2, v0, :cond_0
 
     monitor-exit v1
 
-    return v3
+    return-void
 
-    .line 155
-    :cond_1
+    .line 249
+    :cond_0
     :try_start_1
-    invoke-static/range {p7 .. p8}, Lcom/motorola/camera/custom/MultiFrameBurstController;->findSeq(J)I
+    sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeCameraId:Ljava/lang/String;
 
-    move-result v2
+    if-eqz v0, :cond_1
 
-    .line 156
-    if-ltz v2, :cond_2
+    sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeCameraId:Ljava/lang/String;
 
-    invoke-static {v2}, Lcom/motorola/camera/custom/MultiFrameBurstController;->removeAt(I)V
+    move-object/from16 v3, p1
 
-    .line 157
-    :cond_2
-    :goto_0
-    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+    invoke-virtual {v0, v3}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
-    if-lez v2, :cond_4
-
-    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
-
-    sget v6, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
-
-    if-ge v2, v6, :cond_3
-
-    sget-wide v6, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
-
-    add-long/2addr v6, v4
-
-    sget-wide v8, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
-
-    cmp-long v2, v6, v8
-
-    if-lez v2, :cond_4
-
-    .line 158
-    :cond_3
-    invoke-static {}, Lcom/motorola/camera/custom/MultiFrameBurstController;->evictOldest()V
-
-    goto :goto_0
-
-    .line 160
-    :cond_4
-    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
-
-    sget v6, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
-
-    if-ge v2, v6, :cond_6
-
-    sget-wide v6, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
-
-    add-long/2addr v6, v4
-
-    sget-wide v8, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
-
-    cmp-long v2, v6, v8
-
-    if-lez v2, :cond_5
-
-    goto :goto_1
-
-    .line 161
-    :cond_5
-    new-instance v6, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
-
-    const/4 v2, 0x0
-
-    invoke-direct {v6, v2}, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;-><init>(Lcom/motorola/camera/custom/MultiFrameBurstController-IA;)V
-
-    .line 162
-    move-wide/from16 v7, p0
-
-    move-wide/from16 v9, p2
-
-    move/from16 v11, p4
-
-    move/from16 v12, p5
-
-    move/from16 v13, p6
-
-    move-wide/from16 v14, p7
-
-    move/from16 v16, p10
-
-    move/from16 v17, p11
-
-    invoke-static/range {v6 .. v17}, Lcom/motorola/camera/custom/MultiFrameBurstController;->fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;JJIFFJZZ)V
-
-    .line 164
-    iput-object v0, v6, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
-
-    .line 165
-    sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
-
-    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
-
-    aput-object v6, v0, v2
-
-    .line 166
-    sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
-
-    const/4 v2, 0x1
-
-    add-int/2addr v0, v2
-
-    sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
-
-    .line 167
-    sget-wide v7, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
-
-    add-long/2addr v7, v4
-
-    sput-wide v7, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
-
-    .line 168
-    invoke-static {v6}, Lcom/motorola/camera/custom/MultiFrameBurstController;->overlayPending(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;)V
+    move-result v0
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 169
+    if-nez v0, :cond_2
+
+    monitor-exit v1
+
+    return-void
+
+    :cond_1
+    move-object/from16 v3, p1
+
+    .line 250
+    :cond_2
+    const-wide/16 v4, 0x0
+
+    cmp-long v0, p2, v4
+
+    if-gtz v0, :cond_3
+
+    monitor-exit v1
+
+    return-void
+
+    .line 251
+    :cond_3
+    const/16 v18, 0x0
+
+    move-wide/from16 v4, p2
+
+    move-wide/from16 v6, p4
+
+    move/from16 v8, p6
+
+    move/from16 v9, p7
+
+    move/from16 v10, p8
+
+    move-wide/from16 v11, p9
+
+    move/from16 v13, p11
+
+    move/from16 v14, p12
+
+    move/from16 v15, p13
+
+    move/from16 v16, p14
+
+    move/from16 v17, p15
+
+    :try_start_2
+    invoke-static/range {v2 .. v18}, Lcom/motorola/camera/custom/MultiFrameBurstController;->noteMetadataInternal(ILjava/lang/String;JJIFFJZZFIIZ)V
+    :try_end_2
+    .catchall {:try_start_2 .. :try_end_2} :catchall_0
+
+    .line 254
+    monitor-exit v1
+
+    return-void
+
+    .line 247
+    :catchall_0
+    move-exception v0
+
+    :try_start_3
+    monitor-exit v1
+    :try_end_3
+    .catchall {:try_start_3 .. :try_end_3} :catchall_0
+
+    throw v0
+.end method
+
+.method public static declared-synchronized offer(JJIFFJ[BZZ)Z
+    .locals 20
+
+    const-class v1, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v1
+
+    .line 190
+    :try_start_0
+    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+
+    const/16 v18, 0x0
+
+    const/16 v19, 0x1
+
+    const/4 v3, 0x0
+
+    const/high16 v16, 0x7fc00000    # Float.NaN
+
+    const/16 v17, 0x0
+
+    move-wide/from16 v4, p0
+
+    move-wide/from16 v6, p2
+
+    move/from16 v8, p4
+
+    move/from16 v9, p5
+
+    move/from16 v10, p6
+
+    move-wide/from16 v11, p7
+
+    move-object/from16 v13, p9
+
+    move/from16 v14, p10
+
+    move/from16 v15, p11
+
+    invoke-static/range {v2 .. v19}, Lcom/motorola/camera/custom/MultiFrameBurstController;->offerInternal(ILjava/lang/String;JJIFFJ[BZZFIIZ)Z
+
+    move-result v0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    monitor-exit v1
+
+    return v0
+
+    .line 190
+    :catchall_0
+    move-exception v0
+
+    :try_start_1
+    monitor-exit v1
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw v0
+.end method
+
+.method private static offerInternal(ILjava/lang/String;JJIFFJ[BZZFIIZ)Z
+    .locals 22
+
+    .line 212
+    move-object/from16 v0, p11
+
+    sget-boolean v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->aborted:Z
+
+    const/4 v2, 0x0
+
+    if-nez v1, :cond_8
+
+    if-nez v0, :cond_0
+
+    goto/16 :goto_3
+
+    .line 213
+    :cond_0
+    array-length v1, v0
+
+    int-to-long v3, v1
+
+    .line 214
+    sget-wide v5, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
+
+    cmp-long v1, v3, v5
+
+    if-lez v1, :cond_1
+
+    return v2
+
+    .line 215
+    :cond_1
+    if-eqz p17, :cond_2
+
+    .line 216
+    invoke-static/range {p9 .. p10}, Lcom/motorola/camera/custom/MultiFrameBurstController;->findSeq(J)I
+
+    move-result v1
+
+    goto :goto_0
+
+    .line 217
+    :cond_2
+    invoke-static/range {p0 .. p3}, Lcom/motorola/camera/custom/MultiFrameBurstController;->findSessionTimestamp(ILjava/lang/String;J)I
+
+    move-result v1
+
+    .line 218
+    :goto_0
+    if-ltz v1, :cond_3
+
+    invoke-static {v1}, Lcom/motorola/camera/custom/MultiFrameBurstController;->removeAt(I)V
+
+    .line 219
+    :cond_3
+    :goto_1
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    if-lez v1, :cond_5
+
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    sget v5, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
+
+    if-ge v1, v5, :cond_4
+
+    sget-wide v5, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
+
+    add-long/2addr v5, v3
+
+    sget-wide v7, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
+
+    cmp-long v1, v5, v7
+
+    if-lez v1, :cond_5
+
+    .line 220
+    :cond_4
+    invoke-static {}, Lcom/motorola/camera/custom/MultiFrameBurstController;->evictOldest()V
+
+    goto :goto_1
+
+    .line 222
+    :cond_5
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    sget v5, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
+
+    if-ge v1, v5, :cond_7
+
+    sget-wide v5, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
+
+    add-long/2addr v5, v3
+
+    sget-wide v7, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
+
+    cmp-long v1, v5, v7
+
+    if-lez v1, :cond_6
+
+    goto :goto_2
+
+    .line 223
+    :cond_6
+    new-instance v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+
+    const/4 v1, 0x0
+
+    invoke-direct {v5, v1}, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;-><init>(Lcom/motorola/camera/custom/MultiFrameBurstController-IA;)V
+
+    .line 224
+    move/from16 v6, p0
+
+    move-object/from16 v7, p1
+
+    move-wide/from16 v8, p2
+
+    move-wide/from16 v10, p4
+
+    move/from16 v12, p6
+
+    move/from16 v13, p7
+
+    move/from16 v14, p8
+
+    move-wide/from16 v15, p9
+
+    move/from16 v17, p12
+
+    move/from16 v18, p13
+
+    move/from16 v19, p14
+
+    move/from16 v20, p15
+
+    move/from16 v21, p16
+
+    invoke-static/range {v5 .. v21}, Lcom/motorola/camera/custom/MultiFrameBurstController;->fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;ILjava/lang/String;JJIFFJZZFII)V
+
+    .line 226
+    iput-object v0, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
+
+    .line 227
+    sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+
+    sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    aput-object v5, v0, v1
+
+    .line 228
+    sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    const/4 v1, 0x1
+
+    add-int/2addr v0, v1
+
+    sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
+
+    .line 229
+    sget-wide v6, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
+
+    add-long/2addr v6, v3
+
+    sput-wide v6, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
+
+    .line 230
+    xor-int/lit8 v0, p17, 0x1
+
+    invoke-static {v5, v0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->overlayPending(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;Z)V
+
+    .line 231
+    return v1
+
+    .line 222
+    :cond_7
+    :goto_2
+    return v2
+
+    .line 212
+    :cond_8
+    :goto_3
+    return v2
+.end method
+
+.method public static declared-synchronized offerSessionFrame(ILjava/lang/String;JJIFFJ[BZZ)Z
+    .locals 21
+
+    const-class v1, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v1
+
+    .line 200
+    :try_start_0
+    sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    const/4 v2, 0x0
+
+    move/from16 v3, p0
+
+    if-eq v3, v0, :cond_0
+
     monitor-exit v1
 
     return v2
 
-    .line 160
-    :cond_6
-    :goto_1
+    .line 201
+    :cond_0
+    :try_start_1
+    sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeCameraId:Ljava/lang/String;
+
+    if-eqz v0, :cond_1
+
+    sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeCameraId:Ljava/lang/String;
+
+    move-object/from16 v4, p1
+
+    invoke-virtual {v0, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    if-nez v0, :cond_2
+
     monitor-exit v1
 
-    return v3
+    return v2
 
-    .line 152
-    :cond_7
-    :goto_2
+    :cond_1
+    move-object/from16 v4, p1
+
+    .line 202
+    :cond_2
+    const-wide/16 v5, 0x0
+
+    cmp-long v0, p2, v5
+
+    if-gtz v0, :cond_3
+
     monitor-exit v1
 
-    return v3
+    return v2
 
-    .line 151
+    .line 203
+    :cond_3
+    const/16 v19, 0x0
+
+    const/16 v20, 0x0
+
+    const/high16 v17, 0x7fc00000    # Float.NaN
+
+    const/16 v18, 0x0
+
+    move-wide/from16 v5, p2
+
+    move-wide/from16 v7, p4
+
+    move/from16 v9, p6
+
+    move/from16 v10, p7
+
+    move/from16 v11, p8
+
+    move-wide/from16 v12, p9
+
+    move-object/from16 v14, p11
+
+    move/from16 v15, p12
+
+    move/from16 v16, p13
+
+    :try_start_2
+    invoke-static/range {v3 .. v20}, Lcom/motorola/camera/custom/MultiFrameBurstController;->offerInternal(ILjava/lang/String;JJIFFJ[BZZFIIZ)Z
+
+    move-result v0
+    :try_end_2
+    .catchall {:try_start_2 .. :try_end_2} :catchall_0
+
+    monitor-exit v1
+
+    return v0
+
+    .line 199
     :catchall_0
     move-exception v0
 
-    :try_start_2
+    :try_start_3
     monitor-exit v1
-    :try_end_2
-    .catchall {:try_start_2 .. :try_end_2} :catchall_0
+    :try_end_3
+    .catchall {:try_start_3 .. :try_end_3} :catchall_0
 
     throw v0
 .end method
@@ -1274,7 +2180,7 @@
 
     monitor-enter v0
 
-    .line 242
+    .line 422
     :try_start_0
     sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
     :try_end_0
@@ -1288,7 +2194,7 @@
 
     return-wide v0
 
-    .line 243
+    .line 423
     :cond_0
     :try_start_1
     sget-object v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
@@ -1305,7 +2211,7 @@
 
     return-wide v1
 
-    .line 241
+    .line 421
     :catchall_0
     move-exception v1
 
@@ -1317,161 +2223,238 @@
     throw v1
 .end method
 
-.method private static overlayPending(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;)V
-    .locals 17
+.method private static overlayPending(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;Z)V
+    .locals 22
 
-    .line 401
+    .line 586
     move-object/from16 v0, p0
 
     const/4 v1, 0x0
 
-    move v12, v1
+    move v2, v1
 
     :goto_0
-    sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
+    sget v3, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    if-ge v12, v2, :cond_6
+    if-ge v2, v3, :cond_8
 
-    .line 402
-    sget-object v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+    .line 587
+    sget-object v3, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
-    aget-object v2, v2, v12
+    aget-object v3, v3, v2
 
-    .line 403
-    iget-wide v3, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+    .line 588
+    const/16 v17, 0x1
 
-    iget-wide v5, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+    if-eqz p1, :cond_1
 
-    cmp-long v3, v3, v5
+    .line 589
+    iget v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->sessionGeneration:I
 
-    const/4 v13, 0x1
+    iget v5, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->sessionGeneration:I
 
-    if-eqz v3, :cond_1
+    if-ne v4, v5, :cond_0
 
-    iget-wide v3, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
+    iget-object v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->cameraId:Ljava/lang/String;
 
-    iget-wide v5, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
+    iget-object v5, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->cameraId:Ljava/lang/String;
 
-    cmp-long v3, v3, v5
+    .line 590
+    invoke-static {v4, v5}, Lcom/motorola/camera/custom/MultiFrameBurstController;->sameCamera(Ljava/lang/String;Ljava/lang/String;)Z
 
-    if-nez v3, :cond_0
+    move-result v4
 
-    goto :goto_1
+    if-eqz v4, :cond_0
 
-    :cond_0
-    move v3, v1
+    iget-wide v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+
+    iget-wide v6, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+
+    cmp-long v4, v4, v6
+
+    if-nez v4, :cond_0
+
+    move/from16 v4, v17
 
     goto :goto_2
 
+    :cond_0
+    move v4, v1
+
+    goto :goto_2
+
+    .line 592
     :cond_1
+    iget-wide v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+
+    iget-wide v6, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+
+    cmp-long v4, v4, v6
+
+    if-eqz v4, :cond_3
+
+    iget-wide v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
+
+    iget-wide v6, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
+
+    cmp-long v4, v4, v6
+
+    if-nez v4, :cond_2
+
+    goto :goto_1
+
+    :cond_2
+    move v4, v1
+
+    goto :goto_2
+
+    :cond_3
     :goto_1
-    move v3, v13
+    move/from16 v4, v17
 
-    .line 404
+    .line 593
     :goto_2
-    if-nez v3, :cond_2
+    if-nez v4, :cond_4
 
-    .line 401
-    add-int/lit8 v12, v12, 0x1
+    .line 586
+    add-int/lit8 v2, v2, 0x1
 
     goto :goto_0
 
-    .line 405
-    :cond_2
+    .line 594
+    :cond_4
     iget-boolean v1, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureValid:Z
 
-    if-nez v1, :cond_4
+    if-nez v1, :cond_6
 
-    iget-boolean v1, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureValid:Z
+    iget-boolean v1, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureValid:Z
 
-    if-eqz v1, :cond_4
+    if-eqz v1, :cond_6
 
-    .line 406
-    iget-object v14, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
+    .line 595
+    iget-object v1, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
 
-    .line 407
-    iget v1, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
+    .line 596
+    iget v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
 
-    const/4 v3, 0x0
+    const/4 v5, 0x0
 
-    cmpg-float v1, v1, v3
+    cmpg-float v4, v4, v5
 
-    if-gez v1, :cond_3
+    if-gez v4, :cond_5
 
-    iget v1, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
+    iget v4, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
 
     goto :goto_3
 
-    :cond_3
-    iget v1, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
+    :cond_5
+    iget v4, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
 
     :goto_3
-    move v7, v1
+    move v9, v4
 
-    .line 408
-    iget-wide v3, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+    .line 597
+    move-object v4, v1
 
-    move-wide v5, v3
+    iget v1, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->sessionGeneration:I
 
-    iget-wide v3, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureNs:J
+    move v5, v2
 
-    move-wide v8, v5
+    iget-object v2, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->cameraId:Ljava/lang/String;
 
-    iget v5, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->iso:I
+    iget-wide v6, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
 
-    iget v6, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focalLengthPx:F
+    move-wide v10, v6
 
-    move-wide v10, v8
+    move v7, v5
 
-    iget-wide v8, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
+    iget-wide v5, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureNs:J
 
-    iget-boolean v1, v2, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->saturated:Z
+    move v8, v7
 
-    move-wide v15, v10
+    iget v7, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->iso:I
 
-    move v10, v1
+    move v12, v8
 
-    move-wide v1, v15
+    iget v8, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focalLengthPx:F
 
-    const/4 v11, 0x1
+    move-wide v13, v10
 
-    invoke-static/range {v0 .. v11}, Lcom/motorola/camera/custom/MultiFrameBurstController;->fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;JJIFFJZZ)V
+    iget-wide v10, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
 
-    .line 410
-    iput-object v14, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
+    move v15, v12
 
-    .line 412
-    :cond_4
-    add-int/2addr v12, v13
+    iget-boolean v12, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->saturated:Z
 
-    :goto_4
-    sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
+    move-wide/from16 v18, v13
 
-    if-ge v12, v0, :cond_5
+    iget v14, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focusDistance:F
 
-    sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+    move v13, v15
 
-    add-int/lit8 v1, v12, -0x1
+    iget v15, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->afState:I
 
-    sget-object v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+    iget v3, v3, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->lensState:I
 
-    aget-object v2, v2, v12
+    move/from16 v16, v13
 
-    aput-object v2, v0, v1
+    const/4 v13, 0x1
 
-    add-int/lit8 v12, v12, 0x1
+    move-object/from16 v20, v4
+
+    move/from16 v21, v16
+
+    move/from16 v16, v3
+
+    move-wide/from16 v3, v18
+
+    move/from16 v18, v21
+
+    invoke-static/range {v0 .. v16}, Lcom/motorola/camera/custom/MultiFrameBurstController;->fill(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;ILjava/lang/String;JJIFFJZZFII)V
+
+    .line 600
+    move-object/from16 v4, v20
+
+    iput-object v4, v0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
 
     goto :goto_4
 
-    .line 413
-    :cond_5
+    .line 594
+    :cond_6
+    move/from16 v18, v2
+
+    .line 602
+    :goto_4
+    add-int/lit8 v2, v18, 0x1
+
+    :goto_5
     sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    sub-int/2addr v0, v13
+    if-ge v2, v0, :cond_7
+
+    sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+
+    add-int/lit8 v1, v2, -0x1
+
+    sget-object v3, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
+
+    aget-object v3, v3, v2
+
+    aput-object v3, v0, v1
+
+    add-int/lit8 v2, v2, 0x1
+
+    goto :goto_5
+
+    .line 603
+    :cond_7
+    sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
+
+    add-int/lit8 v0, v0, -0x1
 
     sput v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    .line 414
+    .line 604
     sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->pending:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
@@ -1480,11 +2463,11 @@
 
     aput-object v2, v0, v1
 
-    .line 415
+    .line 605
     return-void
 
-    .line 417
-    :cond_6
+    .line 607
+    :cond_8
     return-void
 .end method
 
@@ -1495,20 +2478,20 @@
 
     monitor-enter v1
 
-    .line 265
+    .line 445
     :try_start_0
     invoke-static {p0, p1, p4}, Lcom/motorola/camera/custom/MultiFrameBurstController;->baseCount(IFZ)I
 
     move-result p1
 
-    .line 266
+    .line 446
     const/4 p4, 0x0
 
     const/4 v0, 0x1
 
     if-gez p1, :cond_0
 
-    .line 267
+    .line 447
     invoke-static {v0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->zeros(I)[F
 
     move-result-object v4
@@ -1535,19 +2518,19 @@
 
     return-object p0
 
-    .line 269
+    .line 449
     :cond_0
     move v2, p0
 
     :try_start_1
     invoke-static {v2}, Lcom/motorola/camera/custom/MultiFrameBurstController;->configure(I)V
 
-    .line 270
+    .line 450
     const/4 p0, 0x4
 
     if-lt p3, p0, :cond_1
 
-    .line 271
+    .line 451
     invoke-static {v0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->zeros(I)[F
 
     move-result-object v4
@@ -1572,14 +2555,14 @@
 
     return-object p0
 
-    .line 273
+    .line 453
     :cond_1
     :try_start_2
     sget-boolean p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->aborted:Z
 
     if-eqz p0, :cond_3
 
-    .line 274
+    .line 454
     sget-object p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->abortReason:Ljava/lang/String;
 
     if-nez p0, :cond_2
@@ -1594,7 +2577,7 @@
     :goto_0
     move-object v8, p0
 
-    .line 275
+    .line 455
     invoke-static {v0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->zeros(I)[F
 
     move-result-object v4
@@ -1615,14 +2598,14 @@
 
     return-object p0
 
-    .line 277
+    .line 457
     :cond_3
     :try_start_3
     sget p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
     if-nez p0, :cond_4
 
-    .line 278
+    .line 458
     invoke-static {v0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->zeros(I)[F
 
     move-result-object v4
@@ -1645,21 +2628,21 @@
 
     return-object p0
 
-    .line 280
+    .line 460
     :cond_4
     :try_start_4
     invoke-static {}, Lcom/motorola/camera/custom/MultiFrameBurstController;->selectAnchor()J
 
     move-result-wide v6
 
-    .line 281
+    .line 461
     const-wide/16 v3, 0x0
 
     cmp-long p0, v6, v3
 
     if-gez p0, :cond_5
 
-    .line 282
+    .line 462
     invoke-static {v0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->zeros(I)[F
 
     move-result-object v4
@@ -1682,7 +2665,7 @@
 
     return-object p0
 
-    .line 284
+    .line 464
     :cond_5
     const/4 p0, 0x2
 
@@ -1696,17 +2679,17 @@
     :cond_6
     move v3, p1
 
-    .line 285
+    .line 465
     invoke-static {v2, v3, p2}, Lcom/motorola/camera/custom/MultiFrameBurstController;->exposureOffsets(IIF)[F
 
     move-result-object v4
 
-    .line 286
+    .line 466
     invoke-static {v2, v3, p5}, Lcom/motorola/camera/custom/MultiFrameBurstController;->focusFor(IIZ)[F
 
     move-result-object v5
 
-    .line 287
+    .line 467
     const/4 v8, 0x0
 
     invoke-static/range {v2 .. v8}, Lcom/motorola/camera/custom/MultiFrameBurstController;->finish(II[F[FJLjava/lang/String;)Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;
@@ -1719,7 +2702,7 @@
 
     return-object p0
 
-    .line 264
+    .line 444
     :catchall_0
     move-exception v0
 
@@ -1740,7 +2723,7 @@
 
     monitor-enter v0
 
-    .line 260
+    .line 440
     :try_start_0
     sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->plannedFrames:I
     :try_end_0
@@ -1750,7 +2733,7 @@
 
     return v1
 
-    .line 260
+    .line 440
     :catchall_0
     move-exception v1
 
@@ -1762,17 +2745,53 @@
     throw v1
 .end method
 
+.method public static declared-synchronized recordMergeDiagnostics(ZFF)V
+    .locals 1
+
+    const-class v0, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v0
+
+    .line 404
+    :try_start_0
+    sput-boolean p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeMotionRejected:Z
+
+    .line 405
+    sput p1, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeFocusSpread:F
+
+    .line 406
+    sput p2, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeGapMs:F
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    .line 407
+    monitor-exit v0
+
+    return-void
+
+    .line 403
+    :catchall_0
+    move-exception p0
+
+    :try_start_1
+    monitor-exit v0
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw p0
+.end method
+
 .method private static releaseRaw(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;)V
     .locals 4
 
-    .line 443
+    .line 649
     if-eqz p0, :cond_0
 
     iget-object v0, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
 
     if-eqz v0, :cond_0
 
-    .line 444
+    .line 650
     sget-wide v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
 
     iget-object v2, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
@@ -1785,12 +2804,12 @@
 
     sput-wide v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
 
-    .line 445
+    .line 651
     const/4 v0, 0x0
 
     iput-object v0, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
 
-    .line 447
+    .line 653
     :cond_0
     return-void
 .end method
@@ -1798,14 +2817,14 @@
 .method private static removeAt(I)V
     .locals 3
 
-    .line 427
+    .line 633
     sget-object v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     aget-object v0, v0, p0
 
     invoke-static {v0}, Lcom/motorola/camera/custom/MultiFrameBurstController;->releaseRaw(Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;)V
 
-    .line 428
+    .line 634
     nop
 
     :goto_0
@@ -1827,7 +2846,7 @@
 
     goto :goto_0
 
-    .line 429
+    .line 635
     :cond_0
     sget p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
@@ -1835,7 +2854,7 @@
 
     sput p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
-    .line 430
+    .line 636
     sget-object p0, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     sget v0, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
@@ -1844,7 +2863,7 @@
 
     aput-object v1, p0, v0
 
-    .line 431
+    .line 637
     return-void
 .end method
 
@@ -1855,7 +2874,7 @@
 
     monitor-enter v0
 
-    .line 109
+    .line 142
     const/4 v1, 0x0
 
     move v2, v1
@@ -1876,7 +2895,7 @@
 
     goto :goto_0
 
-    .line 110
+    .line 143
     :cond_0
     move v2, v1
 
@@ -1897,7 +2916,7 @@
 
     goto :goto_1
 
-    .line 111
+    .line 144
     :cond_1
     move v2, v1
 
@@ -1916,50 +2935,67 @@
 
     goto :goto_2
 
-    .line 112
+    .line 145
     :cond_2
     sput v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
-    .line 113
+    .line 146
     sput v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->pendingCount:I
 
-    .line 114
+    .line 147
     const-wide/16 v2, 0x0
 
     sput-wide v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
 
-    .line 115
+    .line 148
     sput-boolean v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->aborted:Z
 
-    .line 116
+    .line 149
     sput-object v4, Lcom/motorola/camera/custom/MultiFrameBurstController;->abortReason:Ljava/lang/String;
 
-    .line 117
+    .line 150
     sput-boolean v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->singleFrame:Z
 
-    .line 118
-    const/4 v1, -0x1
+    .line 151
+    const/4 v2, -0x1
 
-    sput v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->plannedFrames:I
+    sput v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->plannedFrames:I
 
-    .line 119
-    const/4 v1, 0x6
+    .line 152
+    const/4 v2, 0x6
 
-    sput v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
+    sput v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->maxFrames:I
 
-    .line 120
-    const-wide/32 v1, 0x14000000
+    .line 153
+    const-wide/32 v2, 0x14000000
 
-    sput-wide v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
+    sput-wide v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->byteCap:J
+
+    .line 154
+    sput v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+
+    .line 155
+    sput-object v4, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeCameraId:Ljava/lang/String;
+
+    .line 156
+    sput-boolean v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeMotionRejected:Z
+
+    .line 157
+    const/high16 v1, 0x7fc00000    # Float.NaN
+
+    sput v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeFocusSpread:F
+
+    .line 158
+    sput v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeGapMs:F
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 121
+    .line 159
     monitor-exit v0
 
     return-void
 
-    .line 108
+    .line 141
     :catchall_0
     move-exception v1
 
@@ -1978,7 +3014,7 @@
 
     monitor-enter v0
 
-    .line 202
+    .line 291
     :try_start_0
     sget-wide v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->retained:J
     :try_end_0
@@ -1988,7 +3024,7 @@
 
     return-wide v1
 
-    .line 202
+    .line 291
     :catchall_0
     move-exception v1
 
@@ -2000,19 +3036,45 @@
     throw v1
 .end method
 
+.method private static sameCamera(Ljava/lang/String;Ljava/lang/String;)Z
+    .locals 0
+
+    .line 622
+    if-nez p0, :cond_1
+
+    if-nez p1, :cond_0
+
+    const/4 p0, 0x1
+
+    goto :goto_0
+
+    :cond_0
+    const/4 p0, 0x0
+
+    goto :goto_0
+
+    :cond_1
+    invoke-virtual {p0, p1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result p0
+
+    :goto_0
+    return p0
+.end method
+
 .method private static selectAnchor()J
     .locals 13
 
-    .line 368
+    .line 548
     nop
 
-    .line 369
+    .line 549
     nop
 
-    .line 370
+    .line 550
     nop
 
-    .line 371
+    .line 551
     const-wide/16 v0, -0x1
 
     const/high16 v2, 0x7f800000    # Float.POSITIVE_INFINITY
@@ -2026,12 +3088,12 @@
 
     if-ge v5, v6, :cond_6
 
-    .line 372
+    .line 552
     sget-object v6, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     aget-object v6, v6, v5
 
-    .line 373
+    .line 553
     if-eqz v6, :cond_5
 
     iget-boolean v7, v6, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->saturated:Z
@@ -2044,7 +3106,7 @@
 
     goto :goto_1
 
-    .line 374
+    .line 554
     :cond_0
     iget-wide v7, v6, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureNs:J
 
@@ -2060,7 +3122,7 @@
 
     goto :goto_1
 
-    .line 375
+    .line 555
     :cond_1
     iget v7, v6, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focalLengthPx:F
 
@@ -2078,7 +3140,7 @@
 
     goto :goto_1
 
-    .line 376
+    .line 556
     :cond_2
     iget v7, v6, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
 
@@ -2086,7 +3148,7 @@
 
     mul-float/2addr v7, v8
 
-    .line 377
+    .line 557
     const/high16 v8, 0x3f400000    # 0.75f
 
     cmpg-float v8, v7, v8
@@ -2095,7 +3157,7 @@
 
     goto :goto_1
 
-    .line 378
+    .line 558
     :cond_3
     cmpg-float v8, v7, v2
 
@@ -2111,14 +3173,14 @@
 
     if-lez v8, :cond_5
 
-    .line 379
+    .line 559
     :cond_4
     nop
 
-    .line 380
+    .line 560
     iget-wide v0, v6, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
 
-    .line 381
+    .line 561
     iget-wide v2, v6, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->seqId:J
 
     move-wide v11, v2
@@ -2129,14 +3191,14 @@
 
     move v2, v7
 
-    .line 371
+    .line 551
     :cond_5
     :goto_1
     add-int/lit8 v5, v5, 0x1
 
     goto :goto_0
 
-    .line 384
+    .line 564
     :cond_6
     return-wide v0
 .end method
@@ -2148,13 +3210,13 @@
 
     monitor-enter v0
 
-    .line 247
+    .line 427
     :try_start_0
     new-instance v1, Ljava/lang/StringBuilder;
 
     invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
 
-    .line 248
+    .line 428
     const/4 v2, 0x0
 
     :goto_0
@@ -2162,14 +3224,14 @@
 
     if-ge v2, v3, :cond_1
 
-    .line 249
+    .line 429
     if-lez v2, :cond_0
 
     const/16 v3, 0x2c
 
     invoke-virtual {v1, v3}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
-    .line 250
+    .line 430
     :cond_0
     sget-object v3, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
@@ -2179,12 +3241,12 @@
 
     invoke-virtual {v1, v3, v4}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
 
-    .line 248
+    .line 428
     add-int/lit8 v2, v2, 0x1
 
     goto :goto_0
 
-    .line 252
+    .line 432
     :cond_1
     invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
@@ -2196,7 +3258,7 @@
 
     return-object v1
 
-    .line 246
+    .line 426
     :catchall_0
     move-exception v1
 
@@ -2215,7 +3277,7 @@
 
     monitor-enter v0
 
-    .line 198
+    .line 287
     :try_start_0
     sget v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
     :try_end_0
@@ -2225,7 +3287,7 @@
 
     return v1
 
-    .line 198
+    .line 287
     :catchall_0
     move-exception v1
 
@@ -2238,188 +3300,326 @@
 .end method
 
 .method public static declared-synchronized snapshotMatchingFrames(III)[Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
-    .locals 18
-
-    move/from16 v0, p2
+    .locals 8
 
     const-class v1, Lcom/motorola/camera/custom/MultiFrameBurstController;
 
     monitor-enter v1
 
-    .line 228
+    .line 328
     :try_start_0
+    sget v3, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+
+    const/4 v7, 0x0
+
+    const/4 v2, 0x0
+
+    move v4, p0
+
+    move v5, p1
+
+    move v6, p2
+
+    invoke-static/range {v2 .. v7}, Lcom/motorola/camera/custom/MultiFrameBurstController;->snapshotMatchingFrames(Ljava/lang/String;IIIIZ)[Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+
+    move-result-object p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    monitor-exit v1
+
+    return-object p0
+
+    .line 328
+    :catchall_0
+    move-exception v0
+
+    move-object p0, v0
+
+    :try_start_1
+    monitor-exit v1
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw p0
+.end method
+
+.method private static snapshotMatchingFrames(Ljava/lang/String;IIIIZ)[Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+    .locals 24
+
+    .line 340
+    move-object/from16 v0, p0
+
+    move/from16 v1, p4
+
     sget v2, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
-    const/4 v3, 0x0
+    if-eqz v2, :cond_9
 
-    if-eqz v2, :cond_6
+    if-gtz v1, :cond_0
 
-    if-gtz v0, :cond_0
+    const/4 v0, 0x0
 
     goto/16 :goto_2
 
-    .line 229
+    .line 341
     :cond_0
     new-instance v2, Ljava/util/ArrayList;
 
     sget v4, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
-    invoke-static {v4, v0}, Ljava/lang/Math;->min(II)I
+    invoke-static {v4, v1}, Ljava/lang/Math;->min(II)I
 
     move-result v4
 
     invoke-direct {v2, v4}, Ljava/util/ArrayList;-><init>(I)V
 
-    .line 230
+    .line 342
     sget v4, Lcom/motorola/camera/custom/MultiFrameBurstController;->count:I
 
     add-int/lit8 v4, v4, -0x1
 
     :goto_0
-    if-ltz v4, :cond_5
+    if-ltz v4, :cond_8
 
     invoke-virtual {v2}, Ljava/util/ArrayList;->size()I
 
     move-result v5
 
-    if-ge v5, v0, :cond_5
+    if-ge v5, v1, :cond_8
 
-    .line 231
+    .line 343
     sget-object v5, Lcom/motorola/camera/custom/MultiFrameBurstController;->slots:[Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;
 
     aget-object v5, v5, v4
 
-    .line 232
-    if-eqz v5, :cond_4
+    .line 344
+    if-eqz v5, :cond_7
 
     iget-object v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
 
-    if-eqz v6, :cond_4
+    if-eqz v6, :cond_7
 
     iget-boolean v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->saturated:Z
 
     if-eqz v6, :cond_1
 
-    move/from16 v7, p0
+    move/from16 v7, p1
 
-    move/from16 v8, p1
+    move/from16 v8, p2
 
-    goto :goto_1
+    move/from16 v9, p3
 
-    .line 233
+    goto/16 :goto_1
+
+    .line 345
     :cond_1
-    iget-object v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
+    if-eqz p5, :cond_3
 
-    array-length v6, v6
+    .line 346
+    iget v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->sessionGeneration:I
 
-    move/from16 v7, p0
+    move/from16 v7, p1
 
-    if-lt v6, v7, :cond_3
+    if-eq v6, v7, :cond_2
 
-    iget-object v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
+    move/from16 v8, p2
 
-    array-length v6, v6
-
-    move/from16 v8, p1
-
-    if-le v6, v8, :cond_2
+    move/from16 v9, p3
 
     goto :goto_1
 
-    .line 234
+    .line 347
     :cond_2
-    new-instance v9, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+    if-eqz v0, :cond_4
 
-    iget-wide v10, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+    iget-object v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->cameraId:Ljava/lang/String;
 
-    iget-wide v12, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureNs:J
+    invoke-virtual {v0, v6}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
-    iget v14, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->iso:I
+    move-result v6
 
-    iget v15, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focalLengthPx:F
+    if-nez v6, :cond_4
 
-    iget v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
+    move/from16 v8, p2
+
+    move/from16 v9, p3
+
+    goto :goto_1
+
+    .line 345
+    :cond_3
+    move/from16 v7, p1
+
+    .line 349
+    :cond_4
+    iget-object v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
+
+    array-length v6, v6
+
+    move/from16 v8, p2
+
+    if-lt v6, v8, :cond_6
+
+    iget-object v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
+
+    array-length v6, v6
+
+    move/from16 v9, p3
+
+    if-le v6, v9, :cond_5
+
+    goto :goto_1
+
+    .line 350
+    :cond_5
+    new-instance v10, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+
+    iget-wide v11, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->timestampNs:J
+
+    iget-wide v13, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->exposureNs:J
+
+    iget v15, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->iso:I
+
+    iget v6, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focalLengthPx:F
+
+    iget v3, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->gyroExcursionRad:F
+
+    iget v0, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->focusDistance:F
+
+    move/from16 v18, v0
+
+    iget v0, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->afState:I
+
+    move/from16 v19, v0
+
+    iget v0, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->lensState:I
+
+    move/from16 v20, v0
+
+    iget v0, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->sessionGeneration:I
+
+    move/from16 v21, v0
+
+    iget-object v0, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->cameraId:Ljava/lang/String;
 
     iget-object v5, v5, Lcom/motorola/camera/custom/MultiFrameBurstController$Slot;->raw:[B
 
-    move-object/from16 v17, v5
+    move-object/from16 v22, v0
+
+    move/from16 v17, v3
+
+    move-object/from16 v23, v5
 
     move/from16 v16, v6
 
-    invoke-direct/range {v9 .. v17}, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;-><init>(JJIFF[B)V
+    invoke-direct/range {v10 .. v23}, Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;-><init>(JJIFFFIIILjava/lang/String;[B)V
 
-    invoke-virtual {v2, v9}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
-
-    goto :goto_1
-
-    .line 233
-    :cond_3
-    move/from16 v8, p1
+    invoke-virtual {v2, v10}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
 
     goto :goto_1
 
-    .line 232
-    :cond_4
-    move/from16 v7, p0
+    .line 349
+    :cond_6
+    move/from16 v9, p3
 
-    move/from16 v8, p1
+    goto :goto_1
 
-    .line 230
+    .line 344
+    :cond_7
+    move/from16 v7, p1
+
+    move/from16 v8, p2
+
+    move/from16 v9, p3
+
+    .line 342
     :goto_1
     add-int/lit8 v4, v4, -0x1
 
-    goto :goto_0
+    move-object/from16 v0, p0
 
-    .line 237
-    :cond_5
+    goto/16 :goto_0
+
+    .line 354
+    :cond_8
     invoke-static {v2}, Ljava/util/Collections;->reverse(Ljava/util/List;)V
 
-    .line 238
-    new-array v0, v3, [Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+    .line 355
+    const/4 v0, 0x0
+
+    new-array v0, v0, [Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
 
     invoke-virtual {v2, v0}, Ljava/util/ArrayList;->toArray([Ljava/lang/Object;)[Ljava/lang/Object;
 
     move-result-object v0
 
     check-cast v0, [Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+
+    return-object v0
+
+    .line 340
+    :cond_9
+    const/4 v0, 0x0
+
+    :goto_2
+    new-array v0, v0, [Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+
+    return-object v0
+.end method
+
+.method public static declared-synchronized snapshotSessionFrames(Ljava/lang/String;III)[Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+    .locals 8
+
+    const-class v1, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v1
+
+    .line 334
+    :try_start_0
+    sget v3, Lcom/motorola/camera/custom/MultiFrameBurstController;->activeSessionGeneration:I
+
+    const/4 v7, 0x1
+
+    move-object v2, p0
+
+    move v4, p1
+
+    move v5, p2
+
+    move v6, p3
+
+    invoke-static/range {v2 .. v7}, Lcom/motorola/camera/custom/MultiFrameBurstController;->snapshotMatchingFrames(Ljava/lang/String;IIIIZ)[Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
+
+    move-result-object p0
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
     monitor-exit v1
 
-    return-object v0
+    return-object p0
 
-    .line 228
-    :cond_6
-    :goto_2
-    :try_start_1
-    new-array v0, v3, [Lcom/motorola/camera/custom/MultiFrameBurstController$BurstFrameSnapshot;
-    :try_end_1
-    .catchall {:try_start_1 .. :try_end_1} :catchall_0
-
-    monitor-exit v1
-
-    return-object v0
-
-    .line 227
+    .line 334
     :catchall_0
     move-exception v0
 
-    :try_start_2
-    monitor-exit v1
-    :try_end_2
-    .catchall {:try_start_2 .. :try_end_2} :catchall_0
+    move-object p0, v0
 
-    throw v0
+    :try_start_1
+    monitor-exit v1
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw p0
 .end method
 
 .method private static stepped(II)I
     .locals 4
 
-    .line 311
+    .line 491
     nop
 
-    .line 312
+    .line 492
     const/4 v0, 0x3
 
     const/4 v1, 0x2
@@ -2428,7 +3628,7 @@
 
     goto :goto_0
 
-    .line 313
+    .line 493
     :cond_0
     const/4 v2, 0x4
 
@@ -2440,7 +3640,7 @@
 
     goto :goto_0
 
-    .line 314
+    .line 494
     :cond_1
     if-ne p0, v0, :cond_2
 
@@ -2448,13 +3648,13 @@
 
     goto :goto_0
 
-    .line 315
+    .line 495
     :cond_2
     if-ne p0, v2, :cond_3
 
     goto :goto_0
 
-    .line 316
+    .line 496
     :cond_3
     const/4 v0, 0x5
 
@@ -2467,11 +3667,11 @@
     :cond_4
     move v0, v3
 
-    .line 317
+    .line 497
     :goto_0
     sub-int/2addr p1, v1
 
-    .line 318
+    .line 498
     if-ge p1, v0, :cond_5
 
     goto :goto_1
@@ -2490,7 +3690,7 @@
 
     monitor-enter v0
 
-    .line 256
+    .line 436
     :try_start_0
     sget-boolean v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->singleFrame:Z
     :try_end_0
@@ -2500,7 +3700,36 @@
 
     return v1
 
-    .line 256
+    .line 436
+    :catchall_0
+    move-exception v1
+
+    :try_start_1
+    monitor-exit v0
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_0
+
+    throw v1
+.end method
+
+.method public static declared-synchronized wasLastMergeMotionRejected()Z
+    .locals 2
+
+    const-class v0, Lcom/motorola/camera/custom/MultiFrameBurstController;
+
+    monitor-enter v0
+
+    .line 410
+    :try_start_0
+    sget-boolean v1, Lcom/motorola/camera/custom/MultiFrameBurstController;->lastMergeMotionRejected:Z
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    monitor-exit v0
+
+    return v1
+
+    .line 410
     :catchall_0
     move-exception v1
 
@@ -2515,7 +3744,7 @@
 .method private static zeros(I)[F
     .locals 0
 
-    .line 364
+    .line 544
     new-array p0, p0, [F
 
     return-object p0

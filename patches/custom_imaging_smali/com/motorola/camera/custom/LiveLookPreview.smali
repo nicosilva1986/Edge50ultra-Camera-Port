@@ -74,7 +74,7 @@
 .end method
 
 .method public static bind(Lcom/motorola/camera/ui/widgets/gl/Shader;)V
-    .locals 22
+    .locals 23
 
     .line 60
     move-object/from16 v0, p0
@@ -134,274 +134,285 @@
 
     const/4 v6, 0x2
 
-    const/4 v7, 0x1
+    const/4 v7, 0x5
 
-    const/4 v8, 0x0
+    const/4 v8, 0x1
+
+    const/4 v9, 0x0
 
     if-nez v3, :cond_2
 
     .line 69
-    const/4 v3, 0x5
+    const/4 v3, 0x6
 
     new-array v3, v3, [I
 
     .line 70
-    const-string v9, "u_EffectsLutTex"
+    const-string v10, "u_EffectsLutTex"
 
-    invoke-static {v1, v9}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v1, v10}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
-    move-result v9
+    move-result v10
 
-    aput v9, v3, v8
+    aput v10, v3, v9
 
     .line 71
-    const-string v9, "u_EffectsIntensity"
+    const-string v10, "u_EffectsIntensity"
 
-    invoke-static {v1, v9}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v1, v10}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
-    move-result v9
+    move-result v10
 
-    aput v9, v3, v7
+    aput v10, v3, v8
 
     .line 72
-    const-string v9, "u_EffectsVignette"
+    const-string v10, "u_EffectsVignette"
 
-    invoke-static {v1, v9}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v1, v10}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
-    move-result v9
+    move-result v10
 
-    aput v9, v3, v6
+    aput v10, v3, v6
 
     .line 73
-    const-string v9, "u_EffectsHalation"
+    const-string v10, "u_EffectsHalation"
 
-    invoke-static {v1, v9}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v1, v10}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
-    move-result v9
+    move-result v10
 
-    aput v9, v3, v5
+    aput v10, v3, v5
 
     .line 74
-    const-string v9, "u_EffectsGrain"
+    const-string v10, "u_EffectsGrain"
 
-    invoke-static {v1, v9}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v1, v10}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+
+    move-result v10
+
+    aput v10, v3, v4
+
+    .line 75
+    const-string v10, "u_EffectsShoulder"
+
+    invoke-static {v1, v10}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
     move-result v1
 
-    aput v1, v3, v4
+    aput v1, v3, v7
 
-    .line 76
+    .line 77
     iget-object v1, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->programs:Ljava/util/Map;
 
     invoke-interface {v1, v0, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 78
+    .line 79
     :cond_2
-    aget v0, v3, v8
+    aget v0, v3, v9
 
     if-gez v0, :cond_3
 
     return-void
 
-    .line 79
+    .line 80
     :cond_3
-    aget v0, v3, v8
+    aget v0, v3, v9
 
     const/4 v1, 0x7
 
     invoke-static {v0, v1}, Landroid/opengl/GLES20;->glUniform1i(II)V
 
-    .line 80
+    .line 81
     sget-object v0, Lcom/motorola/camera/custom/LiveLookPreview;->ready:Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;
 
-    .line 81
-    const/4 v9, 0x0
+    .line 82
+    const/4 v10, 0x0
 
-    if-eqz v0, :cond_d
+    if-eqz v0, :cond_e
 
-    sget v10, Lcom/motorola/camera/custom/LiveLookPreview;->selected:I
+    sget v11, Lcom/motorola/camera/custom/LiveLookPreview;->selected:I
 
-    iget v11, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
+    iget v12, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
 
-    if-ne v10, v11, :cond_d
+    if-ne v11, v12, :cond_e
 
-    sget-boolean v10, Lcom/motorola/camera/custom/LiveLookPreview;->compare:Z
+    sget-boolean v11, Lcom/motorola/camera/custom/LiveLookPreview;->compare:Z
 
-    if-nez v10, :cond_d
+    if-nez v11, :cond_e
 
-    sget-boolean v10, Lcom/motorola/camera/custom/LiveLookPreview;->profilePaused:Z
+    sget-boolean v11, Lcom/motorola/camera/custom/LiveLookPreview;->profilePaused:Z
 
-    if-nez v10, :cond_d
+    if-nez v11, :cond_e
 
-    sget v10, Lcom/motorola/camera/custom/LiveLookPreview;->intensity:I
+    sget v11, Lcom/motorola/camera/custom/LiveLookPreview;->intensity:I
 
-    if-nez v10, :cond_4
+    if-nez v11, :cond_4
 
     goto/16 :goto_2
 
-    .line 85
-    :cond_4
-    const v10, 0x84e0
-
-    iget-object v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
-
-    invoke-static {v10, v11, v8}, Landroid/opengl/GLES20;->glGetIntegerv(I[II)V
-
-    .line 86
-    iget-object v10, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
-
-    aget v10, v10, v8
-
     .line 87
-    const v11, 0x84c7
+    :cond_4
+    const v11, 0x84e0
 
-    invoke-static {v11}, Landroid/opengl/GLES20;->glActiveTexture(I)V
+    iget-object v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
+
+    invoke-static {v11, v12, v9}, Landroid/opengl/GLES20;->glGetIntegerv(I[II)V
 
     .line 88
-    iget v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->texture:I
+    iget-object v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
 
-    if-nez v11, :cond_5
+    aget v11, v11, v9
 
     .line 89
-    iget-object v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
+    const v12, 0x84c7
 
-    invoke-static {v7, v11, v8}, Landroid/opengl/GLES20;->glGenTextures(I[II)V
+    invoke-static {v12}, Landroid/opengl/GLES20;->glActiveTexture(I)V
 
     .line 90
-    iget-object v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
+    iget v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->texture:I
 
-    aget v11, v11, v8
+    if-nez v12, :cond_5
 
-    iput v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->texture:I
+    .line 91
+    iget-object v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
+
+    invoke-static {v8, v12, v9}, Landroid/opengl/GLES20;->glGenTextures(I[II)V
 
     .line 92
-    :cond_5
-    iget v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->texture:I
+    iget-object v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
 
-    const/16 v12, 0xde1
+    aget v12, v12, v9
 
-    invoke-static {v12, v11}, Landroid/opengl/GLES20;->glBindTexture(II)V
-
-    .line 93
-    iget-object v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->uploaded:Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;
-
-    if-eq v11, v0, :cond_6
+    iput v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->texture:I
 
     .line 94
-    const/16 v11, 0x2801
+    :cond_5
+    iget v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->texture:I
 
-    const/16 v13, 0x2601
-
-    invoke-static {v12, v11, v13}, Landroid/opengl/GLES20;->glTexParameteri(III)V
-
-    .line 95
-    const/16 v11, 0x2800
-
-    invoke-static {v12, v11, v13}, Landroid/opengl/GLES20;->glTexParameteri(III)V
-
-    .line 96
-    const/16 v11, 0x2802
-
-    const v13, 0x812f
-
-    invoke-static {v12, v11, v13}, Landroid/opengl/GLES20;->glTexParameteri(III)V
-
-    .line 97
-    const/16 v11, 0x2803
-
-    invoke-static {v12, v11, v13}, Landroid/opengl/GLES20;->glTexParameteri(III)V
-
-    .line 98
-    iget-object v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
-
-    const/16 v12, 0xcf5
-
-    invoke-static {v12, v11, v8}, Landroid/opengl/GLES20;->glGetIntegerv(I[II)V
-
-    .line 99
-    invoke-static {v12, v7}, Landroid/opengl/GLES20;->glPixelStorei(II)V
-
-    .line 100
-    iget-object v11, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->pixels:Ljava/nio/ByteBuffer;
-
-    .line 101
-    invoke-virtual {v11}, Ljava/nio/ByteBuffer;->duplicate()Ljava/nio/ByteBuffer;
-
-    move-result-object v21
-
-    .line 100
     const/16 v13, 0xde1
 
-    const/4 v14, 0x0
+    invoke-static {v13, v12}, Landroid/opengl/GLES20;->glBindTexture(II)V
 
-    const/16 v15, 0x1907
+    .line 95
+    iget-object v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->uploaded:Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;
 
-    const/16 v16, 0x21
+    if-eq v12, v0, :cond_6
 
-    const/16 v17, 0x441
+    .line 96
+    const/16 v12, 0x2801
 
-    const/16 v18, 0x0
+    const/16 v14, 0x2601
 
-    const/16 v19, 0x1907
+    invoke-static {v13, v12, v14}, Landroid/opengl/GLES20;->glTexParameteri(III)V
 
-    const/16 v20, 0x1401
+    .line 97
+    const/16 v12, 0x2800
 
-    invoke-static/range {v13 .. v21}, Landroid/opengl/GLES20;->glTexImage2D(IIIIIIIILjava/nio/Buffer;)V
+    invoke-static {v13, v12, v14}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+
+    .line 98
+    const/16 v12, 0x2802
+
+    const v14, 0x812f
+
+    invoke-static {v13, v12, v14}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+
+    .line 99
+    const/16 v12, 0x2803
+
+    invoke-static {v13, v12, v14}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+
+    .line 100
+    iget-object v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
+
+    const/16 v13, 0xcf5
+
+    invoke-static {v13, v12, v9}, Landroid/opengl/GLES20;->glGetIntegerv(I[II)V
+
+    .line 101
+    invoke-static {v13, v8}, Landroid/opengl/GLES20;->glPixelStorei(II)V
 
     .line 102
-    iget-object v11, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
-
-    aget v8, v11, v8
-
-    invoke-static {v12, v8}, Landroid/opengl/GLES20;->glPixelStorei(II)V
+    iget-object v12, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->pixels:Ljava/nio/ByteBuffer;
 
     .line 103
-    iput-object v0, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->uploaded:Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;
+    invoke-virtual {v12}, Ljava/nio/ByteBuffer;->duplicate()Ljava/nio/ByteBuffer;
+
+    move-result-object v22
+
+    .line 102
+    const/16 v14, 0xde1
+
+    const/4 v15, 0x0
+
+    const/16 v16, 0x1907
+
+    const/16 v17, 0x21
+
+    const/16 v18, 0x441
+
+    const/16 v19, 0x0
+
+    const/16 v20, 0x1907
+
+    const/16 v21, 0x1401
+
+    invoke-static/range {v14 .. v22}, Landroid/opengl/GLES20;->glTexImage2D(IIIIIIIILjava/nio/Buffer;)V
+
+    .line 104
+    iget-object v12, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->scratch:[I
+
+    aget v9, v12, v9
+
+    invoke-static {v13, v9}, Landroid/opengl/GLES20;->glPixelStorei(II)V
 
     .line 105
-    :cond_6
-    invoke-static {v10}, Landroid/opengl/GLES20;->glActiveTexture(I)V
-
-    .line 106
-    aget v2, v3, v7
-
-    sget v8, Lcom/motorola/camera/custom/LiveLookPreview;->intensity:I
-
-    int-to-float v8, v8
-
-    const/high16 v10, 0x42c80000    # 100.0f
-
-    div-float/2addr v8, v10
-
-    invoke-static {v2, v8}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+    iput-object v0, v2, Lcom/motorola/camera/custom/LiveLookPreview$GlState;->uploaded:Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;
 
     .line 107
+    :cond_6
+    invoke-static {v11}, Landroid/opengl/GLES20;->glActiveTexture(I)V
+
+    .line 108
+    aget v2, v3, v8
+
+    sget v9, Lcom/motorola/camera/custom/LiveLookPreview;->intensity:I
+
+    int-to-float v9, v9
+
+    const/high16 v11, 0x42c80000    # 100.0f
+
+    div-float/2addr v9, v11
+
+    invoke-static {v2, v9}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+
+    .line 109
     aget v2, v3, v6
 
-    iget v8, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
+    iget v9, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
 
-    if-ne v8, v7, :cond_7
+    if-ne v9, v8, :cond_7
 
     const v6, 0x3e8a3d71    # 0.27f
 
     goto :goto_0
 
     :cond_7
-    iget v7, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
+    iget v8, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
 
-    if-ne v7, v6, :cond_8
+    if-ne v8, v6, :cond_8
 
     const v6, 0x3e051eb8    # 0.13f
 
     goto :goto_0
 
     :cond_8
-    move v6, v9
+    move v6, v10
 
     :goto_0
     invoke-static {v2, v6}, Landroid/opengl/GLES20;->glUniform1f(IF)V
 
-    .line 108
+    .line 110
     aget v2, v3, v5
 
     iget v6, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
@@ -424,12 +435,12 @@
     goto :goto_1
 
     :cond_a
-    move v1, v9
+    move v1, v10
 
     :goto_1
     invoke-static {v2, v1}, Landroid/opengl/GLES20;->glUniform1f(IF)V
 
-    .line 109
+    .line 111
     aget v1, v3, v4
 
     iget v2, v0, Lcom/motorola/camera/custom/LiveLookPreview$LookTexture;->id:I
@@ -443,22 +454,44 @@
     if-lt v0, v2, :cond_c
 
     :cond_b
-    const v9, 0x3c83126f    # 0.016f
+    const v10, 0x3c83126f    # 0.016f
 
     :cond_c
-    invoke-static {v1, v9}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+    invoke-static {v1, v10}, Landroid/opengl/GLES20;->glUniform1f(IF)V
 
-    .line 110
-    return-void
-
-    .line 82
-    :cond_d
-    :goto_2
+    .line 112
     aget v0, v3, v7
 
-    invoke-static {v0, v9}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+    if-ltz v0, :cond_d
+
+    aget v0, v3, v7
+
+    const/high16 v1, 0x3f800000    # 1.0f
+
+    invoke-static {v0, v1}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+
+    .line 113
+    :cond_d
+    return-void
 
     .line 83
+    :cond_e
+    :goto_2
+    aget v0, v3, v8
+
+    invoke-static {v0, v10}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+
+    .line 84
+    aget v0, v3, v7
+
+    if-ltz v0, :cond_f
+
+    aget v0, v3, v7
+
+    invoke-static {v0, v10}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+
+    .line 85
+    :cond_f
     return-void
 .end method
 

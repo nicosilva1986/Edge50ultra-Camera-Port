@@ -26,20 +26,36 @@ final class BokehKernel {
     }
 
     static float coc(int depth, int focus) {
-        float t = Math.min(1f, Math.max(0, (Math.abs(depth - focus) - 9f) / 65f));
+        float t = Math.min(1f, Math.max(0f, (Math.abs(depth - focus) - 3f) / 68f));
         return t * t * (3 - 2 * t);
     }
 
+    private static float depthWeight(int d, int sampleDepth, int focus, float blur) {
+        if (coc(sampleDepth, focus) < blur * 0.38f) {
+            return 0f;
+        }
+        float diff = Math.abs(d - sampleDepth);
+        if (diff <= 18f) return 1f;
+        if (diff >= 46f) return 0f;
+        float t = (diff - 18f) / 28f;
+        return 1f - t * t * (3f - 2f * t);
+    }
+
     static int[] gather(int[] image, byte[] depth, int width, int height, int focus, int style) {
+        return gather(image, depth, width, height, focus, style, 1.0f);
+    }
+
+    static int[] gather(int[] image, byte[] depth, int width, int height, int focus, int style, float radiusScale) {
         float[] taps = aperture(style);
         int[] output = new int[image.length];
-        float radius = Math.max(2, Math.min(width, height) * 0.027f);
+        float safeScale = Math.max(0.70f, Math.min(1.45f, Float.isFinite(radiusScale) ? radiusScale : 1.0f));
+        float radius = Math.max(2f, Math.min(width, height) * 0.027f * safeScale);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int position = y * width + x;
                 int d = depth[position] & 255;
                 float blur = coc(d, focus);
-                if (blur < 0.06f) {
+                if (blur < 0.02f) {
                     output[position] = image[position];
                     continue;
                 }
@@ -63,9 +79,10 @@ final class BokehKernel {
                     int sy = clamp(Math.round(y + dy * radius * blur), height - 1);
                     int sample = sy * width + sx;
                     int sampleDepth = depth[sample] & 255;
-                    if (Math.abs(d - sampleDepth) > 34 || coc(sampleDepth, focus) < blur * 0.38f) continue;
+                    float dw = depthWeight(d, sampleDepth, focus, blur);
+                    if (dw <= 0f) continue;
                     int rgb = image[sample];
-                    float weight = taps[i + 2];
+                    float weight = taps[i + 2] * dw;
                     red += (rgb >>> 16 & 255) * weight;
                     green += (rgb >>> 8 & 255) * weight;
                     blue += (rgb & 255) * weight;
@@ -77,17 +94,18 @@ final class BokehKernel {
                 if (style == 4) {
                     int step = Math.max(1, Math.round(radius * blur));
                     float sR = 0, sG = 0, sB = 0;
-                    int sW = 0;
+                    float sW = 0f;
                     for (int dir = -1; dir <= 1; dir += 2) {
                         int sx = clamp(x + dir * step, width - 1);
                         int sample = y * width + sx;
                         int sd = depth[sample] & 255;
-                        if (Math.abs(d - sd) <= 34 && coc(sd, focus) >= blur * 0.38f) {
+                        float dw = depthWeight(d, sd, focus, blur);
+                        if (dw > 0f) {
                             int sRgb = image[sample];
-                            sR += (sRgb >>> 16 & 255);
-                            sG += (sRgb >>> 8 & 255);
-                            sB += (sRgb & 255);
-                            sW++;
+                            sR += (sRgb >>> 16 & 255) * dw;
+                            sG += (sRgb >>> 8 & 255) * dw;
+                            sB += (sRgb & 255) * dw;
+                            sW += dw;
                         }
                     }
                     if (sW > 0) {

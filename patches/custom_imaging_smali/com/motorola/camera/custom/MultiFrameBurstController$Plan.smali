@@ -34,30 +34,30 @@
 .method constructor <init>(II[F[FJLjava/lang/String;Z)V
     .locals 0
 
-    .line 54
+    .line 61
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 55
+    .line 62
     iput p1, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;->captureMode:I
 
-    .line 56
+    .line 63
     iput p2, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;->frameCount:I
 
-    .line 57
+    .line 64
     iput-object p3, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;->evOffsets:[F
 
-    .line 58
+    .line 65
     iput-object p4, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;->focusDistances:[F
 
-    .line 59
+    .line 66
     iput-wide p5, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;->anchorSeqId:J
 
-    .line 60
+    .line 67
     iput-object p7, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;->fallbackReason:Ljava/lang/String;
 
-    .line 61
+    .line 68
     iput-boolean p8, p0, Lcom/motorola/camera/custom/MultiFrameBurstController$Plan;->singleRaw:Z
 
-    .line 62
+    .line 69
     return-void
 .end method

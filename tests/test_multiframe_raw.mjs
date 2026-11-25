@@ -291,10 +291,35 @@ public final class BurstChecks {
         reject(()->e.addFrame(small(constant(8,65536),4,2,0,6,0)));
         ok(e.size()==1 && e.merge().raw[0]==10,"partial add changed ring");
     }
+    static void rejectGhost(){
+        // Whole-frame >30% tile failure fallback + SR/AEB moving patch rejection.
+        Scene baseScene=(x,y,p)->.25+baseTexture(x,y);
+        Scene brokenScene=(x,y,p)->.80+.20*Math.sin(.35*x-.25*y);
+        MultiFrameRawEngine rej=new MultiFrameRawEngine(MODE_HDR_PLUS,2);
+        rej.addFrame(exposure(baseScene,0,0,1,0,1,0));
+        rej.addFrame(exposure(brokenScene,0,0,1,0,2,0));
+        Result rejRes=rej.merge();
+        ok(rejRes.acceptedFrames==1,"expected mismatched second frame (>30% bad tiles) to be rejected");
+
+        Scene staticSky=(x,y,p)->.25+baseTexture(x,y);
+        Scene movingSr=(x,y,p)->(x>=50 && x<80 && y>=30 && y<60) ? .90 : staticSky.at(x,y,p);
+        MultiFrameRawEngine sr=new MultiFrameRawEngine(MODE_SUPER_RES,2);
+        FrameInput a=exposure(staticSky,0,0,1,0,10,0);
+        sr.addFrame(a);
+        sr.addFrame(exposure(movingSr,0.6,0.4,1,0,11,0));
+        Result srRes=sr.merge();
+        double maxErr=0;
+        for(int y=40;y<55;y++)for(int x=60;x<75;x++){
+            double sx=(x*1.5);
+            double v=decoded(srRes,(int)Math.round(x*1.5),(int)Math.round(y*1.5));
+            maxErr=Math.max(maxErr,Math.abs(v-staticSky.at(x,y,site(x,y))));
+        }
+        ok(maxErr<0.15,"SR moving ghost leaked onto static anchor: "+maxErr);
+    }
     public static void main(String[] args){
         switch(args[0]){
             case "hdr":hdr();break;case "aeb":aeb();break;case "sr":sr();break;
-            case "calibration":calibration();break;case "focus":focus();break;case "nd":nd();break;case "ring":ring();break;case "invalid":invalid();break;
+            case "calibration":calibration();break;case "focus":focus();break;case "nd":nd();break;case "ring":ring();break;case "invalid":invalid();break;case "ghost":rejectGhost();break;
             default:throw new IllegalArgumentException(args[0]);
         }
     }
@@ -319,6 +344,7 @@ for (const [op, title] of Object.entries({
   ring: 'blur gate, ownership, eviction, fallback and rounded SR dimensions',
   calibration: 'all CFA patterns preserve site pedestals, and gyro rejection uses focal length in pixels',
   invalid: 'invalid input and memory overflow are rejected before ring mutation',
+  ghost: 'mismatched tiles (>30%) and moving objects in SR are rejected without ghosting',
 })) {
   test(title, t => {
     const metrics = run(java, ['-Xmx96m', '-cp', classes, 'BurstChecks', op]);
