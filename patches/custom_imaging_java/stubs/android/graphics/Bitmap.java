@@ -3,9 +3,10 @@ package android.graphics;
 import java.io.OutputStream;
 
 public final class Bitmap {
-    public enum Config { ARGB_8888, ALPHA_8 }
+    public enum Config { ARGB_8888, ALPHA_8, RGBA_F16 }
     public Config getConfig() { return Config.ARGB_8888; }
     public enum CompressFormat { JPEG }
+    public static Bitmap createBitmap(int width, int height, Config config) { return null; }
     public static Bitmap createBitmap(int[] colors, int width, int height, Config config) { return null; }
     public static Bitmap createBitmap(Bitmap source, int x, int y, int width, int height, Matrix m, boolean filter) { return null; }
     public static Bitmap createScaledBitmap(Bitmap src, int width, int height, boolean filter) { return null; }
@@ -14,6 +15,9 @@ public final class Bitmap {
     public boolean isMutable() { return false; }
     public void getPixels(int[] pixels, int offset, int stride, int x, int y, int width, int height) {}
     public void setPixels(int[] pixels, int offset, int stride, int x, int y, int width, int height) {}
+    public void copyPixelsFromBuffer(java.nio.Buffer src) {}
+    public ColorSpace getColorSpace() { return ColorSpace.get(ColorSpace.Named.SRGB); }
+    public void setColorSpace(ColorSpace colorSpace) {}
     public boolean compress(CompressFormat format, int quality, OutputStream stream) { return false; }
     public boolean hasGainmap() { return false; }
     public Gainmap getGainmap() { return null; }

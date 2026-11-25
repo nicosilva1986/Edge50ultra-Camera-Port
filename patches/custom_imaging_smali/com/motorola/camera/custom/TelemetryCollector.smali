@@ -6,9 +6,9 @@
 # annotations
 .annotation system Ldalvik/annotation/MemberClasses;
     value = {
+        Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;,
         Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;,
         Lcom/motorola/camera/custom/TelemetryCollector$Session;,
-        Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;,
         Lcom/motorola/camera/custom/TelemetryCollector$Stream;,
         Lcom/motorola/camera/custom/TelemetryCollector$Series;,
         Lcom/motorola/camera/custom/TelemetryCollector$Integral;,
@@ -245,7 +245,7 @@
 .method private static appendJson(Ljava/lang/StringBuilder;Ljava/lang/Object;)V
     .locals 5
 
-    .line 1050
+    .line 1154
     instance-of v0, p1, Ljava/util/Map;
 
     const/16 v1, 0x2c
@@ -254,15 +254,15 @@
 
     if-eqz v0, :cond_2
 
-    .line 1051
+    .line 1155
     const/16 v0, 0x7b
 
     invoke-virtual {p0, v0}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
-    .line 1052
+    .line 1156
     nop
 
-    .line 1053
+    .line 1157
     check-cast p1, Ljava/util/Map;
 
     invoke-interface {p1}, Ljava/util/Map;->entrySet()Ljava/util/Set;
@@ -288,16 +288,16 @@
 
     check-cast v3, Ljava/util/Map$Entry;
 
-    .line 1054
+    .line 1158
     if-nez v0, :cond_0
 
     invoke-virtual {p0, v1}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
-    .line 1055
+    .line 1159
     :cond_0
     nop
 
-    .line 1056
+    .line 1160
     invoke-interface {v3}, Ljava/util/Map$Entry;->getKey()Ljava/lang/Object;
 
     move-result-object v0
@@ -316,25 +316,25 @@
 
     invoke-virtual {v0, v4}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
-    .line 1057
+    .line 1161
     invoke-interface {v3}, Ljava/util/Map$Entry;->getValue()Ljava/lang/Object;
 
     move-result-object v0
 
     invoke-static {p0, v0}, Lcom/motorola/camera/custom/TelemetryCollector;->appendJson(Ljava/lang/StringBuilder;Ljava/lang/Object;)V
 
-    .line 1058
+    .line 1162
     move v0, v2
 
     goto :goto_0
 
-    .line 1059
+    .line 1163
     :cond_1
     const/16 p1, 0x7d
 
     invoke-virtual {p0, p1}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
-    .line 1060
+    .line 1164
     goto :goto_3
 
     :cond_2
@@ -342,15 +342,15 @@
 
     if-eqz v0, :cond_5
 
-    .line 1061
+    .line 1165
     const/16 v0, 0x5b
 
     invoke-virtual {p0, v0}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
-    .line 1062
+    .line 1166
     check-cast p1, [F
 
-    .line 1063
+    .line 1167
     nop
 
     :goto_1
@@ -358,12 +358,12 @@
 
     if-ge v2, v0, :cond_4
 
-    .line 1064
+    .line 1168
     if-eqz v2, :cond_3
 
     invoke-virtual {p0, v1}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
-    .line 1065
+    .line 1169
     :cond_3
     aget v0, p1, v2
 
@@ -373,18 +373,18 @@
 
     invoke-static {p0, v0}, Lcom/motorola/camera/custom/TelemetryCollector;->appendJson(Ljava/lang/StringBuilder;Ljava/lang/Object;)V
 
-    .line 1063
+    .line 1167
     add-int/lit8 v2, v2, 0x1
 
     goto :goto_1
 
-    .line 1067
+    .line 1171
     :cond_4
     const/16 p1, 0x5d
 
     invoke-virtual {p0, p1}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
-    .line 1068
+    .line 1172
     goto :goto_3
 
     :cond_5
@@ -392,7 +392,7 @@
 
     if-eqz v0, :cond_7
 
-    .line 1069
+    .line 1173
     move-object v0, p1
 
     check-cast v0, Ljava/lang/Number;
@@ -421,18 +421,18 @@
 
     goto :goto_3
 
-    .line 1070
+    .line 1174
     :cond_7
     instance-of v0, p1, Ljava/lang/Boolean;
 
     if-eqz v0, :cond_8
 
-    .line 1071
+    .line 1175
     invoke-virtual {p0, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
 
     goto :goto_3
 
-    .line 1073
+    .line 1177
     :cond_8
     check-cast p1, Ljava/lang/String;
 
@@ -442,7 +442,7 @@
 
     invoke-virtual {p0, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 1075
+    .line 1179
     :goto_3
     return-void
 .end method
@@ -450,28 +450,28 @@
 .method public static buildConciseExifNote(Landroid/hardware/camera2/TotalCaptureResult;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;Ljava/lang/String;III)Ljava/lang/String;
     .locals 4
 
-    .line 968
+    .line 1072
     const-string v0, "SENSOR_SENSITIVITY"
 
     invoke-static {p0, v0}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v0
 
-    .line 969
+    .line 1073
     const-string v1, "SENSOR_EXPOSURE_TIME"
 
     invoke-static {p0, v1}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v1
 
-    .line 970
+    .line 1074
     const-string v2, "LENS_OPTICAL_STABILIZATION_MODE"
 
     invoke-static {p0, v2}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object p0
 
-    .line 971
+    .line 1075
     if-eqz p1, :cond_0
 
     iget-object v2, p1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->oisMode:Ljava/lang/Integer;
@@ -482,7 +482,7 @@
 
     goto :goto_0
 
-    .line 972
+    .line 1076
     :cond_0
     instance-of v2, p0, Ljava/lang/Integer;
 
@@ -495,7 +495,7 @@
     :cond_1
     const/4 p0, 0x0
 
-    .line 973
+    .line 1077
     :goto_0
     new-instance v2, Ljava/lang/StringBuilder;
 
@@ -503,7 +503,7 @@
 
     invoke-direct {v2, v3}, Ljava/lang/StringBuilder;-><init>(I)V
 
-    .line 974
+    .line 1078
     const-string v3, "telemetry=1 capture="
 
     invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -518,7 +518,7 @@
 
     move-result-object p2
 
-    .line 975
+    .line 1079
     const-string v3, " look="
 
     invoke-virtual {p2, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -529,7 +529,7 @@
 
     move-result-object p2
 
-    .line 976
+    .line 1080
     const-string p3, " bokeh="
 
     invoke-virtual {p2, p3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -540,7 +540,7 @@
 
     move-result-object p2
 
-    .line 977
+    .line 1081
     const-string p3, " profile="
 
     invoke-virtual {p2, p3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -549,7 +549,7 @@
 
     invoke-virtual {p2, p5}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
-    .line 978
+    .line 1082
     if-eqz v0, :cond_2
 
     const-string p2, " ISO="
@@ -560,7 +560,7 @@
 
     invoke-virtual {p2, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
 
-    .line 979
+    .line 1083
     :cond_2
     if-eqz v1, :cond_3
 
@@ -572,7 +572,7 @@
 
     invoke-virtual {p2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
 
-    .line 980
+    .line 1084
     :cond_3
     if-eqz p1, :cond_4
 
@@ -592,7 +592,7 @@
 
     if-eqz p2, :cond_4
 
-    .line 981
+    .line 1085
     const-string p2, " iqLuxIdx="
 
     invoke-virtual {v2, p2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -603,7 +603,7 @@
 
     invoke-virtual {p2, p3}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
 
-    .line 983
+    .line 1087
     :cond_4
     if-eqz p0, :cond_5
 
@@ -615,11 +615,11 @@
 
     invoke-virtual {p2, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
 
-    .line 984
+    .line 1088
     :cond_5
     if-eqz p1, :cond_b
 
-    .line 985
+    .line 1089
     iget-object p0, p1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->aeFps:Ljava/lang/Integer;
 
     if-eqz p0, :cond_6
@@ -634,7 +634,7 @@
 
     invoke-virtual {p0, p2}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
 
-    .line 986
+    .line 1090
     :cond_6
     iget-object p0, p1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->mergeCount:Ljava/lang/Integer;
 
@@ -650,7 +650,7 @@
 
     invoke-virtual {p0, p2}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
 
-    .line 987
+    .line 1091
     :cond_7
     iget-object p0, p1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->gapMs:Ljava/lang/Float;
 
@@ -668,7 +668,7 @@
 
     if-eqz p0, :cond_8
 
-    .line 988
+    .line 1092
     const-string p0, " gapMs="
 
     invoke-virtual {v2, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -691,7 +691,7 @@
 
     invoke-virtual {p0, p2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 990
+    .line 1094
     :cond_8
     iget-object p0, p1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->focusSpreadD:Ljava/lang/Float;
 
@@ -709,7 +709,7 @@
 
     if-eqz p0, :cond_9
 
-    .line 991
+    .line 1095
     const-string p0, " focusSpreadD="
 
     invoke-virtual {v2, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -732,7 +732,7 @@
 
     invoke-virtual {p0, p2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 993
+    .line 1097
     :cond_9
     sget-object p0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
 
@@ -748,7 +748,7 @@
 
     invoke-virtual {v2, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 994
+    .line 1098
     :cond_a
     iget-object p0, p1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->depthSource:Ljava/lang/String;
 
@@ -772,7 +772,7 @@
 
     invoke-virtual {p0, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 996
+    .line 1100
     :cond_b
     invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
@@ -784,15 +784,15 @@
 .method public static buildShotTelemetryJson(Landroid/hardware/camera2/TotalCaptureResult;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;Ljava/lang/String;III)Ljava/lang/String;
     .locals 7
 
-    .line 649
+    .line 753
     nop
 
-    .line 650
+    .line 754
     invoke-static {p0, p1}, Lcom/motorola/camera/custom/TelemetryCollector;->sampleCompass(Landroid/hardware/camera2/TotalCaptureResult;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;)Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;
 
     move-result-object v6
 
-    .line 649
+    .line 753
     move-object v0, p0
 
     move-object v1, p1
@@ -815,7 +815,7 @@
 .method public static buildShotTelemetryJson(Landroid/hardware/camera2/TotalCaptureResult;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;Ljava/lang/String;IIILcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;)Ljava/lang/String;
     .locals 19
 
-    .line 656
+    .line 760
     move-object/from16 v0, p0
 
     move-object/from16 v1, p1
@@ -824,7 +824,7 @@
 
     invoke-direct {v2}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 657
+    .line 761
     const/4 v3, 0x1
 
     invoke-static {v3}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
@@ -835,7 +835,7 @@
 
     invoke-interface {v2, v5, v4}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 658
+    .line 762
     if-nez v1, :cond_0
 
     const/4 v6, 0x0
@@ -850,7 +850,7 @@
 
     invoke-interface {v2, v7, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 659
+    .line 763
     if-nez v1, :cond_1
 
     const/4 v6, 0x0
@@ -865,7 +865,7 @@
 
     invoke-interface {v2, v7, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 660
+    .line 764
     if-nez v1, :cond_2
 
     const/4 v6, 0x0
@@ -880,7 +880,7 @@
 
     invoke-interface {v2, v7, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 661
+    .line 765
     const-string v6, "captureMethod"
 
     invoke-static/range {p2 .. p2}, Lcom/motorola/camera/custom/TelemetryCollector;->method(Ljava/lang/String;)Ljava/lang/String;
@@ -889,7 +889,7 @@
 
     invoke-interface {v2, v6, v7}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 662
+    .line 766
     const-string v6, "lookId"
 
     invoke-static/range {p3 .. p3}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
@@ -898,7 +898,7 @@
 
     invoke-interface {v2, v6, v7}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 663
+    .line 767
     const-string v6, "bokehId"
 
     invoke-static/range {p4 .. p4}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
@@ -907,7 +907,7 @@
 
     invoke-interface {v2, v6, v7}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 664
+    .line 768
     const-string v6, "profileId"
 
     invoke-static/range {p5 .. p5}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
@@ -916,7 +916,7 @@
 
     invoke-interface {v2, v6, v7}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 665
+    .line 769
     if-nez v1, :cond_3
 
     const/4 v6, 0x0
@@ -931,12 +931,12 @@
 
     invoke-interface {v2, v7, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 666
+    .line 770
     new-instance v6, Ljava/util/LinkedHashMap;
 
     invoke-direct {v6}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 667
+    .line 771
     sget-object v7, Lcom/motorola/camera/custom/TelemetryCollector;->KEYS:[Ljava/lang/String;
 
     array-length v8, v7
@@ -950,12 +950,12 @@
 
     aget-object v11, v7, v10
 
-    .line 668
+    .line 772
     invoke-static {v0, v11}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v12
 
-    .line 670
+    .line 774
     instance-of v13, v12, Ljava/lang/Long;
 
     if-eqz v13, :cond_4
@@ -967,28 +967,28 @@
     :cond_4
     invoke-interface {v6, v11, v12}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 667
+    .line 771
     add-int/lit8 v10, v10, 0x1
 
     goto :goto_4
 
-    .line 672
+    .line 776
     :cond_5
     const-string v7, "captureResult"
 
     invoke-interface {v2, v7, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 673
+    .line 777
     const-string v7, "STATISTICS_SCENE_FLICKER"
 
     invoke-interface {v6, v7}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
 
     move-result-object v7
 
-    .line 674
+    .line 778
     nop
 
-    .line 675
+    .line 779
     invoke-virtual {v4, v7}, Ljava/lang/Integer;->equals(Ljava/lang/Object;)Z
 
     move-result v4
@@ -1006,7 +1006,7 @@
     :cond_6
     const/4 v4, 0x0
 
-    .line 676
+    .line 780
     :goto_5
     const/4 v8, 0x2
 
@@ -1026,13 +1026,13 @@
 
     move-result-object v4
 
-    .line 677
+    .line 781
     :cond_7
     const-string v7, "cameraSceneMainsClassHz"
 
     invoke-interface {v2, v7, v4}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 678
+    .line 782
     const-string v4, "SENSOR_TIMESTAMP"
 
     invoke-interface {v6, v4}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
@@ -1053,15 +1053,15 @@
 
     move-result-wide v13
 
-    .line 679
+    .line 783
     sget-object v4, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
 
-    .line 680
+    .line 784
     invoke-static {v4, v1, v11, v12}, Lcom/motorola/camera/custom/TelemetryCollector;->reason(Lcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;J)Ljava/lang/String;
 
     move-result-object v6
 
-    .line 681
+    .line 785
     if-nez v6, :cond_8
 
     const-wide/16 v15, 0x0
@@ -1077,7 +1077,7 @@
     :cond_8
     move-object v7, v6
 
-    .line 682
+    .line 786
     :goto_6
     new-array v10, v8, [Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
@@ -1102,7 +1102,7 @@
 
     aget-object v8, v10, v15
 
-    .line 683
+    .line 787
     sget-object v5, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->GYRO:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     if-ne v8, v5, :cond_9
@@ -1118,13 +1118,13 @@
 
     move v15, v9
 
-    .line 684
+    .line 788
     :goto_8
     invoke-static {v4, v8, v7}, Lcom/motorola/camera/custom/TelemetryCollector;->streamReason(Lcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector$Stream;Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object v9
 
-    .line 685
+    .line 789
     if-eqz v15, :cond_a
 
     const-string v16, "gyro"
@@ -1139,7 +1139,7 @@
 
     move-object/from16 v5, v16
 
-    .line 686
+    .line 790
     if-nez v7, :cond_b
 
     move-object/from16 p5, v7
@@ -1167,7 +1167,7 @@
 
     const/4 v10, 0x0
 
-    .line 687
+    .line 791
     :goto_a
     invoke-virtual {v3, v9}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
@@ -1180,7 +1180,7 @@
     :cond_c
     move-object/from16 v16, v9
 
-    .line 685
+    .line 789
     move/from16 v9, p4
 
     invoke-static/range {v10 .. v16}, Lcom/motorola/camera/custom/TelemetryCollector;->motion(Lcom/motorola/camera/custom/TelemetryCollector$Series;JJZLjava/lang/String;)Ljava/util/Map;
@@ -1189,7 +1189,7 @@
 
     invoke-interface {v2, v5, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 682
+    .line 786
     add-int/lit8 v15, v9, 0x1
 
     move/from16 v8, p2
@@ -1204,7 +1204,7 @@
 
     goto :goto_7
 
-    .line 689
+    .line 793
     :cond_d
     move/from16 p2, v8
 
@@ -1214,7 +1214,7 @@
 
     move-result-object v5
 
-    .line 690
+    .line 794
     if-nez v6, :cond_e
 
     iget-object v7, v4, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
@@ -1233,19 +1233,19 @@
 
     invoke-interface {v2, v7, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 691
+    .line 795
     sget-object v5, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ALS:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     invoke-static {v4, v5, v11, v12, v6}, Lcom/motorola/camera/custom/TelemetryCollector;->observe(Lcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector$Stream;JLjava/lang/String;)Lcom/motorola/camera/custom/TelemetryCollector$Observation;
 
     move-result-object v5
 
-    .line 692
+    .line 796
     invoke-virtual {v5}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->json()Ljava/util/Map;
 
     move-result-object v7
 
-    .line 693
+    .line 797
     if-nez v6, :cond_f
 
     iget-object v8, v4, Lcom/motorola/camera/custom/TelemetryCollector$Session;->sensors:Ljava/util/EnumMap;
@@ -1263,7 +1263,7 @@
     :cond_f
     const/4 v8, 0x0
 
-    .line 695
+    .line 799
     :goto_c
     if-eqz v8, :cond_10
 
@@ -1291,31 +1291,31 @@
 
     invoke-interface {v7, v8, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 696
+    .line 800
     const-string v5, "rearAls"
 
     invoke-interface {v2, v5, v7}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 697
+    .line 801
     sget-object v5, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->TOF:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
 
     invoke-static {v4, v5, v11, v12, v6}, Lcom/motorola/camera/custom/TelemetryCollector;->observe(Lcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector$Stream;JLjava/lang/String;)Lcom/motorola/camera/custom/TelemetryCollector$Observation;
 
     move-result-object v5
 
-    .line 698
+    .line 802
     invoke-virtual {v5}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->json()Ljava/util/Map;
 
     move-result-object v7
 
-    .line 699
+    .line 803
     const-string v8, "distanceMm"
 
     const/4 v9, 0x0
 
     invoke-interface {v7, v8, v9}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 700
+    .line 804
     iget-object v8, v5, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
     if-nez v8, :cond_11
@@ -1332,12 +1332,12 @@
 
     invoke-interface {v7, v8, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 701
+    .line 805
     const-string v5, "rearTof"
 
     invoke-interface {v2, v5, v7}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 703
+    .line 807
     new-instance v10, Lcom/motorola/camera/custom/TelemetryCollector$Observation;
 
     if-nez v6, :cond_12
@@ -1349,7 +1349,7 @@
     :cond_12
     const/4 v9, 0x0
 
-    .line 704
+    .line 808
     :goto_f
     if-nez v6, :cond_13
 
@@ -1369,12 +1369,12 @@
 
     invoke-direct/range {v10 .. v16}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;-><init>(Lcom/motorola/camera/custom/TelemetryCollector$Series;JJLjava/lang/String;)V
 
-    .line 705
+    .line 809
     new-instance v3, Ljava/util/LinkedHashMap;
 
     invoke-direct {v3}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 706
+    .line 810
     iget-object v4, v10, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->timestamp:Ljava/lang/Long;
 
     if-nez v4, :cond_14
@@ -1395,12 +1395,12 @@
 
     invoke-interface {v3, v4, v9}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 707
+    .line 811
     new-instance v4, Ljava/util/LinkedHashMap;
 
     invoke-direct {v4}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 708
+    .line 812
     const/4 v8, 0x0
 
     :goto_12
@@ -1410,7 +1410,7 @@
 
     if-ge v8, v5, :cond_19
 
-    .line 709
+    .line 813
     iget-object v5, v10, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
     if-eqz v5, :cond_16
@@ -1442,7 +1442,7 @@
     :goto_13
     const/4 v9, 0x0
 
-    .line 710
+    .line 814
     :goto_14
     sget-object v5, Lcom/motorola/camera/custom/TelemetryCollector;->ZONES:[Ljava/lang/String;
 
@@ -1450,7 +1450,7 @@
 
     invoke-interface {v3, v5, v9}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 711
+    .line 815
     if-nez v9, :cond_18
 
     sget-object v5, Lcom/motorola/camera/custom/TelemetryCollector;->ZONES:[Ljava/lang/String;
@@ -1471,24 +1471,24 @@
     :goto_15
     invoke-interface {v4, v5, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 708
+    .line 812
     :cond_18
     add-int/lit8 v8, v8, 0x1
 
     goto :goto_12
 
-    .line 713
+    .line 817
     :cond_19
     const-string v5, "reasons"
 
     invoke-interface {v3, v5, v4}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 714
+    .line 818
     const-string v4, "thermalC"
 
     invoke-interface {v2, v4, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 715
+    .line 819
     if-eqz p6, :cond_1a
 
     move-object/from16 v3, p6
@@ -1509,14 +1509,14 @@
 
     invoke-interface {v2, v4, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 716
+    .line 820
     const-string v3, "LENS_OPTICAL_STABILIZATION_MODE"
 
     invoke-static {v0, v3}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v0
 
-    .line 717
+    .line 821
     if-eqz v1, :cond_1b
 
     iget-object v3, v1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->oisMode:Ljava/lang/Integer;
@@ -1527,7 +1527,7 @@
 
     goto :goto_17
 
-    .line 718
+    .line 822
     :cond_1b
     instance-of v3, v0, Ljava/lang/Integer;
 
@@ -1542,7 +1542,7 @@
     :cond_1c
     const/4 v9, 0x0
 
-    .line 719
+    .line 823
     :goto_17
     const-string v0, "diagnostics"
 
@@ -1576,13 +1576,13 @@
 
     if-eqz v4, :cond_25
 
-    .line 721
+    .line 825
     :cond_1d
     new-instance v4, Ljava/util/LinkedHashMap;
 
     invoke-direct {v4}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 722
+    .line 826
     iget-object v5, v1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->gapMs:Ljava/lang/Float;
 
     if-eqz v5, :cond_1e
@@ -1605,7 +1605,7 @@
 
     invoke-interface {v4, v5, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 723
+    .line 827
     :cond_1e
     iget-object v5, v1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->focusSpreadD:Ljava/lang/Float;
 
@@ -1629,7 +1629,7 @@
 
     invoke-interface {v4, v5, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 724
+    .line 828
     :cond_1f
     iget-object v5, v1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->motionRejected:Ljava/lang/Boolean;
 
@@ -1641,7 +1641,7 @@
 
     invoke-interface {v4, v5, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 725
+    .line 829
     :cond_20
     iget-object v5, v1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->aeFps:Ljava/lang/Integer;
 
@@ -1653,13 +1653,13 @@
 
     invoke-interface {v4, v5, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 726
+    .line 830
     :cond_21
     if-eqz v9, :cond_22
 
     invoke-interface {v4, v3, v9}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 727
+    .line 831
     :cond_22
     iget-object v3, v1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->mergeCount:Ljava/lang/Integer;
 
@@ -1671,7 +1671,7 @@
 
     invoke-interface {v4, v3, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 728
+    .line 832
     :cond_23
     iget-object v3, v1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->depthSource:Ljava/lang/String;
 
@@ -1691,41 +1691,41 @@
 
     invoke-interface {v4, v3, v1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 729
+    .line 833
     :cond_24
     invoke-interface {v2, v0, v4}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
     goto :goto_18
 
-    .line 730
+    .line 834
     :cond_25
     if-eqz v9, :cond_26
 
-    .line 731
+    .line 835
     new-instance v1, Ljava/util/LinkedHashMap;
 
     invoke-direct {v1}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 732
+    .line 836
     invoke-interface {v1, v3, v9}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 733
+    .line 837
     invoke-interface {v2, v0, v1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
     goto :goto_19
 
-    .line 730
+    .line 834
     :cond_26
     :goto_18
     nop
 
-    .line 735
+    .line 839
     :goto_19
     new-instance v0, Ljava/util/LinkedHashMap;
 
     invoke-direct {v0}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 736
+    .line 840
     const/4 v1, 0x3
 
     new-array v3, v1, [Ljava/lang/String;
@@ -1751,38 +1751,38 @@
 
     aget-object v4, v3, v9
 
-    .line 737
+    .line 841
     const/4 v5, 0x0
 
     invoke-interface {v2, v4, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 738
+    .line 842
     const-string v6, "notPresentOnHardware"
 
     invoke-interface {v0, v4, v6}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 736
+    .line 840
     add-int/lit8 v9, v9, 0x1
 
     goto :goto_1a
 
-    .line 740
+    .line 844
     :cond_27
     const-string v1, "unavailableReasons"
 
     invoke-interface {v2, v1, v0}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 741
+    .line 845
     new-instance v0, Ljava/lang/StringBuilder;
 
     const/16 v1, 0x76c
 
     invoke-direct {v0, v1}, Ljava/lang/StringBuilder;-><init>(I)V
 
-    .line 742
+    .line 846
     invoke-static {v0, v2}, Lcom/motorola/camera/custom/TelemetryCollector;->appendJson(Ljava/lang/StringBuilder;Ljava/lang/Object;)V
 
-    .line 743
+    .line 847
     invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
     move-result-object v0
@@ -1804,89 +1804,89 @@
         }
     .end annotation
 
-    .line 870
+    .line 974
     new-instance v0, Ljava/util/LinkedHashMap;
 
     invoke-direct {v0}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 871
+    .line 975
     const-string v1, "headingDeg"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->headingDeg:Ljava/lang/Float;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 872
+    .line 976
     const-string v1, "trueHeadingDeg"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->trueHeadingDeg:Ljava/lang/Float;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 873
+    .line 977
     const-string v1, "pitchDeg"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->pitchDeg:Ljava/lang/Float;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 874
+    .line 978
     const-string v1, "rollDeg"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->rollDeg:Ljava/lang/Float;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 875
+    .line 979
     const-string v1, "accuracy"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->accuracy:Ljava/lang/Integer;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 876
+    .line 980
     const-string v1, "magneticDeclinationDeg"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->magneticDeclinationDeg:Ljava/lang/Float;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 877
+    .line 981
     const-string v1, "cardinal"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->cardinal:Ljava/lang/String;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 878
+    .line 982
     const-string v1, "sunAzimuthDeg"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->sunAzimuthDeg:Ljava/lang/Double;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 879
+    .line 983
     const-string v1, "sunElevationDeg"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->sunElevationDeg:Ljava/lang/Double;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 880
+    .line 984
     const-string v1, "cameraSunAngleDeg"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->cameraSunAngleDeg:Ljava/lang/Double;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 881
+    .line 985
     const-string v1, "ev100"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->ev100:Ljava/lang/Float;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 882
+    .line 986
     iget-boolean v1, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->physicalOutdoorBacklit:Z
 
     invoke-static {v1}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
@@ -1897,35 +1897,66 @@
 
     invoke-interface {v0, v2, v1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 883
+    .line 987
     const-string v1, "status"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->status:Ljava/lang/String;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 884
+    .line 988
     const-string v1, "unavailableReason"
 
     iget-object p0, p0, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;->unavailableReason:Ljava/lang/String;
 
     invoke-interface {v0, v1, p0}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 885
+    .line 989
+    return-object v0
+.end method
+
+.method public static ctwoRearTcs3408Layout()Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+    .locals 11
+
+    .line 99
+    new-instance v0, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    const/4 v9, 0x1
+
+    const/4 v10, 0x0
+
+    const/4 v1, 0x3
+
+    const/4 v2, 0x4
+
+    const/4 v3, 0x5
+
+    const/4 v4, 0x2
+
+    const/4 v5, 0x6
+
+    const/4 v6, -0x1
+
+    const/4 v7, 0x0
+
+    const/4 v8, 0x0
+
+    invoke-direct/range {v0 .. v10}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;-><init>(IIIIII[DIILcom/motorola/camera/custom/TelemetryCollector-IA;)V
+
     return-object v0
 .end method
 
 .method public static escapeJson(Ljava/lang/String;)Ljava/lang/String;
     .locals 7
 
-    .line 1027
+    .line 1131
     if-nez p0, :cond_0
 
     const-string p0, "null"
 
     return-object p0
 
-    .line 1028
+    .line 1132
     :cond_0
     new-instance v0, Ljava/lang/StringBuilder;
 
@@ -1943,7 +1974,7 @@
 
     move-result-object v0
 
-    .line 1029
+    .line 1133
     const/4 v2, 0x0
 
     :goto_0
@@ -1953,15 +1984,15 @@
 
     if-ge v2, v3, :cond_4
 
-    .line 1030
+    .line 1134
     invoke-virtual {p0, v2}, Ljava/lang/String;->charAt(I)C
 
     move-result v3
 
-    .line 1031
+    .line 1135
     sparse-switch v3, :sswitch_data_0
 
-    .line 1040
+    .line 1144
     const/16 v4, 0x20
 
     if-lt v3, v4, :cond_2
@@ -1974,7 +2005,7 @@
 
     goto :goto_1
 
-    .line 1033
+    .line 1137
     :sswitch_0
     const-string v3, "\\\\"
 
@@ -1982,7 +2013,7 @@
 
     goto :goto_3
 
-    .line 1032
+    .line 1136
     :sswitch_1
     const-string v3, "\\\""
 
@@ -1990,7 +2021,7 @@
 
     goto :goto_3
 
-    .line 1037
+    .line 1141
     :sswitch_2
     const-string v3, "\\r"
 
@@ -1998,7 +2029,7 @@
 
     goto :goto_3
 
-    .line 1035
+    .line 1139
     :sswitch_3
     const-string v3, "\\f"
 
@@ -2006,7 +2037,7 @@
 
     goto :goto_3
 
-    .line 1036
+    .line 1140
     :sswitch_4
     const-string v3, "\\n"
 
@@ -2014,7 +2045,7 @@
 
     goto :goto_3
 
-    .line 1038
+    .line 1142
     :sswitch_5
     const-string v3, "\\t"
 
@@ -2022,7 +2053,7 @@
 
     goto :goto_3
 
-    .line 1034
+    .line 1138
     :sswitch_6
     const-string v3, "\\b"
 
@@ -2030,20 +2061,20 @@
 
     goto :goto_3
 
-    .line 1043
+    .line 1147
     :cond_1
     invoke-virtual {v0, v3}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
     goto :goto_3
 
-    .line 1041
+    .line 1145
     :cond_2
     :goto_1
     const-string v4, "\\u"
 
     invoke-virtual {v0, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 1042
+    .line 1146
     const/16 v4, 0xc
 
     :goto_2
@@ -2065,14 +2096,14 @@
 
     goto :goto_2
 
-    .line 1029
+    .line 1133
     :cond_3
     :goto_3
     add-int/lit8 v2, v2, 0x1
 
     goto :goto_0
 
-    .line 1046
+    .line 1150
     :cond_4
     invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(C)Ljava/lang/StringBuilder;
 
@@ -2099,7 +2130,7 @@
 .method public static estimateCctKelvin(DDD[D)Ljava/lang/Double;
     .locals 11
 
-    .line 378
+    .line 396
     move-object/from16 v0, p6
 
     const-wide/16 v1, 0x0
@@ -2128,7 +2159,7 @@
 
     goto/16 :goto_1
 
-    .line 379
+    .line 397
     :cond_0
     const/4 v3, 0x0
 
@@ -2152,7 +2183,7 @@
 
     add-double/2addr v5, v7
 
-    .line 380
+    .line 398
     const/4 v3, 0x3
 
     aget-wide v7, v0, v3
@@ -2175,7 +2206,7 @@
 
     add-double/2addr v7, v9
 
-    .line 381
+    .line 399
     const/4 v3, 0x6
 
     aget-wide v9, v0, v3
@@ -2198,12 +2229,12 @@
 
     add-double/2addr v9, p0
 
-    .line 382
+    .line 400
     add-double p0, v5, v7
 
     add-double/2addr p0, v9
 
-    .line 383
+    .line 401
     cmpl-double v0, v5, v1
 
     if-lez v0, :cond_4
@@ -2224,13 +2255,13 @@
 
     goto :goto_0
 
-    .line 384
+    .line 402
     :cond_1
     div-double/2addr v5, p0
 
     div-double/2addr v7, p0
 
-    .line 385
+    .line 403
     const-wide p0, 0x3fc7c84b5dcc63f1L    # 0.1858
 
     sub-double v0, v7, p0
@@ -2247,7 +2278,7 @@
 
     return-object v4
 
-    .line 386
+    .line 404
     :cond_2
     const-wide v0, 0x3fd53f7ced916873L    # 0.332
 
@@ -2257,7 +2288,7 @@
 
     div-double/2addr v5, p0
 
-    .line 387
+    .line 405
     const-wide p0, 0x407c100000000000L    # 449.0
 
     mul-double/2addr p0, v5
@@ -2278,7 +2309,7 @@
 
     add-double/2addr p0, v0
 
-    .line 388
+    .line 406
     const-wide v0, 0x40a6440000000000L    # 2850.0
 
     cmpl-double v0, p0, v0
@@ -2298,12 +2329,12 @@
     :cond_3
     return-object v4
 
-    .line 383
+    .line 401
     :cond_4
     :goto_0
     return-object v4
 
-    .line 378
+    .line 396
     :cond_5
     :goto_1
     return-object v4
@@ -2312,7 +2343,7 @@
 .method private static finiteArray([F)[F
     .locals 3
 
-    .line 555
+    .line 643
     array-length v0, p0
 
     const/4 v1, 0x0
@@ -2337,7 +2368,7 @@
 
     goto :goto_0
 
-    .line 556
+    .line 644
     :cond_1
     return-object p0
 .end method
@@ -2345,7 +2376,7 @@
 .method public static gyroExcursionRad([J[[F)Ljava/lang/Double;
     .locals 26
 
-    .line 445
+    .line 533
     move-object/from16 v0, p0
 
     move-object/from16 v1, p1
@@ -2372,7 +2403,7 @@
 
     goto/16 :goto_3
 
-    .line 446
+    .line 534
     :cond_0
     new-instance v6, Lcom/motorola/camera/custom/TelemetryCollector$Integral;
 
@@ -2380,7 +2411,7 @@
 
     invoke-direct {v6, v3}, Lcom/motorola/camera/custom/TelemetryCollector$Integral;-><init>(Z)V
 
-    .line 447
+    .line 535
     const/4 v5, 0x0
 
     move v7, v5
@@ -2390,7 +2421,7 @@
 
     if-ge v7, v8, :cond_5
 
-    .line 448
+    .line 536
     aget-wide v8, v0, v7
 
     const-wide/16 v10, 0x0
@@ -2411,7 +2442,7 @@
 
     goto/16 :goto_2
 
-    .line 449
+    .line 537
     :cond_1
     if-nez v7, :cond_2
 
@@ -2425,7 +2456,7 @@
 
     goto :goto_1
 
-    .line 450
+    .line 538
     :cond_2
     aget-wide v8, v0, v7
 
@@ -2439,13 +2470,13 @@
 
     return-object v2
 
-    .line 451
+    .line 539
     :cond_3
     aget-object v8, v1, v10
 
     aget-object v9, v1, v7
 
-    .line 452
+    .line 540
     aget-wide v11, v0, v7
 
     aget-wide v13, v0, v10
@@ -2508,7 +2539,7 @@
 
     invoke-virtual/range {v6 .. v20}, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->step(DDDDDDD)V
 
-    .line 447
+    .line 535
     :goto_1
     add-int/lit8 v7, v5, 0x1
 
@@ -2526,14 +2557,14 @@
 
     goto :goto_0
 
-    .line 448
+    .line 536
     :cond_4
     move-object/from16 v21, v2
 
     :goto_2
     return-object v21
 
-    .line 454
+    .line 542
     :cond_5
     iget-wide v0, v6, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->excursion:D
 
@@ -2543,7 +2574,7 @@
 
     return-object v0
 
-    .line 445
+    .line 533
     :cond_6
     move-object/from16 v21, v2
 
@@ -2551,10 +2582,456 @@
     return-object v21
 .end method
 
+.method public static interFrameGyroShiftPx(JJF)[F
+    .locals 32
+
+    .line 466
+    move/from16 v0, p4
+
+    sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
+
+    .line 467
+    const/4 v2, 0x0
+
+    if-eqz v1, :cond_c
+
+    const-wide/16 v3, 0x0
+
+    cmp-long v5, p0, v3
+
+    if-lez v5, :cond_c
+
+    cmp-long v5, p2, v3
+
+    if-lez v5, :cond_c
+
+    const/4 v5, 0x0
+
+    cmpl-float v5, v0, v5
+
+    if-gtz v5, :cond_0
+
+    move-object/from16 v19, v2
+
+    goto/16 :goto_4
+
+    .line 468
+    :cond_0
+    sub-long v5, p2, p0
+
+    invoke-static {v5, v6}, Ljava/lang/Math;->abs(J)J
+
+    move-result-wide v5
+
+    .line 469
+    cmp-long v7, v5, v3
+
+    const/4 v8, 0x2
+
+    if-nez v7, :cond_1
+
+    new-array v0, v8, [F
+
+    fill-array-data v0, :array_0
+
+    return-object v0
+
+    .line 470
+    :cond_1
+    const-wide/32 v9, 0x1dcd6500
+
+    cmp-long v7, v5, v9
+
+    if-lez v7, :cond_2
+
+    return-object v2
+
+    .line 471
+    :cond_2
+    invoke-static/range {p0 .. p3}, Ljava/lang/Math;->min(JJ)J
+
+    move-result-wide v9
+
+    .line 472
+    cmp-long v7, p2, p0
+
+    if-ltz v7, :cond_3
+
+    const/high16 v7, 0x3f800000    # 1.0f
+
+    goto :goto_0
+
+    :cond_3
+    const/high16 v7, -0x40800000    # -1.0f
+
+    .line 473
+    :goto_0
+    iget-object v1, v1, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
+
+    sget-object v11, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->GYRO:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
+
+    invoke-virtual {v1, v11}, Ljava/util/EnumMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    check-cast v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;
+
+    .line 474
+    if-nez v1, :cond_4
+
+    return-object v2
+
+    .line 475
+    :cond_4
+    monitor-enter v1
+
+    .line 476
+    :try_start_0
+    invoke-virtual {v1, v9, v10}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->lowerBound(J)I
+
+    move-result v11
+
+    add-long/2addr v5, v9
+
+    invoke-virtual {v1, v5, v6}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->lowerBound(J)I
+
+    move-result v12
+
+    .line 477
+    iget v13, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
+
+    if-eq v11, v13, :cond_b
+
+    iget v13, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
+
+    if-ne v12, v13, :cond_5
+
+    move-object/from16 v19, v2
+
+    goto/16 :goto_3
+
+    .line 478
+    :cond_5
+    iget-object v13, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
+
+    invoke-virtual {v1, v11}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->slot(I)I
+
+    move-result v14
+
+    aget-wide v13, v13, v14
+
+    cmp-long v13, v13, v9
+
+    if-lez v13, :cond_6
+
+    add-int/lit8 v11, v11, -0x1
+
+    .line 479
+    :cond_6
+    if-gez v11, :cond_7
+
+    monitor-exit v1
+
+    return-object v2
+
+    .line 480
+    :cond_7
+    nop
+
+    .line 481
+    nop
+
+    .line 482
+    const-wide/16 v13, 0x0
+
+    move-wide v15, v13
+
+    :goto_1
+    if-ge v11, v12, :cond_a
+
+    .line 483
+    invoke-virtual {v1, v11}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->slot(I)I
+
+    move-result v17
+
+    add-int/lit8 v11, v11, 0x1
+
+    invoke-virtual {v1, v11}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->slot(I)I
+
+    move-result v18
+
+    .line 484
+    move-object/from16 v19, v2
+
+    iget-object v2, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
+
+    move-wide/from16 v20, v3
+
+    aget-wide v3, v2, v17
+
+    iget-object v2, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
+
+    move-wide/from16 v22, v9
+
+    aget-wide v8, v2, v18
+
+    move/from16 p0, v11
+
+    sub-long v10, v8, v3
+
+    .line 485
+    cmp-long v2, v10, v20
+
+    if-lez v2, :cond_9
+
+    const-wide/32 v24, 0x17d7840
+
+    cmp-long v2, v10, v24
+
+    if-lez v2, :cond_8
+
+    goto/16 :goto_2
+
+    .line 486
+    :cond_8
+    move/from16 p1, v12
+
+    move-wide/from16 p2, v13
+
+    move-wide/from16 v12, v22
+
+    invoke-static {v12, v13, v3, v4}, Ljava/lang/Math;->max(JJ)J
+
+    move-result-wide v22
+
+    invoke-static {v5, v6, v8, v9}, Ljava/lang/Math;->min(JJ)J
+
+    move-result-wide v8
+
+    .line 487
+    move-wide/from16 v24, v3
+
+    sub-long v2, v22, v24
+
+    long-to-double v2, v2
+
+    long-to-double v10, v10
+
+    div-double/2addr v2, v10
+
+    move-wide/from16 v26, v2
+
+    sub-long v2, v8, v24
+
+    long-to-double v2, v2
+
+    div-double/2addr v2, v10
+
+    .line 488
+    iget v4, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->width:I
+
+    mul-int v17, v17, v4
+
+    iget v4, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->width:I
+
+    mul-int v18, v18, v4
+
+    .line 489
+    iget-object v4, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
+
+    aget v4, v4, v17
+
+    float-to-double v10, v4
+
+    iget-object v4, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
+
+    add-int/lit8 v17, v17, 0x1
+
+    aget v4, v4, v17
+
+    move-wide/from16 v24, v2
+
+    float-to-double v2, v4
+
+    .line 490
+    iget-object v4, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
+
+    aget v4, v4, v18
+
+    move-wide/from16 v28, v2
+
+    float-to-double v2, v4
+
+    sub-double/2addr v2, v10
+
+    iget-object v4, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
+
+    add-int/lit8 v18, v18, 0x1
+
+    aget v4, v4, v18
+
+    move-wide/from16 v17, v2
+
+    float-to-double v2, v4
+
+    sub-double v2, v2, v28
+
+    .line 491
+    const-wide/high16 v30, 0x3fe0000000000000L    # 0.5
+
+    add-double v24, v26, v24
+
+    mul-double v24, v24, v30
+
+    mul-double v17, v17, v24
+
+    add-double v10, v10, v17
+
+    .line 492
+    mul-double v24, v24, v2
+
+    add-double v2, v28, v24
+
+    .line 493
+    sub-long v8, v8, v22
+
+    long-to-double v8, v8
+
+    const-wide v17, 0x41cdcd6500000000L    # 1.0E9
+
+    div-double v8, v8, v17
+
+    .line 494
+    mul-double/2addr v10, v8
+
+    add-double/2addr v15, v10
+
+    .line 495
+    mul-double/2addr v2, v8
+
+    add-double v2, p2, v2
+
+    .line 482
+    move/from16 v11, p0
+
+    move-wide v9, v12
+
+    const/4 v8, 0x2
+
+    move/from16 v12, p1
+
+    move-wide v13, v2
+
+    move-object/from16 v2, v19
+
+    move-wide/from16 v3, v20
+
+    goto/16 :goto_1
+
+    .line 485
+    :cond_9
+    :goto_2
+    monitor-exit v1
+
+    return-object v19
+
+    .line 498
+    :cond_a
+    move-wide/from16 p2, v13
+
+    float-to-double v2, v7
+
+    mul-double v13, v2, p2
+
+    float-to-double v4, v0
+
+    mul-double/2addr v13, v4
+
+    const-wide/high16 v6, 0x4050000000000000L    # 64.0
+
+    invoke-static {v6, v7, v13, v14}, Ljava/lang/Math;->min(DD)D
+
+    move-result-wide v8
+
+    const-wide/high16 v10, -0x3fb0000000000000L    # -64.0
+
+    invoke-static {v10, v11, v8, v9}, Ljava/lang/Math;->max(DD)D
+
+    move-result-wide v8
+
+    double-to-float v0, v8
+
+    .line 499
+    mul-double/2addr v2, v15
+
+    mul-double/2addr v2, v4
+
+    invoke-static {v6, v7, v2, v3}, Ljava/lang/Math;->min(DD)D
+
+    move-result-wide v2
+
+    invoke-static {v10, v11, v2, v3}, Ljava/lang/Math;->max(DD)D
+
+    move-result-wide v2
+
+    double-to-float v2, v2
+
+    .line 500
+    const/4 v3, 0x2
+
+    new-array v3, v3, [F
+
+    const/4 v4, 0x0
+
+    aput v0, v3, v4
+
+    const/4 v0, 0x1
+
+    aput v2, v3, v0
+
+    monitor-exit v1
+
+    return-object v3
+
+    .line 477
+    :cond_b
+    move-object/from16 v19, v2
+
+    :goto_3
+    monitor-exit v1
+
+    return-object v19
+
+    .line 501
+    :catchall_0
+    move-exception v0
+
+    monitor-exit v1
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    throw v0
+
+    .line 467
+    :cond_c
+    move-object/from16 v19, v2
+
+    :goto_4
+    return-object v19
+
+    nop
+
+    :array_0
+    .array-data 4
+        0x0
+        0x0
+    .end array-data
+.end method
+
 .method private static isSaveLocationAllowed()Z
     .locals 7
 
-    .line 890
+    .line 994
     const/4 v0, 0x1
 
     :try_start_0
@@ -2564,7 +3041,7 @@
 
     move-result-object v1
 
-    .line 891
+    .line 995
     const-string v2, "getPreferences"
 
     const/4 v3, 0x0
@@ -2583,10 +3060,10 @@
 
     move-result-object v1
 
-    .line 892
+    .line 996
     if-eqz v1, :cond_0
 
-    .line 893
+    .line 997
     invoke-virtual {v1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
     move-result-object v2
@@ -2609,7 +3086,7 @@
 
     move-result-object v2
 
-    .line 894
+    .line 998
     const-string v4, "com.motorola.camera.geo_location_state"
 
     sget-object v5, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
@@ -2622,7 +3099,7 @@
 
     move-result-object v1
 
-    .line 895
+    .line 999
     sget-object v2, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
 
     invoke-virtual {v2, v1}, Ljava/lang/Boolean;->equals(Ljava/lang/Object;)Z
@@ -2635,24 +3112,24 @@
 
     return v3
 
-    .line 897
+    .line 1001
     :catchall_0
     move-exception v1
 
     :cond_0
     nop
 
-    .line 898
+    .line 1002
     return v0
 .end method
 
 .method public static latestGyroExcursionRad(JJ)F
     .locals 9
 
-    .line 432
+    .line 450
     sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
 
-    .line 433
+    .line 451
     const/high16 v1, -0x40800000    # -1.0f
 
     if-eqz v0, :cond_2
@@ -2669,7 +3146,7 @@
 
     goto :goto_0
 
-    .line 435
+    .line 453
     :cond_0
     :try_start_0
     iget-object v0, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
@@ -2696,14 +3173,14 @@
 
     move-result-object p0
 
-    .line 436
+    .line 454
     const-string p1, "angularExcursionRad"
 
     invoke-interface {p0, p1}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
 
     move-result-object p0
 
-    .line 437
+    .line 455
     instance-of p1, p0, Ljava/lang/Number;
 
     if-eqz p1, :cond_1
@@ -2719,23 +3196,266 @@
     :cond_1
     return v1
 
-    .line 438
+    .line 456
     :catchall_0
     move-exception v0
 
-    .line 439
+    .line 457
     return v1
 
-    .line 433
+    .line 451
     :cond_2
     :goto_0
+    return v1
+.end method
+
+.method public static latestRearAmbientCctK()F
+    .locals 10
+
+    .line 509
+    sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
+
+    .line 510
+    const/high16 v1, 0x7fc00000    # Float.NaN
+
+    if-eqz v0, :cond_7
+
+    iget-boolean v2, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->front:Z
+
+    if-nez v2, :cond_7
+
+    iget-object v2, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    if-eqz v2, :cond_7
+
+    iget-object v2, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    invoke-static {v2}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverCctChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+
+    move-result v2
+
+    if-gez v2, :cond_0
+
+    goto/16 :goto_2
+
+    .line 511
+    :cond_0
+    iget-object v2, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
+
+    sget-object v3, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->RGB:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
+
+    invoke-virtual {v2, v3}, Ljava/util/EnumMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object v2
+
+    check-cast v2, Lcom/motorola/camera/custom/TelemetryCollector$Series;
+
+    .line 512
+    if-nez v2, :cond_1
+
+    return v1
+
+    .line 513
+    :cond_1
+    monitor-enter v2
+
+    .line 514
+    :try_start_0
+    iget v3, v2, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
+
+    if-nez v3, :cond_2
+
+    monitor-exit v2
+
+    return v1
+
+    .line 515
+    :cond_2
+    iget v3, v2, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
+
+    add-int/lit8 v3, v3, -0x1
+
+    invoke-virtual {v2, v3}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->slot(I)I
+
+    move-result v3
+
+    .line 516
+    iget-object v4, v2, Lcom/motorola/camera/custom/TelemetryCollector$Series;->sizes:[I
+
+    aget v4, v4, v3
+
+    .line 517
+    const/4 v5, 0x6
+
+    if-ge v4, v5, :cond_3
+
+    monitor-exit v2
+
+    return v1
+
+    .line 518
+    :cond_3
+    iget v5, v2, Lcom/motorola/camera/custom/TelemetryCollector$Series;->width:I
+
+    mul-int/2addr v3, v5
+
+    .line 519
+    iget-object v5, v2, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
+
+    iget-object v6, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    invoke-static {v6}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverCctChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+
+    move-result v6
+
+    add-int/2addr v6, v3
+
+    aget v5, v5, v6
+
+    .line 520
+    iget-object v6, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    invoke-static {v6}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverLuxChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+
+    move-result v6
+
+    const/4 v7, 0x0
+
+    if-ltz v6, :cond_4
+
+    iget-object v6, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    invoke-static {v6}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverLuxChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+
+    move-result v6
+
+    if-ge v6, v4, :cond_4
+
+    .line 521
+    iget-object v6, v2, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
+
+    iget-object v8, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    invoke-static {v8}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverLuxChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+
+    move-result v8
+
+    add-int/2addr v8, v3
+
+    aget v6, v6, v8
+
+    goto :goto_0
+
+    :cond_4
+    move v6, v7
+
+    .line 522
+    :goto_0
+    iget-object v8, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    invoke-static {v8}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetchannels(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[I
+
+    move-result-object v8
+
+    const/4 v9, 0x3
+
+    aget v8, v8, v9
+
+    if-ltz v8, :cond_5
+
+    iget-object v8, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    invoke-static {v8}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetchannels(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[I
+
+    move-result-object v8
+
+    aget v8, v8, v9
+
+    if-ge v8, v4, :cond_5
+
+    .line 523
+    iget-object v4, v2, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
+
+    iget-object v0, v0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->layout:Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;
+
+    invoke-static {v0}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetchannels(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[I
+
+    move-result-object v0
+
+    aget v0, v0, v9
+
+    add-int/2addr v3, v0
+
+    aget v7, v4, v3
+
+    goto :goto_1
+
+    :cond_5
+    nop
+
+    .line 524
+    :goto_1
+    invoke-static {v5}, Ljava/lang/Float;->isFinite(F)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_6
+
+    const/high16 v0, 0x44e10000    # 1800.0f
+
+    cmpl-float v0, v5, v0
+
+    if-ltz v0, :cond_6
+
+    const v0, 0x463b8000    # 12000.0f
+
+    cmpg-float v0, v5, v0
+
+    if-gtz v0, :cond_6
+
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    cmpl-float v0, v6, v0
+
+    if-ltz v0, :cond_6
+
+    const/high16 v0, 0x42c80000    # 100.0f
+
+    cmpl-float v0, v7, v0
+
+    if-ltz v0, :cond_6
+
+    .line 525
+    monitor-exit v2
+
+    return v5
+
+    .line 527
+    :cond_6
+    monitor-exit v2
+
+    return v1
+
+    .line 528
+    :catchall_0
+    move-exception v0
+
+    monitor-exit v2
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    throw v0
+
+    .line 510
+    :cond_7
+    :goto_2
     return v1
 .end method
 
 .method private static method(Ljava/lang/String;)Ljava/lang/String;
     .locals 1
 
-    .line 560
+    .line 648
     const-string v0, "vendor"
 
     invoke-virtual {v0, p0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
@@ -2762,7 +3482,7 @@
 
     goto :goto_0
 
-    .line 561
+    .line 649
     :cond_0
     new-instance p0, Ljava/lang/IllegalArgumentException;
 
@@ -2772,7 +3492,7 @@
 
     throw p0
 
-    .line 560
+    .line 648
     :cond_1
     :goto_0
     return-object p0
@@ -2794,7 +3514,7 @@
         }
     .end annotation
 
-    .line 458
+    .line 546
     move-object/from16 v1, p0
 
     move-wide/from16 v2, p1
@@ -2805,19 +3525,19 @@
 
     invoke-direct {v6}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 459
+    .line 547
     const-string v7, "sampleCount"
 
     const/4 v8, 0x0
 
     invoke-interface {v6, v7, v8}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 460
+    .line 548
     const-string v7, "achievedHz"
 
     invoke-interface {v6, v7, v8}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 461
+    .line 549
     if-eqz v0, :cond_0
 
     const-string v7, "rmsRadPerSec"
@@ -2827,7 +3547,7 @@
     :cond_0
     const-string v7, "rmsMps2"
 
-    .line 462
+    .line 550
     :goto_0
     if-eqz v0, :cond_1
 
@@ -2838,21 +3558,21 @@
     :cond_1
     const-string v9, "peakMps2"
 
-    .line 463
+    .line 551
     :goto_1
     invoke-interface {v6, v7, v8}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 464
+    .line 552
     invoke-interface {v6, v9, v8}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 465
+    .line 553
     if-eqz v0, :cond_2
 
     const-string v10, "angularExcursionRad"
 
     invoke-interface {v6, v10, v8}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 466
+    .line 554
     :cond_2
     const-string v10, "reason"
 
@@ -2860,7 +3580,7 @@
 
     invoke-interface {v6, v10, v11}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 467
+    .line 555
     if-eqz v1, :cond_d
 
     const-wide/16 v10, 0x0
@@ -2883,14 +3603,14 @@
 
     goto/16 :goto_5
 
-    .line 468
+    .line 556
     :cond_3
     add-long v10, v2, p3
 
-    .line 469
+    .line 557
     monitor-enter p0
 
-    .line 470
+    .line 558
     :try_start_0
     invoke-virtual/range {p0 .. p2}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->lowerBound(J)I
 
@@ -2900,10 +3620,10 @@
 
     move-result v13
 
-    .line 471
+    .line 559
     sub-int v14, v13, v12
 
-    .line 472
+    .line 560
     iget v15, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
 
     if-ge v13, v15, :cond_4
@@ -2922,7 +3642,7 @@
 
     add-int/lit8 v14, v14, 0x1
 
-    .line 473
+    .line 561
     :cond_4
     const-string v15, "sampleCount"
 
@@ -2932,14 +3652,14 @@
 
     invoke-interface {v6, v15, v8}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 474
+    .line 562
     const-wide v17, 0x41cdcd6500000000L    # 1.0E9
 
     const/4 v8, 0x2
 
     if-lt v14, v8, :cond_5
 
-    .line 475
+    .line 563
     iget-object v8, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
 
     add-int v15, v12, v14
@@ -2964,7 +3684,7 @@
 
     sub-long v14, v19, v21
 
-    .line 476
+    .line 564
     const-string v8, "achievedHz"
 
     move-object/from16 v19, v9
@@ -2987,11 +3707,11 @@
 
     goto :goto_2
 
-    .line 474
+    .line 562
     :cond_5
     move-object/from16 v19, v9
 
-    .line 478
+    .line 566
     :goto_2
     iget v4, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
 
@@ -3003,7 +3723,7 @@
 
     goto/16 :goto_4
 
-    .line 479
+    .line 567
     :cond_6
     iget-object v4, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
 
@@ -3019,7 +3739,7 @@
 
     add-int/lit8 v12, v12, -0x1
 
-    .line 480
+    .line 568
     :cond_7
     if-gez v12, :cond_8
 
@@ -3027,19 +3747,19 @@
 
     return-object v6
 
-    .line 481
+    .line 569
     :cond_8
     new-instance v4, Lcom/motorola/camera/custom/TelemetryCollector$Integral;
 
     invoke-direct {v4, v0}, Lcom/motorola/camera/custom/TelemetryCollector$Integral;-><init>(Z)V
 
-    .line 482
+    .line 570
     nop
 
     :goto_3
     if-ge v12, v13, :cond_a
 
-    .line 483
+    .line 571
     invoke-virtual {v1, v12}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->slot(I)I
 
     move-result v5
@@ -3050,7 +3770,7 @@
 
     move-result v8
 
-    .line 484
+    .line 572
     iget-object v9, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
 
     aget-wide v14, v9, v5
@@ -3067,26 +3787,26 @@
 
     sub-long v8, v4, v14
 
-    .line 485
+    .line 573
     const-wide/32 v22, 0x17d7840
 
     cmp-long v22, v8, v22
 
     if-lez v22, :cond_9
 
-    .line 486
+    .line 574
     const-string v0, "reason"
 
     const-string v2, "sampleGap"
 
     invoke-interface {v6, v0, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 487
+    .line 575
     monitor-exit p0
 
     return-object v6
 
-    .line 489
+    .line 577
     :cond_9
     invoke-static {v2, v3, v14, v15}, Ljava/lang/Math;->max(JJ)J
 
@@ -3096,7 +3816,7 @@
 
     move-result-wide v4
 
-    .line 490
+    .line 578
     sub-long v2, v22, v14
 
     long-to-double v2, v2
@@ -3111,7 +3831,7 @@
 
     div-double/2addr v14, v8
 
-    .line 491
+    .line 579
     iget v8, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->width:I
 
     mul-int v8, v8, p6
@@ -3120,7 +3840,7 @@
 
     mul-int v9, v9, v21
 
-    .line 492
+    .line 580
     iget-object v0, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
 
     aget v0, v0, v8
@@ -3149,7 +3869,7 @@
 
     float-to-double v2, v0
 
-    .line 493
+    .line 581
     iget-object v0, v1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
 
     aget v0, v0, v9
@@ -3182,7 +3902,7 @@
 
     sub-double v8, v8, v30
 
-    .line 494
+    .line 582
     sub-long v4, v4, v22
 
     long-to-double v4, v4
@@ -3229,7 +3949,7 @@
 
     move-object/from16 v0, v20
 
-    .line 482
+    .line 570
     move-wide/from16 v2, p1
 
     move-object v4, v0
@@ -3238,7 +3958,7 @@
 
     goto/16 :goto_3
 
-    .line 496
+    .line 584
     :cond_a
     move-object v0, v4
 
@@ -3262,7 +3982,7 @@
 
     invoke-interface {v6, v7, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 497
+    .line 585
     iget-wide v2, v0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->peak:D
 
     invoke-static {v2, v3}, Ljava/lang/Double;->valueOf(D)Ljava/lang/Double;
@@ -3273,7 +3993,7 @@
 
     invoke-interface {v6, v9, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 498
+    .line 586
     if-eqz p5, :cond_b
 
     const-string v2, "angularExcursionRad"
@@ -3286,7 +4006,7 @@
 
     invoke-interface {v6, v2, v0}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 499
+    .line 587
     :cond_b
     const-string v0, "reason"
 
@@ -3294,20 +4014,20 @@
 
     invoke-interface {v6, v0, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 500
+    .line 588
     monitor-exit p0
 
-    .line 501
+    .line 589
     return-object v6
 
-    .line 478
+    .line 566
     :cond_c
     :goto_4
     monitor-exit p0
 
     return-object v6
 
-    .line 500
+    .line 588
     :catchall_0
     move-exception v0
 
@@ -3317,7 +4037,7 @@
 
     throw v0
 
-    .line 467
+    .line 555
     :cond_d
     :goto_5
     return-object v6
@@ -3326,7 +4046,7 @@
 .method private static nanos(Ljava/lang/Object;)J
     .locals 2
 
-    .line 962
+    .line 1066
     instance-of v0, p0, Ljava/lang/String;
 
     if-eqz v0, :cond_0
@@ -3349,14 +4069,14 @@
 .method public static normalizeThermalCelsius(DZ)Ljava/lang/Double;
     .locals 2
 
-    .line 349
+    .line 367
     if-eqz p2, :cond_0
 
     const-wide v0, 0x408f400000000000L    # 1000.0
 
     div-double/2addr p0, v0
 
-    .line 350
+    .line 368
     :cond_0
     invoke-static {p0, p1}, Ljava/lang/Double;->isFinite(D)Z
 
@@ -3392,7 +4112,7 @@
 .method private static observe(Lcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector$Stream;JLjava/lang/String;)Lcom/motorola/camera/custom/TelemetryCollector$Observation;
     .locals 7
 
-    .line 612
+    .line 700
     new-instance v0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;
 
     if-nez p4, :cond_0
@@ -3427,12 +4147,12 @@
 .method public static onCameraActive(Landroid/content/Context;Ljava/lang/String;Z)V
     .locals 1
 
-    .line 126
+    .line 144
     const/4 v0, 0x0
 
     invoke-static {p0, p1, p2, v0}, Lcom/motorola/camera/custom/TelemetryCollector;->onCameraActive(Landroid/content/Context;Ljava/lang/String;ZLcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)V
 
-    .line 127
+    .line 145
     return-void
 .end method
 
@@ -3443,24 +4163,24 @@
 
     monitor-enter v1
 
-    .line 130
+    .line 148
     :try_start_0
     invoke-static {}, Lcom/motorola/camera/custom/TelemetryCollector;->onCameraPaused()V
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 131
+    .line 149
     if-nez p0, :cond_0
 
     monitor-exit v1
 
     return-void
 
-    .line 132
+    .line 150
     :cond_0
     nop
 
-    .line 135
+    .line 153
     :try_start_1
     const-class v0, Landroid/content/Context;
 
@@ -3480,7 +4200,7 @@
 
     move-result-object v0
 
-    .line 136
+    .line 154
     const-string v2, "sensor"
 
     filled-new-array {v2}, [Ljava/lang/Object;
@@ -3497,7 +4217,7 @@
     .catch Ljava/lang/RuntimeException; {:try_start_1 .. :try_end_1} :catch_0
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 137
+    .line 155
     goto :goto_0
 
     :catch_0
@@ -3508,7 +4228,7 @@
     :goto_0
     move-object v8, v0
 
-    .line 138
+    .line 156
     :try_start_2
     new-instance v2, Lcom/motorola/camera/custom/TelemetryCollector$Session;
 
@@ -3532,36 +4252,36 @@
     :try_end_2
     .catchall {:try_start_2 .. :try_end_2} :catchall_0
 
-    .line 140
+    .line 158
     :try_start_3
     invoke-virtual {v2}, Lcom/motorola/camera/custom/TelemetryCollector$Session;->start()V
 
-    .line 141
+    .line 159
     sput-object v2, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
     :try_end_3
     .catch Ljava/lang/RuntimeException; {:try_start_3 .. :try_end_3} :catch_1
     .catchall {:try_start_3 .. :try_end_3} :catchall_0
 
-    .line 144
+    .line 162
     goto :goto_1
 
-    .line 142
+    .line 160
     :catch_1
     move-exception v0
 
-    .line 143
+    .line 161
     :try_start_4
     invoke-virtual {v2}, Lcom/motorola/camera/custom/TelemetryCollector$Session;->close()V
     :try_end_4
     .catchall {:try_start_4 .. :try_end_4} :catchall_0
 
-    .line 145
+    .line 163
     :goto_1
     monitor-exit v1
 
     return-void
 
-    .line 129
+    .line 147
     :catchall_0
     move-exception v0
 
@@ -3582,29 +4302,29 @@
 
     monitor-enter v0
 
-    .line 148
+    .line 166
     :try_start_0
     sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
 
-    .line 149
+    .line 167
     const/4 v2, 0x0
 
     sput-object v2, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
 
-    .line 150
+    .line 168
     if-eqz v1, :cond_0
 
     invoke-virtual {v1}, Lcom/motorola/camera/custom/TelemetryCollector$Session;->close()V
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 151
+    .line 169
     :cond_0
     monitor-exit v0
 
     return-void
 
-    .line 147
+    .line 165
     :catchall_0
     move-exception v1
 
@@ -3619,7 +4339,7 @@
 .method private static readDeclinationReflect(FFFJ)Ljava/lang/Double;
     .locals 5
 
-    .line 952
+    .line 1056
     :try_start_0
     const-string v0, "android.hardware.GeomagneticField"
 
@@ -3627,7 +4347,7 @@
 
     move-result-object v0
 
-    .line 953
+    .line 1057
     const/4 v1, 0x4
 
     new-array v1, v1, [Ljava/lang/Class;
@@ -3660,7 +4380,7 @@
 
     move-result-object v1
 
-    .line 954
+    .line 1058
     invoke-static {p0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
 
     move-result-object p0
@@ -3685,7 +4405,7 @@
 
     move-result-object p0
 
-    .line 955
+    .line 1059
     const-string p1, "getDeclination"
 
     new-array p2, v3, [Ljava/lang/Class;
@@ -3714,11 +4434,11 @@
 
     return-object p0
 
-    .line 956
+    .line 1060
     :catchall_0
     move-exception p0
 
-    .line 957
+    .line 1061
     const/4 p0, 0x0
 
     return-object p0
@@ -3732,20 +4452,20 @@
         }
     .end annotation
 
-    .line 370
+    .line 388
     sget-object v0, Ljava/nio/charset/StandardCharsets;->US_ASCII:Ljava/nio/charset/Charset;
 
     invoke-static {p0, v0}, Ljava/nio/file/Files;->newBufferedReader(Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/io/BufferedReader;
 
     move-result-object p0
 
-    .line 371
+    .line 389
     :try_start_0
     invoke-virtual {p0}, Ljava/io/BufferedReader;->readLine()Ljava/lang/String;
 
     move-result-object v0
 
-    .line 372
+    .line 390
     if-nez v0, :cond_0
 
     const-string v0, ""
@@ -3759,17 +4479,17 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 373
+    .line 391
     :goto_0
     if-eqz p0, :cond_1
 
     invoke-virtual {p0}, Ljava/io/BufferedReader;->close()V
 
-    .line 372
+    .line 390
     :cond_1
     return-object v0
 
-    .line 370
+    .line 388
     :catchall_0
     move-exception v0
 
@@ -3795,7 +4515,7 @@
 .method private static readLocationFixReflect(Landroid/content/Context;J)[D
     .locals 24
 
-    .line 902
+    .line 1006
     move-object/from16 v0, p0
 
     const/4 v1, 0x0
@@ -3804,7 +4524,7 @@
 
     return-object v1
 
-    .line 904
+    .line 1008
     :cond_0
     :try_start_0
     invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
@@ -3827,7 +4547,7 @@
 
     move-result-object v2
 
-    .line 905
+    .line 1009
     const-string v3, "android.permission.ACCESS_COARSE_LOCATION"
 
     filled-new-array {v3}, [Ljava/lang/Object;
@@ -3838,7 +4558,7 @@
 
     move-result-object v3
 
-    .line 906
+    .line 1010
     const-string v5, "android.permission.ACCESS_FINE_LOCATION"
 
     filled-new-array {v5}, [Ljava/lang/Object;
@@ -3849,7 +4569,7 @@
 
     move-result-object v2
 
-    .line 907
+    .line 1011
     instance-of v5, v3, Ljava/lang/Integer;
 
     if-eqz v5, :cond_1
@@ -3869,7 +4589,7 @@
     :cond_1
     move v3, v7
 
-    .line 908
+    .line 1012
     :goto_0
     instance-of v5, v2, Ljava/lang/Integer;
 
@@ -3890,7 +4610,7 @@
     :cond_2
     move v2, v7
 
-    .line 909
+    .line 1013
     :goto_1
     if-nez v3, :cond_3
 
@@ -3898,7 +4618,7 @@
 
     return-object v1
 
-    .line 910
+    .line 1014
     :cond_3
     invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
@@ -3916,7 +4636,7 @@
 
     move-result-object v2
 
-    .line 911
+    .line 1015
     const-string v3, "location"
 
     filled-new-array {v3}, [Ljava/lang/Object;
@@ -3927,18 +4647,18 @@
 
     move-result-object v2
 
-    .line 912
+    .line 1016
     if-nez v2, :cond_4
 
     return-object v1
 
-    .line 913
+    .line 1017
     :cond_4
     invoke-virtual {v2}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
     move-result-object v0
 
-    .line 914
+    .line 1018
     const-string v3, "getLastKnownLocation"
 
     new-array v5, v4, [Ljava/lang/Class;
@@ -3951,13 +4671,13 @@
 
     move-result-object v3
 
-    .line 915
+    .line 1019
     nop
 
-    .line 916
+    .line 1020
     nop
 
-    .line 917
+    .line 1021
     const/4 v5, 0x3
 
     new-array v6, v5, [Ljava/lang/String;
@@ -3996,7 +4716,7 @@
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_5
 
-    .line 919
+    .line 1023
     :try_start_2
     filled-new-array {v14}, [Ljava/lang/Object;
 
@@ -4006,7 +4726,7 @@
 
     move-result-object v14
 
-    .line 920
+    .line 1024
     if-nez v14, :cond_5
 
     move-object/from16 v16, v1
@@ -4015,7 +4735,7 @@
 
     goto/16 :goto_6
 
-    .line 921
+    .line 1025
     :cond_5
     invoke-virtual {v14}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
@@ -4051,7 +4771,7 @@
 
     move-result-wide v18
 
-    .line 922
+    .line 1026
     invoke-virtual {v14}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
     move-result-object v1
@@ -4074,7 +4794,7 @@
 
     move-result-wide v20
 
-    .line 923
+    .line 1027
     invoke-virtual {v14}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
     move-result-object v1
@@ -4097,7 +4817,7 @@
 
     move-result-wide v0
 
-    .line 924
+    .line 1028
     invoke-static/range {v20 .. v21}, Ljava/lang/Math;->abs(D)D
 
     move-result-wide v20
@@ -4140,7 +4860,7 @@
 
     goto :goto_4
 
-    .line 927
+    .line 1031
     :cond_6
     if-eqz v12, :cond_7
 
@@ -4148,26 +4868,26 @@
 
     if-lez v0, :cond_8
 
-    .line 928
+    .line 1032
     :cond_7
     nop
 
-    .line 929
+    .line 1033
     move-object v12, v14
 
     move-wide/from16 v9, v18
 
-    .line 931
+    .line 1035
     :cond_8
     :goto_3
     goto :goto_6
 
-    .line 925
+    .line 1029
     :cond_9
     :goto_4
     goto :goto_6
 
-    .line 931
+    .line 1035
     :catchall_0
     move-exception v0
 
@@ -4188,7 +4908,7 @@
 
     goto :goto_3
 
-    .line 917
+    .line 1021
     :goto_6
     add-int/lit8 v11, v11, 0x1
 
@@ -4198,7 +4918,7 @@
 
     goto/16 :goto_2
 
-    .line 933
+    .line 1037
     :cond_a
     move-object/from16 v16, v1
 
@@ -4208,7 +4928,7 @@
 
     return-object v16
 
-    .line 934
+    .line 1038
     :cond_b
     :try_start_5
     invoke-virtual {v12}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
@@ -4233,7 +4953,7 @@
 
     move-result-wide v1
 
-    .line 935
+    .line 1039
     invoke-virtual {v12}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
     move-result-object v3
@@ -4258,10 +4978,10 @@
     :try_end_5
     .catchall {:try_start_5 .. :try_end_5} :catchall_4
 
-    .line 936
+    .line 1040
     nop
 
-    .line 938
+    .line 1042
     const-wide/16 v9, 0x0
 
     :try_start_6
@@ -4289,10 +5009,10 @@
 
     move-result v0
 
-    .line 939
+    .line 1043
     if-eqz v0, :cond_c
 
-    .line 940
+    .line 1044
     invoke-virtual {v12}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
     move-result-object v0
@@ -4317,7 +5037,7 @@
 
     move-result-wide v11
 
-    .line 941
+    .line 1045
     invoke-static {v11, v12}, Ljava/lang/Double;->isFinite(D)Z
 
     move-result v0
@@ -4330,7 +5050,7 @@
 
     goto :goto_7
 
-    .line 943
+    .line 1047
     :catchall_3
     move-exception v0
 
@@ -4338,7 +5058,7 @@
     :goto_7
     nop
 
-    .line 944
+    .line 1048
     :try_start_7
     new-array v0, v5, [D
 
@@ -4352,7 +5072,7 @@
 
     return-object v0
 
-    .line 945
+    .line 1049
     :catchall_4
     move-exception v0
 
@@ -4363,7 +5083,7 @@
 
     move-object/from16 v16, v1
 
-    .line 946
+    .line 1050
     :goto_8
     return-object v16
 .end method
@@ -4371,7 +5091,7 @@
 .method private static readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
     .locals 11
 
-    .line 520
+    .line 608
     sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector;->RESULT_KEYS:Ljava/util/Map;
 
     invoke-interface {v0, p1}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
@@ -4380,7 +5100,7 @@
 
     check-cast v0, Landroid/hardware/camera2/CaptureResult$Key;
 
-    .line 521
+    .line 609
     const/4 v1, 0x0
 
     if-eqz p0, :cond_a
@@ -4389,14 +5109,14 @@
 
     goto/16 :goto_4
 
-    .line 523
+    .line 611
     :cond_0
     :try_start_0
     invoke-virtual {p0, v0}, Landroid/hardware/camera2/TotalCaptureResult;->get(Landroid/hardware/camera2/CaptureResult$Key;)Ljava/lang/Object;
 
     move-result-object p0
 
-    .line 524
+    .line 612
     instance-of v0, p0, Landroid/hardware/camera2/params/RggbChannelVector;
 
     const/4 v2, 0x3
@@ -4411,10 +5131,10 @@
 
     if-eqz v0, :cond_1
 
-    .line 525
+    .line 613
     check-cast p0, Landroid/hardware/camera2/params/RggbChannelVector;
 
-    .line 526
+    .line 614
     invoke-virtual {p0}, Landroid/hardware/camera2/params/RggbChannelVector;->getRed()F
 
     move-result p1
@@ -4447,39 +5167,39 @@
 
     return-object p0
 
-    .line 528
+    .line 616
     :cond_1
     instance-of v0, p0, Landroid/hardware/camera2/params/ColorSpaceTransform;
 
     if-eqz v0, :cond_4
 
-    .line 529
+    .line 617
     const/16 p1, 0x9
 
     new-array v0, p1, [Landroid/util/Rational;
 
-    .line 530
+    .line 618
     check-cast p0, Landroid/hardware/camera2/params/ColorSpaceTransform;
 
     invoke-virtual {p0, v0, v6}, Landroid/hardware/camera2/params/ColorSpaceTransform;->copyElements([Landroid/util/Rational;I)V
 
-    .line 531
+    .line 619
     new-array p0, p1, [F
 
-    .line 532
+    .line 620
     nop
 
     :goto_0
     if-ge v6, p1, :cond_3
 
-    .line 533
+    .line 621
     aget-object v2, v0, v6
 
     if-nez v2, :cond_2
 
     return-object v1
 
-    .line 534
+    .line 622
     :cond_2
     aget-object v2, v0, v6
 
@@ -4489,12 +5209,12 @@
 
     aput v2, p0, v6
 
-    .line 532
+    .line 620
     add-int/lit8 v6, v6, 0x1
 
     goto :goto_0
 
-    .line 536
+    .line 624
     :cond_3
     invoke-static {p0}, Lcom/motorola/camera/custom/TelemetryCollector;->finiteArray([F)[F
 
@@ -4502,7 +5222,7 @@
 
     return-object p0
 
-    .line 538
+    .line 626
     :cond_4
     instance-of v0, p0, Ljava/lang/Number;
 
@@ -4510,7 +5230,7 @@
 
     return-object v1
 
-    .line 539
+    .line 627
     :cond_5
     move-object v0, p0
 
@@ -4520,7 +5240,7 @@
 
     move-result-wide v7
 
-    .line 540
+    .line 628
     invoke-static {v7, v8}, Ljava/lang/Double;->isFinite(D)Z
 
     move-result v0
@@ -4535,7 +5255,7 @@
 
     goto :goto_3
 
-    .line 541
+    .line 629
     :cond_6
     invoke-virtual {p1}, Ljava/lang/String;->hashCode()I
 
@@ -4617,10 +5337,10 @@
     :goto_2
     packed-switch v2, :pswitch_data_0
 
-    .line 549
+    .line 637
     return-object p0
 
-    .line 547
+    .line 635
     :pswitch_0
     cmpl-double p1, v7, v9
 
@@ -4631,18 +5351,18 @@
     :cond_8
     return-object v1
 
-    .line 540
+    .line 628
     :cond_9
     :goto_3
     return-object v1
 
-    .line 551
+    .line 639
     :catch_0
     move-exception p0
 
     return-object v1
 
-    .line 521
+    .line 609
     :cond_a
     :goto_4
     return-object v1
@@ -4671,19 +5391,19 @@
 .method static readThermalZones(Ljava/nio/file/Path;)[F
     .locals 6
 
-    .line 354
+    .line 372
     sget-object v0, Lcom/motorola/camera/custom/TelemetryCollector;->ZONES:[Ljava/lang/String;
 
     array-length v0, v0
 
     new-array v0, v0, [F
 
-    .line 355
+    .line 373
     const/high16 v1, 0x7fc00000    # Float.NaN
 
     invoke-static {v0, v1}, Ljava/util/Arrays;->fill([FF)V
 
-    .line 356
+    .line 374
     :try_start_0
     const-string v1, "thermal_zone*"
 
@@ -4694,7 +5414,7 @@
     .catch Ljava/io/IOException; {:try_start_0 .. :try_end_0} :catch_1
     .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_1
 
-    .line 357
+    .line 375
     :try_start_1
     invoke-interface {p0}, Ljava/nio/file/DirectoryStream;->iterator()Ljava/util/Iterator;
 
@@ -4715,7 +5435,7 @@
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 359
+    .line 377
     :try_start_2
     sget-object v3, Lcom/motorola/camera/custom/TelemetryCollector;->ZONES:[Ljava/lang/String;
 
@@ -4737,12 +5457,12 @@
 
     move-result v3
 
-    .line 360
+    .line 378
     if-gez v3, :cond_0
 
     goto :goto_0
 
-    .line 361
+    .line 379
     :cond_0
     const-string v4, "temp"
 
@@ -4764,7 +5484,7 @@
 
     move-result-object v2
 
-    .line 362
+    .line 380
     if-eqz v2, :cond_1
 
     invoke-virtual {v2}, Ljava/lang/Double;->floatValue()F
@@ -4779,7 +5499,7 @@
 
     goto :goto_1
 
-    .line 363
+    .line 381
     :catch_0
     move-exception v2
 
@@ -4787,10 +5507,10 @@
     :goto_1
     nop
 
-    .line 364
+    .line 382
     goto :goto_0
 
-    .line 365
+    .line 383
     :cond_2
     if-eqz p0, :cond_4
 
@@ -4802,7 +5522,7 @@
 
     goto :goto_3
 
-    .line 356
+    .line 374
     :catchall_0
     move-exception v1
 
@@ -4828,11 +5548,11 @@
     .catch Ljava/io/IOException; {:try_start_5 .. :try_end_5} :catch_1
     .catch Ljava/lang/RuntimeException; {:try_start_5 .. :try_end_5} :catch_1
 
-    .line 365
+    .line 383
     :catch_1
     move-exception p0
 
-    .line 366
+    .line 384
     :cond_4
     :goto_3
     return-object v0
@@ -4841,7 +5561,7 @@
 .method private static reason(Lcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;J)Ljava/lang/String;
     .locals 4
 
-    .line 565
+    .line 653
     if-eqz p0, :cond_3
 
     if-eqz p1, :cond_3
@@ -4858,7 +5578,7 @@
 
     goto :goto_1
 
-    .line 566
+    .line 654
     :cond_0
     iget-boolean p0, p1, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->realtimeClock:Z
 
@@ -4868,7 +5588,7 @@
 
     return-object p0
 
-    .line 567
+    .line 655
     :cond_1
     const-wide/16 p0, 0x0
 
@@ -4886,7 +5606,7 @@
     :goto_0
     return-object p0
 
-    .line 565
+    .line 653
     :cond_3
     :goto_1
     const-string p0, "sessionUnavailable"
@@ -4906,12 +5626,12 @@
         }
     .end annotation
 
-    .line 505
+    .line 593
     new-instance v0, Ljava/util/LinkedHashMap;
 
     invoke-direct {v0}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 506
+    .line 594
     sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector;->KEYS:[Ljava/lang/String;
 
     array-length v2, v1
@@ -4927,7 +5647,7 @@
 
     aget-object v6, v1, v4
 
-    .line 508
+    .line 596
     :try_start_0
     const-class v7, Landroid/hardware/camera2/CaptureResult;
 
@@ -4948,19 +5668,19 @@
 
     goto :goto_1
 
-    .line 509
+    .line 597
     :catch_0
     move-exception v5
 
     :goto_1
     nop
 
-    .line 506
+    .line 594
     add-int/lit8 v4, v4, 0x1
 
     goto :goto_0
 
-    .line 511
+    .line 599
     :cond_0
     sget-object v1, Lcom/motorola/camera/custom/TelemetryCollector;->EXTRA_DIAG_KEYS:[Ljava/lang/String;
 
@@ -4971,7 +5691,7 @@
 
     aget-object v4, v1, v3
 
-    .line 513
+    .line 601
     :try_start_1
     const-class v6, Landroid/hardware/camera2/CaptureResult;
 
@@ -4992,19 +5712,19 @@
 
     goto :goto_3
 
-    .line 514
+    .line 602
     :catch_1
     move-exception v4
 
     :goto_3
     nop
 
-    .line 511
+    .line 599
     add-int/lit8 v3, v3, 0x1
 
     goto :goto_2
 
-    .line 516
+    .line 604
     :cond_1
     return-object v0
 .end method
@@ -5012,7 +5732,7 @@
 .method public static sampleCompass(Landroid/hardware/camera2/TotalCaptureResult;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;)Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;
     .locals 2
 
-    .line 784
+    .line 888
     invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
 
     move-result-wide v0
@@ -5027,35 +5747,35 @@
 .method static sampleCompassAt(Landroid/hardware/camera2/TotalCaptureResult;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;J)Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;
     .locals 31
 
-    .line 788
+    .line 892
     move-object/from16 v0, p0
 
     move-object/from16 v1, p1
 
     move-wide/from16 v4, p2
 
-    .line 789
+    .line 893
     const-string v2, "SENSOR_EXPOSURE_TIME"
 
     invoke-static {v0, v2}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v2
 
-    .line 790
+    .line 894
     const-string v3, "SENSOR_SENSITIVITY"
 
     invoke-static {v0, v3}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v3
 
-    .line 791
+    .line 895
     const-string v6, "LENS_APERTURE"
 
     invoke-static {v0, v6}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v6
 
-    .line 792
+    .line 896
     instance-of v7, v2, Ljava/lang/Long;
 
     const/4 v8, 0x0
@@ -5070,10 +5790,10 @@
 
     if-eqz v7, :cond_0
 
-    .line 793
+    .line 897
     check-cast v2, Ljava/lang/Long;
 
-    .line 794
+    .line 898
     invoke-virtual {v2}, Ljava/lang/Long;->longValue()J
 
     move-result-wide v9
@@ -5090,12 +5810,12 @@
 
     move-result v3
 
-    .line 793
+    .line 897
     invoke-static {v9, v10, v2, v3}, Lcom/motorola/camera/custom/CompassSolarHelper;->computeEv100(JIF)D
 
     move-result-wide v2
 
-    .line 795
+    .line 899
     invoke-static {v2, v3}, Ljava/lang/Double;->isFinite(D)Z
 
     move-result v6
@@ -5108,7 +5828,7 @@
 
     goto :goto_0
 
-    .line 797
+    .line 901
     :cond_0
     move-object v2, v8
 
@@ -5130,7 +5850,7 @@
 
     move-object/from16 v20, v3
 
-    .line 798
+    .line 902
     :goto_1
     if-nez v2, :cond_2
 
@@ -5146,10 +5866,10 @@
     :goto_2
     move-wide v9, v2
 
-    .line 800
+    .line 904
     sget-object v2, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
 
-    .line 801
+    .line 905
     const-string v3, "SENSOR_TIMESTAMP"
 
     invoke-static {v0, v3}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
@@ -5160,7 +5880,7 @@
 
     if-eqz v3, :cond_3
 
-    .line 802
+    .line 906
     const-string v3, "SENSOR_TIMESTAMP"
 
     invoke-static {v0, v3}, Lcom/motorola/camera/custom/TelemetryCollector;->readTag(Landroid/hardware/camera2/TotalCaptureResult;Ljava/lang/String;)Ljava/lang/Object;
@@ -5176,21 +5896,21 @@
     :cond_3
     move-object v0, v8
 
-    .line 801
+    .line 905
     :goto_3
     invoke-static {v0}, Lcom/motorola/camera/custom/TelemetryCollector;->nanos(Ljava/lang/Object;)J
 
     move-result-wide v13
 
-    .line 803
+    .line 907
     invoke-static {v2, v1, v13, v14}, Lcom/motorola/camera/custom/TelemetryCollector;->reason(Lcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;J)Ljava/lang/String;
 
     move-result-object v0
 
-    .line 804
+    .line 908
     if-nez v0, :cond_4
 
-    .line 805
+    .line 909
     new-instance v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;
 
     iget-object v3, v2, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
@@ -5217,7 +5937,7 @@
 
     goto :goto_4
 
-    .line 806
+    .line 910
     :cond_4
     new-instance v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;
 
@@ -5229,7 +5949,7 @@
 
     invoke-direct/range {v11 .. v17}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;-><init>(Lcom/motorola/camera/custom/TelemetryCollector$Series;JJLjava/lang/String;)V
 
-    .line 807
+    .line 911
     :goto_4
     iget-object v3, v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
@@ -5249,7 +5969,7 @@
 
     sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
 
-    .line 808
+    .line 912
     if-nez v1, :cond_5
 
     move-object v3, v8
@@ -5302,7 +6022,7 @@
 
     if-nez v0, :cond_9
 
-    .line 809
+    .line 913
     iget-object v0, v2, Lcom/motorola/camera/custom/TelemetryCollector$Session;->history:Ljava/util/EnumMap;
 
     sget-object v3, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ROTATION:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -5315,16 +6035,16 @@
 
     check-cast v3, Lcom/motorola/camera/custom/TelemetryCollector$Series;
 
-    .line 810
+    .line 914
     monitor-enter v3
 
-    .line 811
+    .line 915
     :try_start_0
     iget v0, v3, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
 
     if-lez v0, :cond_7
 
-    .line 812
+    .line 916
     iget v0, v3, Lcom/motorola/camera/custom/TelemetryCollector$Series;->size:I
 
     add-int/lit8 v0, v0, -0x1
@@ -5333,12 +6053,12 @@
 
     move-result v0
 
-    .line 813
+    .line 917
     iget v6, v3, Lcom/motorola/camera/custom/TelemetryCollector$Series;->width:I
 
     mul-int/2addr v6, v0
 
-    .line 814
+    .line 918
     iget-object v7, v3, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
 
     iget-object v12, v3, Lcom/motorola/camera/custom/TelemetryCollector$Series;->sizes:[I
@@ -5353,10 +6073,10 @@
 
     iput-object v0, v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
-    .line 815
+    .line 919
     iput-object v8, v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->reason:Ljava/lang/String;
 
-    .line 817
+    .line 921
     :cond_7
     monitor-exit v3
 
@@ -5371,13 +6091,13 @@
 
     throw v0
 
-    .line 807
+    .line 911
     :cond_8
     const/16 p0, 0x1
 
     const/16 v18, 0x0
 
-    .line 819
+    .line 923
     :cond_9
     :goto_7
     iget-object v0, v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
@@ -5394,7 +6114,7 @@
 
     goto/16 :goto_11
 
-    .line 825
+    .line 929
     :cond_a
     iget-object v0, v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
@@ -5429,7 +6149,7 @@
     :cond_b
     move/from16 v15, v18
 
-    .line 826
+    .line 930
     :goto_8
     if-eqz v1, :cond_c
 
@@ -5454,7 +6174,7 @@
 
     move/from16 v14, v18
 
-    .line 827
+    .line 931
     :goto_9
     iget-object v11, v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
@@ -5466,7 +6186,7 @@
 
     move-result-object v6
 
-    .line 829
+    .line 933
     if-eqz v6, :cond_15
 
     iget v0, v6, Lcom/motorola/camera/custom/CompassSolarHelper$OrientationReading;->headingDeg:F
@@ -5479,7 +6199,7 @@
 
     goto/16 :goto_10
 
-    .line 834
+    .line 938
     :cond_d
     iget v0, v6, Lcom/motorola/camera/custom/CompassSolarHelper$OrientationReading;->headingDeg:F
 
@@ -5487,25 +6207,25 @@
 
     move-result-object v7
 
-    .line 835
+    .line 939
     nop
 
-    .line 836
+    .line 940
     nop
 
-    .line 837
+    .line 941
     nop
 
-    .line 838
+    .line 942
     nop
 
-    .line 839
+    .line 943
     nop
 
-    .line 840
+    .line 944
     nop
 
-    .line 841
+    .line 945
     const/4 v11, 0x2
 
     if-ge v15, v11, :cond_e
@@ -5520,10 +6240,10 @@
     :goto_a
     move-object/from16 v22, v0
 
-    .line 842
+    .line 946
     nop
 
-    .line 844
+    .line 948
     invoke-static {}, Lcom/motorola/camera/custom/TelemetryCollector;->isSaveLocationAllowed()Z
 
     move-result v0
@@ -5543,11 +6263,11 @@
     :cond_f
     move-object v12, v8
 
-    .line 845
+    .line 949
     :goto_b
     if-eqz v12, :cond_12
 
-    .line 846
+    .line 950
     aget-wide v0, v12, v18
 
     aget-wide v2, v12, p0
@@ -5556,21 +6276,21 @@
 
     move-result-object v0
 
-    .line 847
+    .line 951
     iget-wide v1, v0, Lcom/motorola/camera/custom/CompassSolarHelper$SolarPosition;->azimuthDeg:D
 
     invoke-static {v1, v2}, Ljava/lang/Double;->valueOf(D)Ljava/lang/Double;
 
     move-result-object v1
 
-    .line 848
+    .line 952
     iget-wide v2, v0, Lcom/motorola/camera/custom/CompassSolarHelper$SolarPosition;->elevationDeg:D
 
     invoke-static {v2, v3}, Ljava/lang/Double;->valueOf(D)Ljava/lang/Double;
 
     move-result-object v2
 
-    .line 849
+    .line 953
     aget-wide v13, v12, v18
 
     double-to-float v3, v13
@@ -5587,12 +6307,12 @@
 
     move-result-object v3
 
-    .line 850
+    .line 954
     iget v4, v6, Lcom/motorola/camera/custom/CompassSolarHelper$OrientationReading;->headingDeg:F
 
     float-to-double v4, v4
 
-    .line 851
+    .line 955
     if-eqz v3, :cond_11
 
     invoke-virtual {v3}, Ljava/lang/Double;->doubleValue()D
@@ -5605,7 +6325,7 @@
 
     if-eqz v11, :cond_11
 
-    .line 852
+    .line 956
     invoke-virtual {v3}, Ljava/lang/Double;->floatValue()F
 
     move-result v4
@@ -5614,7 +6334,7 @@
 
     move-result-object v4
 
-    .line 853
+    .line 957
     iget v5, v6, Lcom/motorola/camera/custom/CompassSolarHelper$OrientationReading;->headingDeg:F
 
     float-to-double v11, v5
@@ -5629,7 +6349,7 @@
 
     rem-double/2addr v11, v13
 
-    .line 854
+    .line 958
     const-wide/16 v16, 0x0
 
     cmpg-double v3, v11, v16
@@ -5638,7 +6358,7 @@
 
     add-double/2addr v11, v13
 
-    .line 855
+    .line 959
     :cond_10
     double-to-float v3, v11
 
@@ -5646,12 +6366,12 @@
 
     move-result-object v3
 
-    .line 856
+    .line 960
     move-wide/from16 v23, v11
 
     goto :goto_c
 
-    .line 858
+    .line 962
     :cond_11
     move-wide/from16 v23, v4
 
@@ -5684,7 +6404,7 @@
 
     move-result-object v8
 
-    .line 860
+    .line 964
     iget-wide v11, v0, Lcom/motorola/camera/custom/CompassSolarHelper$SolarPosition;->elevationDeg:D
 
     invoke-virtual {v8}, Ljava/lang/Double;->doubleValue()D
@@ -5697,7 +6417,7 @@
 
     move-result v0
 
-    .line 861
+    .line 965
     move/from16 v21, v0
 
     move-object/from16 v17, v1
@@ -5714,7 +6434,7 @@
 
     goto :goto_e
 
-    .line 862
+    .line 966
     :cond_12
     invoke-static {}, Lcom/motorola/camera/custom/TelemetryCollector;->isSaveLocationAllowed()Z
 
@@ -5744,7 +6464,7 @@
 
     const/16 v19, 0x0
 
-    .line 864
+    .line 968
     :goto_e
     if-eqz v11, :cond_14
 
@@ -5766,7 +6486,7 @@
 
     move-result-object v16
 
-    .line 865
+    .line 969
     new-instance v9, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;
 
     iget v0, v6, Lcom/motorola/camera/custom/CompassSolarHelper$OrientationReading;->pitchDeg:F
@@ -5793,7 +6513,7 @@
 
     return-object v9
 
-    .line 830
+    .line 934
     :cond_15
     :goto_10
     new-instance v9, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;
@@ -5830,7 +6550,7 @@
 
     return-object v9
 
-    .line 820
+    .line 924
     :cond_16
     :goto_11
     iget-object v0, v11, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->reason:Ljava/lang/String;
@@ -5847,7 +6567,7 @@
     :goto_12
     move-object/from16 v22, v0
 
-    .line 821
+    .line 925
     new-instance v9, Lcom/motorola/camera/custom/TelemetryCollector$CompassSnapshot;
 
     const/16 v19, 0x0
@@ -5882,7 +6602,7 @@
 .method public static shotMetadata(Ljava/lang/String;Ljava/lang/Float;Z)Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;
     .locals 13
 
-    .line 113
+    .line 131
     new-instance v0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;
 
     sget-object v4, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
@@ -5917,7 +6637,7 @@
 .method public static shotMetadata(Ljava/lang/String;Ljava/lang/Float;ZLjava/lang/Float;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;
     .locals 13
 
-    .line 121
+    .line 139
     new-instance v0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;
 
     sget-object v4, Lcom/motorola/camera/custom/TelemetryCollector;->active:Lcom/motorola/camera/custom/TelemetryCollector$Session;
@@ -5950,7 +6670,7 @@
 .end method
 
 .method private static spectrum(Lcom/motorola/camera/custom/TelemetryCollector$Observation;Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)Ljava/util/Map;
-    .locals 17
+    .locals 18
     .annotation system Ldalvik/annotation/Signature;
         value = {
             "(",
@@ -5964,14 +6684,14 @@
         }
     .end annotation
 
-    .line 616
+    .line 704
     move-object/from16 v0, p0
 
     invoke-virtual {v0}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->json()Ljava/util/Map;
 
     move-result-object v1
 
-    .line 617
+    .line 705
     const/4 v2, 0x5
 
     new-array v3, v2, [Ljava/lang/String;
@@ -5994,30 +6714,30 @@
 
     aput-object v4, v3, v7
 
-    const/4 v4, 0x3
+    const-string v4, "clearCounts"
 
-    const-string v8, "clearCounts"
+    const/4 v8, 0x3
 
-    aput-object v8, v3, v4
+    aput-object v4, v3, v8
 
     const/4 v4, 0x4
 
-    const-string v8, "widebandCounts"
+    const-string v9, "widebandCounts"
 
-    aput-object v8, v3, v4
+    aput-object v9, v3, v4
 
-    .line 618
+    .line 706
     new-array v4, v2, [Ljava/lang/Float;
 
-    .line 619
-    move v8, v5
+    .line 707
+    move v9, v5
 
     :goto_0
-    const/4 v9, 0x0
+    const/4 v10, 0x0
 
-    if-ge v8, v2, :cond_1
+    if-ge v9, v2, :cond_1
 
-    .line 620
+    .line 708
     if-nez p1, :cond_0
 
     goto :goto_1
@@ -6025,34 +6745,34 @@
     :cond_0
     invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetchannels(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[I
 
-    move-result-object v9
+    move-result-object v10
 
-    aget v9, v9, v8
+    aget v10, v10, v9
 
-    invoke-virtual {v0, v9}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->channel(I)Ljava/lang/Float;
+    invoke-virtual {v0, v10}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->channel(I)Ljava/lang/Float;
 
-    move-result-object v9
+    move-result-object v10
 
     :goto_1
-    aput-object v9, v4, v8
+    aput-object v10, v4, v9
 
-    .line 621
-    aget-object v9, v3, v8
+    .line 709
+    aget-object v10, v3, v9
 
-    aget-object v10, v4, v8
+    aget-object v11, v4, v9
 
-    invoke-interface {v1, v9, v10}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    invoke-interface {v1, v10, v11}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 619
-    add-int/lit8 v8, v8, 0x1
+    .line 707
+    add-int/lit8 v9, v9, 0x1
 
     goto :goto_0
 
-    .line 623
+    .line 711
     :cond_1
     iget-object v3, v0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
-    const-string v8, "reason"
+    const-string v9, "reason"
 
     if-eqz v3, :cond_2
 
@@ -6060,13 +6780,13 @@
 
     const-string v3, "unverifiedLayout"
 
-    invoke-interface {v1, v8, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    invoke-interface {v1, v9, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 624
+    .line 712
     :cond_2
     nop
 
-    .line 625
+    .line 713
     aget-object v3, v4, v5
 
     if-eqz v3, :cond_3
@@ -6079,93 +6799,277 @@
 
     if-eqz v3, :cond_3
 
-    .line 626
-    aget-object v3, v4, v5
-
-    invoke-virtual {v3}, Ljava/lang/Float;->floatValue()F
-
-    move-result v3
-
-    float-to-double v10, v3
-
-    aget-object v3, v4, v6
-
-    invoke-virtual {v3}, Ljava/lang/Float;->floatValue()F
-
-    move-result v3
-
-    float-to-double v12, v3
-
-    aget-object v3, v4, v7
-
-    invoke-virtual {v3}, Ljava/lang/Float;->floatValue()F
-
-    move-result v3
-
-    float-to-double v14, v3
+    if-eqz p1, :cond_3
 
     invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetxyzMatrix(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[D
 
-    move-result-object v16
+    move-result-object v3
 
-    invoke-static/range {v10 .. v16}, Lcom/motorola/camera/custom/TelemetryCollector;->estimateCctKelvin(DDD[D)Ljava/lang/Double;
+    if-eqz v3, :cond_3
+
+    .line 714
+    aget-object v3, v4, v5
+
+    invoke-virtual {v3}, Ljava/lang/Float;->floatValue()F
+
+    move-result v3
+
+    float-to-double v11, v3
+
+    aget-object v3, v4, v6
+
+    invoke-virtual {v3}, Ljava/lang/Float;->floatValue()F
+
+    move-result v3
+
+    float-to-double v13, v3
+
+    aget-object v3, v4, v7
+
+    invoke-virtual {v3}, Ljava/lang/Float;->floatValue()F
+
+    move-result v3
+
+    float-to-double v5, v3
+
+    invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetxyzMatrix(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[D
+
+    move-result-object v17
+
+    move-wide v15, v5
+
+    invoke-static/range {v11 .. v17}, Lcom/motorola/camera/custom/TelemetryCollector;->estimateCctKelvin(DDD[D)Ljava/lang/Double;
 
     move-result-object v3
 
     goto :goto_2
 
-    .line 628
+    .line 716
     :cond_3
-    move-object v3, v9
+    move-object v3, v10
 
     :goto_2
-    const-string v4, "cctK"
+    invoke-interface {v1, v9}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
 
-    invoke-interface {v1, v4, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    move-result-object v5
 
-    .line 629
-    invoke-interface {v1, v8}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
+    check-cast v5, Ljava/lang/String;
 
-    move-result-object v4
+    .line 717
+    const/high16 v6, 0x42c80000    # 100.0f
 
-    check-cast v4, Ljava/lang/String;
+    if-nez v3, :cond_9
 
-    .line 630
-    if-nez v3, :cond_5
+    if-eqz p1, :cond_9
 
-    if-nez v4, :cond_5
+    invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverCctChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
 
-    .line 631
-    invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetxyzMatrix(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[D
+    move-result v9
 
-    move-result-object v3
+    if-ltz v9, :cond_9
 
-    if-nez v3, :cond_4
+    .line 718
+    invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverCctChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
 
-    const-string v3, "uncalibrated"
+    move-result v9
+
+    invoke-virtual {v0, v9}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->channel(I)Ljava/lang/Float;
+
+    move-result-object v9
+
+    .line 719
+    invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverLuxChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+
+    move-result v11
+
+    if-ltz v11, :cond_4
+
+    invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetdriverLuxChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+
+    move-result v11
+
+    invoke-virtual {v0, v11}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->channel(I)Ljava/lang/Float;
+
+    move-result-object v11
 
     goto :goto_3
 
     :cond_4
-    const-string v3, "invalidChromaticity"
+    move-object v11, v10
 
+    .line 720
     :goto_3
-    move-object v4, v3
+    aget-object v4, v4, v8
 
-    .line 633
+    .line 721
+    if-eqz v11, :cond_5
+
+    const-string v8, "driverLux"
+
+    invoke-interface {v1, v8, v11}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 722
     :cond_5
-    const-string v3, "cctReason"
+    const/16 v8, 0x8
 
-    invoke-interface {v1, v3, v4}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    invoke-virtual {v0, v8}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->channel(I)Ljava/lang/Float;
 
-    .line 634
-    if-nez p1, :cond_6
+    move-result-object v8
 
-    move-object v0, v9
+    .line 723
+    const/16 v12, 0x9
+
+    invoke-virtual {v0, v12}, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->channel(I)Ljava/lang/Float;
+
+    move-result-object v12
+
+    .line 724
+    const/4 v13, 0x0
+
+    if-eqz v8, :cond_6
+
+    invoke-virtual {v8}, Ljava/lang/Float;->floatValue()F
+
+    move-result v14
+
+    cmpl-float v14, v14, v13
+
+    if-lez v14, :cond_6
+
+    const-string v14, "analogGain"
+
+    invoke-interface {v1, v14, v8}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 725
+    :cond_6
+    if-eqz v12, :cond_7
+
+    invoke-virtual {v12}, Ljava/lang/Float;->floatValue()F
+
+    move-result v8
+
+    cmpl-float v8, v8, v13
+
+    if-lez v8, :cond_7
+
+    const-string v8, "integrationTimeMs"
+
+    invoke-interface {v1, v8, v12}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 726
+    :cond_7
+    if-eqz v9, :cond_8
+
+    invoke-virtual {v9}, Ljava/lang/Float;->floatValue()F
+
+    move-result v8
+
+    const v12, 0x44bb8000    # 1500.0f
+
+    cmpl-float v8, v8, v12
+
+    if-ltz v8, :cond_8
+
+    invoke-virtual {v9}, Ljava/lang/Float;->floatValue()F
+
+    move-result v8
+
+    const v12, 0x466a6000    # 15000.0f
+
+    cmpg-float v8, v8, v12
+
+    if-gtz v8, :cond_8
+
+    if-eqz v11, :cond_8
+
+    .line 727
+    invoke-virtual {v11}, Ljava/lang/Float;->floatValue()F
+
+    move-result v8
+
+    const/high16 v11, 0x3f800000    # 1.0f
+
+    cmpl-float v8, v8, v11
+
+    if-ltz v8, :cond_8
+
+    if-eqz v4, :cond_8
+
+    invoke-virtual {v4}, Ljava/lang/Float;->floatValue()F
+
+    move-result v4
+
+    cmpl-float v4, v4, v6
+
+    if-ltz v4, :cond_8
+
+    .line 728
+    invoke-virtual {v9}, Ljava/lang/Float;->doubleValue()D
+
+    move-result-wide v3
+
+    invoke-static {v3, v4}, Ljava/lang/Double;->valueOf(D)Ljava/lang/Double;
+
+    move-result-object v3
 
     goto :goto_4
 
-    :cond_6
+    .line 729
+    :cond_8
+    if-nez v5, :cond_9
+
+    .line 730
+    const-string v5, "lowLightNoise"
+
+    .line 733
+    :cond_9
+    :goto_4
+    const-string v4, "cctK"
+
+    invoke-interface {v1, v4, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 734
+    if-nez v3, :cond_c
+
+    if-nez v5, :cond_c
+
+    .line 735
+    if-eqz p1, :cond_b
+
+    invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetxyzMatrix(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[D
+
+    move-result-object v3
+
+    if-nez v3, :cond_a
+
+    goto :goto_5
+
+    :cond_a
+    const-string v3, "invalidChromaticity"
+
+    goto :goto_6
+
+    :cond_b
+    :goto_5
+    const-string v3, "uncalibrated"
+
+    :goto_6
+    move-object v5, v3
+
+    .line 737
+    :cond_c
+    const-string v3, "cctReason"
+
+    invoke-interface {v1, v3, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 738
+    if-nez p1, :cond_d
+
+    move-object v0, v10
+
+    goto :goto_7
+
+    :cond_d
     invoke-static/range {p1 .. p1}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->-$$Nest$fgetchannels(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[I
 
     move-result-object v3
@@ -6176,150 +7080,148 @@
 
     move-result-object v0
 
-    .line 635
-    :goto_4
+    .line 739
+    :goto_7
     nop
 
-    .line 636
-    const/high16 v2, 0x42c80000    # 100.0f
-
-    if-eqz v0, :cond_8
-
-    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
-
-    move-result v3
-
-    const/high16 v4, 0x42480000    # 50.0f
-
-    cmpl-float v3, v3, v4
-
-    if-eqz v3, :cond_7
-
-    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
-
-    move-result v3
-
-    cmpl-float v3, v3, v2
-
-    if-nez v3, :cond_8
-
-    :cond_7
-    const/16 v3, 0x32
-
-    invoke-static {v3}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-
-    move-result-object v3
-
-    goto :goto_5
-
-    .line 637
-    :cond_8
-    move-object v3, v9
-
-    :goto_5
-    const/high16 v4, 0x42f00000    # 120.0f
-
-    if-eqz v0, :cond_a
-
-    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
-
-    move-result v5
-
-    const/high16 v6, 0x42700000    # 60.0f
-
-    cmpl-float v5, v5, v6
-
-    if-eqz v5, :cond_9
-
-    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
-
-    move-result v5
-
-    cmpl-float v5, v5, v4
-
-    if-nez v5, :cond_a
-
-    :cond_9
-    const/16 v3, 0x3c
-
-    invoke-static {v3}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-
-    move-result-object v3
-
-    .line 638
-    :cond_a
-    const-string v5, "reportedFlickerHz"
-
-    invoke-interface {v1, v5, v0}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    .line 639
-    const-string v5, "mainsClassHz"
-
-    invoke-interface {v1, v5, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    .line 640
-    if-nez v3, :cond_b
-
-    move-object v3, v9
-
-    goto :goto_6
-
-    :cond_b
-    invoke-virtual {v3}, Ljava/lang/Integer;->intValue()I
-
-    move-result v3
-
-    mul-int/2addr v3, v7
-
-    invoke-static {v3}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-
-    move-result-object v3
-
-    :goto_6
-    const-string v5, "nominalOpticalHz"
-
-    invoke-interface {v1, v5, v3}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    .line 642
-    if-eqz v0, :cond_d
-
-    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
-
-    move-result v3
-
-    cmpl-float v2, v3, v2
-
-    if-eqz v2, :cond_c
+    .line 740
+    if-eqz v0, :cond_f
 
     invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
 
     move-result v2
 
-    cmpl-float v2, v2, v4
+    const/high16 v3, 0x42480000    # 50.0f
 
-    if-nez v2, :cond_d
+    cmpl-float v2, v2, v3
 
-    :cond_c
-    move-object v9, v0
+    if-eqz v2, :cond_e
 
-    :cond_d
+    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
+
+    move-result v2
+
+    cmpl-float v2, v2, v6
+
+    if-nez v2, :cond_f
+
+    :cond_e
+    const/16 v2, 0x32
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v2
+
+    goto :goto_8
+
+    .line 741
+    :cond_f
+    move-object v2, v10
+
+    :goto_8
+    const/high16 v3, 0x42f00000    # 120.0f
+
+    if-eqz v0, :cond_11
+
+    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
+
+    move-result v4
+
+    const/high16 v5, 0x42700000    # 60.0f
+
+    cmpl-float v4, v4, v5
+
+    if-eqz v4, :cond_10
+
+    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
+
+    move-result v4
+
+    cmpl-float v4, v4, v3
+
+    if-nez v4, :cond_11
+
+    :cond_10
+    const/16 v2, 0x3c
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v2
+
+    .line 742
+    :cond_11
+    const-string v4, "reportedFlickerHz"
+
+    invoke-interface {v1, v4, v0}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 743
+    const-string v4, "mainsClassHz"
+
+    invoke-interface {v1, v4, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 744
+    if-nez v2, :cond_12
+
+    move-object v2, v10
+
+    goto :goto_9
+
+    :cond_12
+    invoke-virtual {v2}, Ljava/lang/Integer;->intValue()I
+
+    move-result v2
+
+    mul-int/2addr v2, v7
+
+    invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v2
+
+    :goto_9
+    const-string v4, "nominalOpticalHz"
+
+    invoke-interface {v1, v4, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 746
+    if-eqz v0, :cond_14
+
+    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
+
+    move-result v2
+
+    cmpl-float v2, v2, v6
+
+    if-eqz v2, :cond_13
+
+    invoke-virtual {v0}, Ljava/lang/Float;->floatValue()F
+
+    move-result v2
+
+    cmpl-float v2, v2, v3
+
+    if-nez v2, :cond_14
+
+    :cond_13
+    move-object v10, v0
+
+    :cond_14
     const-string v0, "opticalFlickerHz"
 
-    invoke-interface {v1, v0, v9}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    invoke-interface {v1, v0, v10}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 643
+    .line 747
     return-object v1
 .end method
 
 .method private static streamReason(Lcom/motorola/camera/custom/TelemetryCollector$Session;Lcom/motorola/camera/custom/TelemetryCollector$Stream;Ljava/lang/String;)Ljava/lang/String;
     .locals 0
 
-    .line 571
+    .line 659
     if-eqz p2, :cond_0
 
     return-object p2
 
-    .line 572
+    .line 660
     :cond_0
     iget-object p0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Session;->status:Ljava/util/EnumMap;
 
@@ -6335,7 +7237,7 @@
 .method private static validTriplet([F)Z
     .locals 3
 
-    .line 392
+    .line 410
     const/4 v0, 0x0
 
     if-eqz p0, :cond_0
@@ -6383,7 +7285,7 @@
 .method private static vendorStream(Landroid/hardware/Sensor;)Lcom/motorola/camera/custom/TelemetryCollector$Stream;
     .locals 3
 
-    .line 293
+    .line 311
     invoke-virtual {p0}, Landroid/hardware/Sensor;->getStringType()Ljava/lang/String;
 
     move-result-object v0
@@ -6398,7 +7300,7 @@
 
     move-result-object v0
 
-    .line 294
+    .line 312
     invoke-virtual {p0}, Landroid/hardware/Sensor;->getName()Ljava/lang/String;
 
     move-result-object p0
@@ -6439,7 +7341,7 @@
 
     move-result-object p0
 
-    .line 295
+    .line 313
     const-string v1, "com.motorola.sensor.tof"
 
     invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
@@ -6452,7 +7354,7 @@
 
     return-object p0
 
-    .line 296
+    .line 314
     :cond_0
     const-string v0, "front"
 
@@ -6466,7 +7368,7 @@
 
     return-object v1
 
-    .line 297
+    .line 315
     :cond_1
     const-string v0, "tcs3408"
 
@@ -6503,13 +7405,13 @@
     :goto_0
     const/4 v0, 0x1
 
-    .line 298
+    .line 316
     :goto_1
     if-nez v0, :cond_4
 
     return-object v1
 
-    .line 299
+    .line 317
     :cond_4
     const-string v0, "rgb"
 
@@ -6523,7 +7425,7 @@
 
     return-object p0
 
-    .line 300
+    .line 318
     :cond_5
     const-string v0, "light"
 
@@ -6543,11 +7445,11 @@
 
     goto :goto_2
 
-    .line 301
+    .line 319
     :cond_6
     return-object v1
 
-    .line 300
+    .line 318
     :cond_7
     :goto_2
     sget-object p0, Lcom/motorola/camera/custom/TelemetryCollector$Stream;->ALS:Lcom/motorola/camera/custom/TelemetryCollector$Stream;
@@ -6558,7 +7460,7 @@
 .method public static writeSidecarJsonIfEnabled(Ljava/io/File;Ljava/lang/String;)Z
     .locals 6
 
-    .line 1001
+    .line 1105
     const/4 v0, 0x0
 
     if-eqz p0, :cond_6
@@ -6573,11 +7475,11 @@
 
     goto/16 :goto_6
 
-    .line 1002
+    .line 1106
     :cond_0
     nop
 
-    .line 1004
+    .line 1108
     const/4 v1, 0x0
 
     :try_start_0
@@ -6589,7 +7491,7 @@
 
     move-result-object p0
 
-    .line 1005
+    .line 1109
     invoke-interface {p0}, Ljava/nio/file/Path;->getParent()Ljava/nio/file/Path;
 
     move-result-object v2
@@ -6604,7 +7506,7 @@
 
     move-result-object v1
 
-    .line 1006
+    .line 1110
     sget-object v2, Ljava/nio/charset/StandardCharsets;->UTF_8:Ljava/nio/charset/Charset;
 
     invoke-virtual {p1, v2}, Ljava/lang/String;->getBytes(Ljava/nio/charset/Charset;)[B
@@ -6615,7 +7517,7 @@
 
     invoke-static {v1, p1, v2}, Ljava/nio/file/Files;->write(Ljava/nio/file/Path;[B[Ljava/nio/file/OpenOption;)Ljava/nio/file/Path;
 
-    .line 1007
+    .line 1111
     sget-object p1, Lcom/motorola/camera/custom/TelemetryCollector;->SIDECAR_MOVE_LOCK:Ljava/lang/Object;
 
     monitor-enter p1
@@ -6624,7 +7526,7 @@
     .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_4
     .catchall {:try_start_0 .. :try_end_0} :catchall_1
 
-    .line 1009
+    .line 1113
     const/4 v2, 0x2
 
     const/4 v3, 0x1
@@ -6645,20 +7547,20 @@
     .catch Ljava/nio/file/AtomicMoveNotSupportedException; {:try_start_1 .. :try_end_1} :catch_0
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 1013
+    .line 1117
     goto :goto_1
 
-    .line 1014
+    .line 1118
     :catchall_0
     move-exception p0
 
     goto :goto_3
 
-    .line 1010
+    .line 1114
     :catch_0
     move-exception v2
 
-    .line 1012
+    .line 1116
     :try_start_2
     invoke-interface {v1}, Ljava/nio/file/Path;->toFile()Ljava/io/File;
 
@@ -6678,10 +7580,10 @@
     :try_end_2
     .catchall {:try_start_2 .. :try_end_2} :catchall_0
 
-    .line 1019
+    .line 1123
     if-eqz v1, :cond_1
 
-    .line 1020
+    .line 1124
     :try_start_3
     invoke-static {v1}, Ljava/nio/file/Files;->deleteIfExists(Ljava/nio/file/Path;)Z
     :try_end_3
@@ -6693,12 +7595,12 @@
     :catch_1
     move-exception p0
 
-    .line 1012
+    .line 1116
     :cond_1
     :goto_0
     return v0
 
-    .line 1014
+    .line 1118
     :cond_2
     :goto_1
     :try_start_4
@@ -6706,13 +7608,13 @@
     :try_end_4
     .catchall {:try_start_4 .. :try_end_4} :catchall_0
 
-    .line 1015
+    .line 1119
     nop
 
-    .line 1019
+    .line 1123
     if-eqz v1, :cond_3
 
-    .line 1020
+    .line 1124
     :try_start_5
     invoke-static {v1}, Ljava/nio/file/Files;->deleteIfExists(Ljava/nio/file/Path;)Z
     :try_end_5
@@ -6724,12 +7626,12 @@
     :catch_2
     move-exception p0
 
-    .line 1015
+    .line 1119
     :cond_3
     :goto_2
     return v3
 
-    .line 1014
+    .line 1118
     :goto_3
     :try_start_6
     monitor-exit p1
@@ -6743,13 +7645,13 @@
     .catch Ljava/lang/RuntimeException; {:try_start_7 .. :try_end_7} :catch_4
     .catchall {:try_start_7 .. :try_end_7} :catchall_1
 
-    .line 1019
+    .line 1123
     :catchall_1
     move-exception p0
 
     if-eqz v1, :cond_4
 
-    .line 1020
+    .line 1124
     :try_start_8
     invoke-static {v1}, Ljava/nio/file/Files;->deleteIfExists(Ljava/nio/file/Path;)Z
     :try_end_8
@@ -6761,22 +7663,22 @@
     :catch_3
     move-exception p1
 
-    .line 1022
+    .line 1126
     :cond_4
     :goto_4
     throw p0
 
-    .line 1016
+    .line 1120
     :catch_4
     move-exception p0
 
-    .line 1017
+    .line 1121
     nop
 
-    .line 1019
+    .line 1123
     if-eqz v1, :cond_5
 
-    .line 1020
+    .line 1124
     :try_start_9
     invoke-static {v1}, Ljava/nio/file/Files;->deleteIfExists(Ljava/nio/file/Path;)Z
     :try_end_9
@@ -6788,12 +7690,12 @@
     :catch_5
     move-exception p0
 
-    .line 1017
+    .line 1121
     :cond_5
     :goto_5
     return v0
 
-    .line 1001
+    .line 1105
     :cond_6
     :goto_6
     return v0

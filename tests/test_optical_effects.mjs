@@ -95,6 +95,20 @@ class BokehProbe {
         for (int y = 0; y < size; y++) for (int x = 0; x < 48; x++) {
             if (anamorphic[y * size + x] != 0xffff0000) throw new AssertionError("anamorphic foreground bleed");
         }
+        // Specular HDR linear-light bokeh must preserve >= 2.0x linear energy over naive gamma averaging.
+        int[] specImg = new int[size * size];
+        byte[] specDepth = new byte[size * size];
+        Arrays.fill(specImg, 0xff101010);
+        Arrays.fill(specDepth, (byte) 210);
+        specImg[48 * size + 48] = 0xffffffff;
+        specImg[48 * size + 49] = 0xffffffff;
+        specImg[49 * size + 48] = 0xffffffff;
+        specImg[49 * size + 49] = 0xffffffff;
+        int[] specOut = BokehKernel.gather(specImg, specDepth, size, size, 32, 2);
+        int centerVal = specOut[48 * size + 48] & 255;
+        double linOut = Math.pow((centerVal + 0.055 * 255) / (1.055 * 255), 2.4);
+        // Naive gamma average of 4/28 taps at 255 + 24/28 taps at 16 is ~50 sRGB (~0.032 linear).
+        if (linOut < 0.085) throw new AssertionError("linear specular bokeh energy too dim: sRGB=" + centerVal + " lin=" + linOut);
     }
 }
 `);

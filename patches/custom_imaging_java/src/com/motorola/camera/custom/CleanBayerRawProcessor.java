@@ -88,6 +88,19 @@ public final class CleanBayerRawProcessor {
                                          float[] ccm3x3, float sharpenAmount,
                                          float[] lscGrid4, int lscCols, int lscRows,
                                          int isoSensitivity) {
+        return processRawToArgb(raw, width, height, cfaPattern, blackLevel4, whiteLevel, wbGains3,
+                ccm3x3, sharpenAmount, lscGrid4, lscCols, lscRows, isoSensitivity, null);
+    }
+
+    /**
+     * Same as {@link #processRawToArgb}, optionally writing pre-shoulder linear HDR peak luminance
+     * into {@code outLinearPeak} (length {@code >= width * height}) for ISO 21496-1 Gainmap synthesis.
+     */
+    public static int[] processRawToArgb(int[] raw, int width, int height, int cfaPattern,
+                                         float[] blackLevel4, float whiteLevel, float[] wbGains3,
+                                         float[] ccm3x3, float sharpenAmount,
+                                         float[] lscGrid4, int lscCols, int lscRows,
+                                         int isoSensitivity, float[] outLinearPeak) {
         int count = pixelCount(width, height);
         if (width < 2 || height < 2 || raw == null || raw.length < count
                 || cfaPattern < CFA_RGGB || cfaPattern > CFA_BGGR
@@ -168,11 +181,15 @@ public final class CleanBayerRawProcessor {
         float[] sBlue = sharpenAmount > 0 ? new float[count] : null;
         float[] luma = sharpenAmount > 0 ? new float[count] : null;
 
+        boolean writeLinearPeak = outLinearPeak != null && outLinearPeak.length >= count;
         for (int i = 0; i < count; i++) {
             double cr = linR[i];
             double cg = linG[i];
             double cb = linB[i];
             double peak = Math.max(cr, Math.max(cg, cb));
+            if (writeLinearPeak) {
+                outLinearPeak[i] = (float) Math.max(0.0, peak);
+            }
             double scale = 1.0;
             if (peak > 0.84) {
                 double excess = peak - 0.84;
@@ -633,5 +650,86 @@ public final class CleanBayerRawProcessor {
     private static int pack(float r, float g, float b) {
         return 0xff000000 | (Math.round(r * 255) << 16) | (Math.round(g * 255) << 8)
                 | Math.round(b * 255);
+    }
+
+    /** Maps Camera2 DNG reference illuminant enum codes to nominal Kelvin, or -1 if unknown. */
+    public static float illuminantCodeToKelvin(int code) {
+        switch (code) {
+            case 17: return 2856f; // STANDARD_A
+            case 15: return 3450f; // WHITE_FLUORESCENT
+            case 14: return 4230f; // COOL_WHITE_FLUORESCENT
+            case 18: return 4874f; // STANDARD_B
+            case 23: return 5003f; // D50
+            case 20: return 5503f; // D55
+            case 12: return 6430f; // DAYLIGHT_FLUORESCENT
+            case 1:
+            case 21: return 6504f; // DAYLIGHT / D65
+            case 19: return 6774f; // STANDARD_C
+            case 22: return 7504f; // D75
+            default: return -1f;
+        }
+    }
+
+    /**
+     * DNG 1.7 dual-illuminant mired interpolation ({@code 1e6 / K}) of {@code XYZ -> sensor}
+     * matrices, inverted into either linear {@code Display P3} or linear {@code sRGB} CCM.
+     */
+    public static float[] dualIlluminantSensorToOutputCcm(float[] xyzToSensor1, int illuminant1,
+                                                          float[] xyzToSensor2, int illuminant2,
+                                                          float ambientCctK, boolean displayP3) {
+        if (xyzToSensor1 == null || xyzToSensor1.length < 9) return null;
+        float[] blended = xyzToSensor1.clone();
+        float k1 = illuminantCodeToKelvin(illuminant1);
+        float k2 = illuminantCodeToKelvin(illuminant2);
+        if (xyzToSensor2 != null && xyzToSensor2.length >= 9
+                && k1 > 0f && k2 > 0f && Math.abs(k1 - k2) > 100f
+                && Float.isFinite(ambientCctK) && ambientCctK >= 1500f && ambientCctK <= 15000f) {
+            double m1 = 1_000_000.0 / k1;
+            double m2 = 1_000_000.0 / k2;
+            double m = 1_000_000.0 / ambientCctK;
+            double t = (m - m1) / (m2 - m1);
+            if (t < 0.0) t = 0.0;
+            if (t > 1.0) t = 1.0;
+            for (int i = 0; i < 9; i++) {
+                blended[i] = (float) ((1.0 - t) * xyzToSensor1[i] + t * xyzToSensor2[i]);
+            }
+        }
+        return invertXyzToSensorIntoGamut(blended, displayP3);
+    }
+
+    public static float[] invertXyzToSensorIntoGamut(float[] xyzToSensor, boolean displayP3) {
+        if (xyzToSensor == null || xyzToSensor.length < 9) return null;
+        double a = xyzToSensor[0], b = xyzToSensor[1], c = xyzToSensor[2];
+        double d = xyzToSensor[3], e = xyzToSensor[4], f = xyzToSensor[5];
+        double g = xyzToSensor[6], h = xyzToSensor[7], k = xyzToSensor[8];
+        double c00 = e * k - f * h, c01 = -(d * k - f * g), c02 = d * h - e * g;
+        double c10 = -(b * k - c * h), c11 = a * k - c * g, c12 = -(a * h - b * g);
+        double c20 = b * f - c * e, c21 = -(a * f - c * d), c22 = a * e - b * d;
+        double det = a * c00 + b * c01 + c * c02;
+        if (!Double.isFinite(det) || Math.abs(det) < 1e-6) return null;
+        double inv = 1.0 / det;
+        double[] s2x = {
+            c00 * inv, c10 * inv, c20 * inv,
+            c01 * inv, c11 * inv, c21 * inv,
+            c02 * inv, c12 * inv, c22 * inv
+        };
+        double[] x2out = displayP3 ? new double[]{
+             2.4934969, -0.9313836, -0.4027108,
+            -0.8294890,  1.7626641,  0.0236247,
+             0.0358458, -0.0761724,  0.9568845
+        } : new double[]{
+             3.2406, -1.5372, -0.4986,
+            -0.9689,  1.8758,  0.0415,
+             0.0557, -0.2040,  1.0570
+        };
+        float[] out = new float[9];
+        for (int r = 0; r < 3; r++) {
+            for (int col = 0; col < 3; col++) {
+                out[r * 3 + col] = (float) (x2out[r * 3] * s2x[col]
+                        + x2out[r * 3 + 1] * s2x[3 + col]
+                        + x2out[r * 3 + 2] * s2x[6 + col]);
+            }
+        }
+        return out;
     }
 }

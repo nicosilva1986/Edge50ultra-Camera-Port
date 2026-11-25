@@ -42,24 +42,24 @@
 .method private constructor <init>([IIILcom/motorola/camera/custom/MultiFrameRawEngine$Frame;IDFZZ)V
     .locals 0
 
-    .line 59
+    .line 72
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 60
+    .line 73
     iput-object p1, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->raw:[I
 
-    .line 61
+    .line 74
     iput p2, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->width:I
 
-    .line 62
+    .line 75
     iput p3, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->height:I
 
-    .line 63
+    .line 76
     iget p1, p4, Lcom/motorola/camera/custom/MultiFrameRawEngine$Frame;->cfa:I
 
     iput p1, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->cfaPattern:I
 
-    .line 64
+    .line 77
     iget-object p1, p4, Lcom/motorola/camera/custom/MultiFrameRawEngine$Frame;->black:[F
 
     invoke-virtual {p1}, [F->clone()Ljava/lang/Object;
@@ -70,27 +70,27 @@
 
     iput-object p1, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->blackLevel4:[F
 
-    .line 65
+    .line 78
     iput p8, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->whiteLevel:F
 
-    .line 66
+    .line 79
     iget-wide p1, p4, Lcom/motorola/camera/custom/MultiFrameRawEngine$Frame;->time:J
 
     iput-wide p1, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->anchorTimestampNs:J
 
-    .line 67
+    .line 80
     iput p5, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->acceptedFrames:I
 
-    .line 68
+    .line 81
     iput-wide p6, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->headroom:D
 
-    .line 69
+    .line 82
     iput-boolean p9, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->superResolved:Z
 
-    .line 70
+    .line 83
     iput-boolean p10, p0, Lcom/motorola/camera/custom/MultiFrameRawEngine$Result;->usedGlGuide:Z
 
-    .line 71
+    .line 84
     return-void
 .end method
 

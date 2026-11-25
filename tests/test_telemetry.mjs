@@ -315,6 +315,21 @@ public class TelemetryProbe {
         System.out.println(buildShotTelemetryJson(scRes, scMeta, "rawBurst", 0, 2, 0));
         System.out.println(escapeJson(buildConciseExifNote(scRes, scMeta, "rawBurst", 0, 2, 0)));
         break;
+      case "ctwo_v2":
+        Host h2 = new Host(); Manager m2 = h2.manager;
+        onCameraActive(h2, "0", false, ctwoRearTcs3408Layout());
+        try {
+          // Real live ctwo tcs3408 10-float daylight sample (raw[0]=5245K CCT, raw[1]=1850 lux, raw[2..6]=CRGBW, raw[8]=16x gain, raw[9]=100ms ATIME)
+          m2.send(m2.rgb, T - MS, 5245f, 1850.5f, 24100f, 9200f, 8900f, 6800f, 3100f, 0f, 16f, 100f);
+          m2.send(m2.gyro, T, 0.2f, -0.4f, 0f);
+          m2.send(m2.gyro, T + 20 * MS, 0.2f, -0.4f, 0f);
+          float[] shift = interFrameGyroShiftPx(T, T + 20 * MS, 3000f);
+          Float liveCct = latestRearAmbientCctK();
+          ShotMetadata sm2 = shotMetadata("v2shot", 80f, true);
+          System.out.println(buildShotTelemetryJson(frame(T, 10 * MS), sm2, "vendor", 0, 0, 0));
+          System.out.println("[" + liveCct + "," + shift[0] + "," + shift[1] + "]");
+        } finally { onCameraPaused(); }
+        break;
       default:throw new AssertionError(args[0]);
     }
   }
@@ -476,4 +491,22 @@ test('v1.9.2 scorecard diagnostics emit compact EXIF tags and sidecar JSON field
     depthSource: 'hw',
   });
   assert.match(note, /ois=1 aeFps=60 merge=5 gapMs=12\.5 focusSpreadD=0\.22 motion=1 depth=hw/);
+});
+
+test('v2.0.0 calibrated ctwo tcs3408 layout decodes driver CCT/lux/gain/ATIME and interFrameGyroShiftPx', () => {
+  const [json, [liveCct, shiftX, shiftY]] = run('ctwo_v2');
+  assert.equal(json.rearSpectral.reason, null);
+  assert.equal(json.rearSpectral.cctK, 5245);
+  assert.equal(json.rearSpectral.driverLux, 1850.5);
+  assert.equal(json.rearSpectral.clearCounts, 24100);
+  assert.equal(json.rearSpectral.redCounts, 9200);
+  assert.equal(json.rearSpectral.greenCounts, 8900);
+  assert.equal(json.rearSpectral.blueCounts, 6800);
+  assert.equal(json.rearSpectral.widebandCounts, 3100);
+  assert.equal(json.rearSpectral.analogGain, 16);
+  assert.equal(json.rearSpectral.integrationTimeMs, 100);
+  assert.equal(json.rearSpectral.nominalOpticalHz, null); // raw[9]=100ms ATIME is NOT flicker Hz!
+  assert.equal(liveCct, 5245);
+  // dt=0.02s, wy=-0.4 rad/s -> -0.008 rad * 3000px = -24px; wx=0.2 rad/s -> +0.004 rad * 3000px = +12px (or sign convention)
+  assert.ok(Math.hypot(shiftX, shiftY) > 20 && Math.hypot(shiftX, shiftY) < 30);
 });

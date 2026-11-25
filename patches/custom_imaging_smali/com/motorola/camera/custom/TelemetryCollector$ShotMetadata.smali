@@ -54,19 +54,19 @@
 .method private constructor <init>(Ljava/lang/String;Ljava/lang/Float;ZLcom/motorola/camera/custom/TelemetryCollector$Session;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
     .locals 0
 
-    .line 95
+    .line 113
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 96
+    .line 114
     iput-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->shotId:Ljava/lang/String;
 
-    .line 97
+    .line 115
     iput-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->iqLuxIdx:Ljava/lang/Float;
 
-    .line 98
+    .line 116
     iput-boolean p3, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->realtimeClock:Z
 
-    .line 99
+    .line 117
     const/4 p1, 0x0
 
     if-nez p4, :cond_0
@@ -81,7 +81,7 @@
     :goto_0
     iput-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->cameraId:Ljava/lang/String;
 
-    .line 100
+    .line 118
     if-nez p4, :cond_1
 
     goto :goto_1
@@ -96,7 +96,7 @@
     :goto_1
     iput-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->isFront:Ljava/lang/Boolean;
 
-    .line 101
+    .line 119
     if-nez p4, :cond_2
 
     const-wide/16 p1, 0x0
@@ -109,28 +109,28 @@
     :goto_2
     iput-wide p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->generation:J
 
-    .line 102
+    .line 120
     iput-object p5, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->gapMs:Ljava/lang/Float;
 
-    .line 103
+    .line 121
     iput-object p6, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->focusSpreadD:Ljava/lang/Float;
 
-    .line 104
+    .line 122
     iput-object p7, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->motionRejected:Ljava/lang/Boolean;
 
-    .line 105
+    .line 123
     iput-object p8, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->aeFps:Ljava/lang/Integer;
 
-    .line 106
+    .line 124
     iput-object p9, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->oisMode:Ljava/lang/Integer;
 
-    .line 107
+    .line 125
     iput-object p10, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->mergeCount:Ljava/lang/Integer;
 
-    .line 108
+    .line 126
     iput-object p11, p0, Lcom/motorola/camera/custom/TelemetryCollector$ShotMetadata;->depthSource:Ljava/lang/String;
 
-    .line 109
+    .line 127
     return-void
 .end method
 

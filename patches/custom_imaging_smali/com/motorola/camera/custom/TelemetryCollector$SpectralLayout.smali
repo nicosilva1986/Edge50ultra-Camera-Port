@@ -17,6 +17,10 @@
 # instance fields
 .field private final channels:[I
 
+.field private final driverCctChannel:I
+
+.field private final driverLuxChannel:I
+
 .field private final xyzMatrix:[D
 
 
@@ -29,6 +33,22 @@
     return-object p0
 .end method
 
+.method static bridge synthetic -$$Nest$fgetdriverCctChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+    .locals 0
+
+    iget p0, p0, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->driverCctChannel:I
+
+    return p0
+.end method
+
+.method static bridge synthetic -$$Nest$fgetdriverLuxChannel(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)I
+    .locals 0
+
+    iget p0, p0, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->driverLuxChannel:I
+
+    return p0
+.end method
+
 .method static bridge synthetic -$$Nest$fgetxyzMatrix(Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;)[D
     .locals 0
 
@@ -38,24 +58,54 @@
 .end method
 
 .method public constructor <init>(IIIIII[D)V
+    .locals 10
+
+    .line 74
+    const/4 v8, -0x1
+
+    const/4 v9, -0x1
+
+    move-object v0, p0
+
+    move v1, p1
+
+    move v2, p2
+
+    move v3, p3
+
+    move v4, p4
+
+    move v5, p5
+
+    move/from16 v6, p6
+
+    move-object/from16 v7, p7
+
+    invoke-direct/range {v0 .. v9}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;-><init>(IIIIII[DII)V
+
+    .line 75
+    return-void
+.end method
+
+.method private constructor <init>(IIIIII[DII)V
     .locals 1
 
-    .line 71
+    .line 78
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 72
+    .line 79
     filled-new-array/range {p1 .. p6}, [I
 
     move-result-object p1
 
     iput-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->channels:[I
 
-    .line 73
+    .line 80
     const/16 p1, 0x10
 
     new-array p2, p1, [Z
 
-    .line 74
+    .line 81
     iget-object p3, p0, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->channels:[I
 
     array-length p4, p3
@@ -67,14 +117,14 @@
 
     aget p6, p3, p5
 
-    .line 75
+    .line 82
     const/4 v0, -0x1
 
     if-ne p6, v0, :cond_0
 
     goto :goto_1
 
-    .line 76
+    .line 83
     :cond_0
     if-ltz p6, :cond_1
 
@@ -84,18 +134,18 @@
 
     if-nez v0, :cond_1
 
-    .line 77
+    .line 84
     const/4 v0, 0x1
 
     aput-boolean v0, p2, p6
 
-    .line 74
+    .line 81
     :goto_1
     add-int/lit8 p5, p5, 0x1
 
     goto :goto_0
 
-    .line 76
+    .line 83
     :cond_1
     new-instance p1, Ljava/lang/IllegalArgumentException;
 
@@ -105,7 +155,7 @@
 
     throw p1
 
-    .line 79
+    .line 86
     :cond_2
     if-eqz p7, :cond_4
 
@@ -126,7 +176,7 @@
 
     throw p1
 
-    .line 80
+    .line 87
     :cond_4
     :goto_2
     if-nez p7, :cond_5
@@ -145,6 +195,20 @@
     :goto_3
     iput-object p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->xyzMatrix:[D
 
-    .line 81
+    .line 88
+    iput p8, p0, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->driverCctChannel:I
+
+    .line 89
+    iput p9, p0, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;->driverLuxChannel:I
+
+    .line 90
+    return-void
+.end method
+
+.method synthetic constructor <init>(IIIIII[DIILcom/motorola/camera/custom/TelemetryCollector-IA;)V
+    .locals 0
+
+    invoke-direct/range {p0 .. p9}, Lcom/motorola/camera/custom/TelemetryCollector$SpectralLayout;-><init>(IIIIII[DII)V
+
     return-void
 .end method

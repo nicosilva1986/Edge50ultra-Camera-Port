@@ -316,10 +316,48 @@ public final class BurstChecks {
         }
         ok(maxErr<0.15,"SR moving ghost leaked onto static anchor: "+maxErr);
     }
+    static void largeShiftAndNoise(){
+        int lw=256, lh=192;
+        Scene rich=(x,y,p)->.18+.42*(Math.exp(-((x-128)*(x-128)+(y-96)*(y-96))/1400.0))
+            +.12*Math.sin(.11*x)+.08*Math.cos(.15*y)+(x>140+.08*y ? .25 : 0);
+        // Test +24 px Bayer shift (+12 superpixels) WITHOUT gyro (coarse pyramid only) and WITH gyro + noise profile.
+        float[] scale4={0.0004f,0.0003f,0.0003f,0.0004f};
+        float[] off4={0.00002f,0.00002f,0.00002f,0.00002f};
+        for(int useGyro=0;useGyro<2;useGyro++){
+            MultiFrameRawEngine e=new MultiFrameRawEngine(MODE_HDR_PLUS,3);
+            int[][] shifts={{0,0},{24,-12},{-20,16}};
+            FrameInput base=null;
+            for(int i=0;i<3;i++){
+                Random rng=new Random(9200+i);
+                int[] raw=new int[lw*lh];
+                for(int y=0;y<lh;y++)for(int x=0;x<lw;x++){
+                    int p=site(x,y);
+                    double sig=rich.at(x-shifts[i][0],y-shifts[i][1],p);
+                    double dn=BLACK[p]+(WHITE-BLACK[p])*sig+22.0*rng.nextGaussian();
+                    raw[y*lw+x]=(int)Math.round(Math.max(0,Math.min(WHITE,dn)));
+                }
+                float gx=useGyro==1 ? shifts[i][0] : 0f;
+                float gy=useGyro==1 ? shifts[i][1] : 0f;
+                FrameInput fi=new FrameInput(raw,lw,lh,0,BLACK,WHITE,200+i,BASE,100,0,1000,gx,gy,scale4,off4);
+                if(i==0)base=fi;
+                e.addFrame(fi);
+            }
+            Result r=e.merge();
+            ok(r.acceptedFrames==3,"large shift frame rejected (gyro="+useGyro+"): "+r.acceptedFrames);
+            double baseErr=0,mergedErr=0;
+            for(int y=28;y<lh-28;y++)for(int x=36;x<lw-36;x++){
+                double v=rich.at(x,y,site(x,y));
+                double e0=nativeSample(base,x,y)-v, em=decoded(r,x,y)-v;
+                baseErr+=e0*e0; mergedErr+=em*em;
+            }
+            double gain=10*Math.log10(baseErr/mergedErr);
+            ok(gain>=3.2,"24px shift SNR gain too low (gyro="+useGyro+"): "+gain);
+        }
+    }
     public static void main(String[] args){
         switch(args[0]){
             case "hdr":hdr();break;case "aeb":aeb();break;case "sr":sr();break;
-            case "calibration":calibration();break;case "focus":focus();break;case "nd":nd();break;case "ring":ring();break;case "invalid":invalid();break;case "ghost":rejectGhost();break;
+            case "calibration":calibration();break;case "focus":focus();break;case "nd":nd();break;case "ring":ring();break;case "invalid":invalid();break;case "ghost":rejectGhost();break;case "largeshift":largeShiftAndNoise();break;
             default:throw new IllegalArgumentException(args[0]);
         }
     }
@@ -345,6 +383,7 @@ for (const [op, title] of Object.entries({
   calibration: 'all CFA patterns preserve site pedestals, and gyro rejection uses focal length in pixels',
   invalid: 'invalid input and memory overflow are rejected before ring mutation',
   ghost: 'mismatched tiles (>30%) and moving objects in SR are rejected without ghosting',
+  largeshift: 'coarse pyramid and gyro prior align 24 px shifts with calibrated Poisson-Gaussian noise profile',
 })) {
   test(title, t => {
     const metrics = run(java, ['-Xmx96m', '-cp', classes, 'BurstChecks', op]);

@@ -66,9 +66,16 @@ public final class TelemetryCollector {
     public static final class SpectralLayout {
         private final int[] channels;
         private final double[] xyzMatrix;
+        private final int driverCctChannel;
+        private final int driverLuxChannel;
 
         public SpectralLayout(int red, int green, int blue, int clear, int wideband, int flickerHz,
                               double[] xyzMatrix) {
+            this(red, green, blue, clear, wideband, flickerHz, xyzMatrix, -1, -1);
+        }
+
+        private SpectralLayout(int red, int green, int blue, int clear, int wideband, int flickerHz,
+                               double[] xyzMatrix, int driverCctChannel, int driverLuxChannel) {
             channels = new int[]{red, green, blue, clear, wideband, flickerHz};
             boolean[] seen = new boolean[16];
             for (int i : channels) {
@@ -78,7 +85,18 @@ public final class TelemetryCollector {
             }
             if (xyzMatrix != null && xyzMatrix.length != 9) throw new IllegalArgumentException("XYZ matrix");
             this.xyzMatrix = xyzMatrix == null ? null : xyzMatrix.clone();
+            this.driverCctChannel = driverCctChannel;
+            this.driverLuxChannel = driverLuxChannel;
         }
+    }
+
+    /**
+     * Verified layout for Edge 50 Ultra ({@code ctwo}) rear {@code ams AG tcs3408}
+     * ({@code com.motorola.sensor.alternate_rgb} / {@code alternate_light}):
+     * {@code [0]=driverCctK, [1]=lux, [2]=clear, [3]=red, [4]=green, [5]=blue, [6]=wideband, [8]=gain, [9]=atimeMs}.
+     */
+    public static SpectralLayout ctwoRearTcs3408Layout() {
+        return new SpectralLayout(3, 4, 5, 2, 6, -1, null, 0, 1);
     }
 
     /** Snapshot this identity at request time. Set realtimeClock only for SENSOR_INFO_TIMESTAMP_SOURCE_REALTIME. */
@@ -427,7 +445,7 @@ public final class TelemetryCollector {
         }
     }
 
-    /** Returns integrated gyro angular excursion (rad) over [timestampNs - exposureNs, timestampNs], or -1 if unavailable. */
+    /** Returns integrated gyro angular excursion (rad) over [timestampNs, timestampNs + exposureNs], or -1 if unavailable. */
     public static float latestGyroExcursionRad(long frameTimestampNs, long exposureNs) {
         Session s = active;
         if (s == null || frameTimestampNs <= 0L || exposureNs <= 0L) return -1f;
@@ -437,6 +455,76 @@ public final class TelemetryCollector {
             return exc instanceof Number ? ((Number) exc).floatValue() : -1f;
         } catch (Throwable ignored) {
             return -1f;
+        }
+    }
+
+    /**
+     * Integrates signed angular translation seed {@code {dxPx, dyPx}} from {@code fromTimestampNs}
+     * to {@code toTimestampNs} using the 400 Hz gyroscope stream, or {@code null} when unavailable.
+     */
+    public static float[] interFrameGyroShiftPx(long fromTimestampNs, long toTimestampNs, float focalLengthPx) {
+        Session s = active;
+        if (s == null || fromTimestampNs <= 0L || toTimestampNs <= 0L || !(focalLengthPx > 0f)) return null;
+        long span = Math.abs(toTimestampNs - fromTimestampNs);
+        if (span == 0L) return new float[]{0f, 0f};
+        if (span > 500_000_000L) return null;
+        long start = Math.min(fromTimestampNs, toTimestampNs);
+        float sign = toTimestampNs >= fromTimestampNs ? 1f : -1f;
+        Series series = s.history.get(Stream.GYRO);
+        if (series == null) return null;
+        synchronized (series) {
+            int first = series.lowerBound(start), last = series.lowerBound(start + span);
+            if (first == series.size || last == series.size) return null;
+            if (series.times[series.slot(first)] > start) first--;
+            if (first < 0) return null;
+            double rotX = 0.0, rotY = 0.0;
+            long end = start + span;
+            for (int i = first; i < last; i++) {
+                int a = series.slot(i), b = series.slot(i + 1);
+                long t0 = series.times[a], t1 = series.times[b], gap = t1 - t0;
+                if (gap <= 0 || gap > MAX_IMU_GAP_NS) return null;
+                long from = Math.max(start, t0), to = Math.min(end, t1);
+                double p = (from - t0) / (double) gap, q = (to - t0) / (double) gap;
+                int ai = a * series.width, bi = b * series.width;
+                double ax = series.data[ai], ay = series.data[ai + 1];
+                double dx = series.data[bi] - ax, dy = series.data[bi + 1] - ay;
+                double mx = ax + 0.5 * (p + q) * dx;
+                double my = ay + 0.5 * (p + q) * dy;
+                double dt = (to - from) / (double) SECOND;
+                rotX += mx * dt;
+                rotY += my * dt;
+            }
+            // Body gyro Y maps horizontal pan, X maps vertical pitch in sensor mosaic orientation.
+            float shiftX = (float) Math.max(-64.0, Math.min(64.0, sign * rotY * focalLengthPx));
+            float shiftY = (float) Math.max(-64.0, Math.min(64.0, sign * rotX * focalLengthPx));
+            return new float[]{shiftX, shiftY};
+        }
+    }
+
+    /**
+     * Returns fresh rear {@code tcs3408} ambient CCT in Kelvin when illuminance is sufficient
+     * ({@code lux >= 1.0} and {@code clear >= 100}), or {@code Float.NaN} on front/dark/unavailable.
+     */
+    public static float latestRearAmbientCctK() {
+        Session s = active;
+        if (s == null || s.front || s.layout == null || s.layout.driverCctChannel < 0) return Float.NaN;
+        Series rgb = s.history.get(Stream.RGB);
+        if (rgb == null) return Float.NaN;
+        synchronized (rgb) {
+            if (rgb.size == 0) return Float.NaN;
+            int latest = rgb.slot(rgb.size - 1);
+            int len = rgb.sizes[latest];
+            if (len < 6) return Float.NaN;
+            int base = latest * rgb.width;
+            float cct = rgb.data[base + s.layout.driverCctChannel];
+            float lux = s.layout.driverLuxChannel >= 0 && s.layout.driverLuxChannel < len
+                    ? rgb.data[base + s.layout.driverLuxChannel] : 0f;
+            float clear = s.layout.channels[3] >= 0 && s.layout.channels[3] < len
+                    ? rgb.data[base + s.layout.channels[3]] : 0f;
+            if (Float.isFinite(cct) && cct >= 1800f && cct <= 12000f && lux >= 1.0f && clear >= 100f) {
+                return cct;
+            }
+            return Float.NaN;
         }
     }
 
@@ -622,13 +710,29 @@ public final class TelemetryCollector {
         }
         if (rgb.values != null && layout == null) m.put("reason", "unverifiedLayout");
         Double cct = null;
-        if (counts[0] != null && counts[1] != null && counts[2] != null) {
+        if (counts[0] != null && counts[1] != null && counts[2] != null && layout != null && layout.xyzMatrix != null) {
             cct = estimateCctKelvin(counts[0], counts[1], counts[2], layout.xyzMatrix);
         }
-        m.put("cctK", cct);
         String cctReason = (String)m.get("reason");
+        if (cct == null && layout != null && layout.driverCctChannel >= 0) {
+            Float drvCct = rgb.channel(layout.driverCctChannel);
+            Float drvLux = layout.driverLuxChannel >= 0 ? rgb.channel(layout.driverLuxChannel) : null;
+            Float clr = counts[3];
+            if (drvLux != null) m.put("driverLux", drvLux);
+            Float gain = rgb.channel(8);
+            Float atimeMs = rgb.channel(9);
+            if (gain != null && gain > 0f) m.put("analogGain", gain);
+            if (atimeMs != null && atimeMs > 0f) m.put("integrationTimeMs", atimeMs);
+            if (drvCct != null && drvCct >= 1500f && drvCct <= 15000f
+                    && drvLux != null && drvLux >= 1.0f && clr != null && clr >= 100f) {
+                cct = Double.valueOf(drvCct.doubleValue());
+            } else if (cctReason == null) {
+                cctReason = "lowLightNoise";
+            }
+        }
+        m.put("cctK", cct);
         if (cct == null && cctReason == null) {
-            cctReason = layout.xyzMatrix == null ? "uncalibrated" : "invalidChromaticity";
+            cctReason = (layout == null || layout.xyzMatrix == null) ? "uncalibrated" : "invalidChromaticity";
         }
         m.put("cctReason", cctReason);
         Float hz = layout == null ? null : rgb.channel(layout.channels[5]);

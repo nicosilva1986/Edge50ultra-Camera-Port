@@ -26,35 +26,35 @@
 .method constructor <init>(Lcom/motorola/camera/custom/TelemetryCollector$Series;JJLjava/lang/String;)V
     .locals 2
 
-    .line 580
+    .line 668
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 581
+    .line 669
     iput-object p6, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->reason:Ljava/lang/String;
 
-    .line 582
+    .line 670
     if-nez p1, :cond_0
 
     return-void
 
-    .line 583
+    .line 671
     :cond_0
     monitor-enter p1
 
-    .line 584
+    .line 672
     :try_start_0
     invoke-virtual {p1, p2, p3}, Lcom/motorola/camera/custom/TelemetryCollector$Series;->atOrBefore(J)I
 
     move-result p6
 
-    .line 585
+    .line 673
     if-gez p6, :cond_1
 
     monitor-exit p1
 
     return-void
 
-    .line 586
+    .line 674
     :cond_1
     iget-object v0, p1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->times:[J
 
@@ -66,7 +66,7 @@
 
     iput-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->timestamp:Ljava/lang/Long;
 
-    .line 587
+    .line 675
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->timestamp:Ljava/lang/Long;
 
     invoke-virtual {v0}, Ljava/lang/Long;->longValue()J
@@ -79,23 +79,23 @@
 
     if-lez p2, :cond_2
 
-    .line 588
+    .line 676
     const-string p2, "stale"
 
     iput-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->reason:Ljava/lang/String;
 
-    .line 589
+    .line 677
     monitor-exit p1
 
     return-void
 
-    .line 591
+    .line 679
     :cond_2
     iget p2, p1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->width:I
 
     mul-int/2addr p2, p6
 
-    .line 592
+    .line 680
     iget-object p3, p1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->data:[F
 
     iget-object p4, p1, Lcom/motorola/camera/custom/TelemetryCollector$Series;->sizes:[I
@@ -110,18 +110,18 @@
 
     iput-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
-    .line 593
+    .line 681
     const/4 p2, 0x0
 
     iput-object p2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->reason:Ljava/lang/String;
 
-    .line 594
+    .line 682
     monitor-exit p1
 
-    .line 595
+    .line 683
     return-void
 
-    .line 594
+    .line 682
     :catchall_0
     move-exception p2
 
@@ -137,7 +137,7 @@
 .method channel(I)Ljava/lang/Float;
     .locals 2
 
-    .line 598
+    .line 686
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
     if-eqz v0, :cond_1
@@ -172,7 +172,7 @@
 
     goto :goto_0
 
-    .line 599
+    .line 687
     :cond_0
     iget-object v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
@@ -184,7 +184,7 @@
 
     return-object p1
 
-    .line 598
+    .line 686
     :cond_1
     :goto_0
     const/4 p1, 0x0
@@ -204,12 +204,12 @@
         }
     .end annotation
 
-    .line 603
+    .line 691
     new-instance v0, Ljava/util/LinkedHashMap;
 
     invoke-direct {v0}, Ljava/util/LinkedHashMap;-><init>()V
 
-    .line 604
+    .line 692
     iget-object v1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->timestamp:Ljava/lang/Long;
 
     if-nez v1, :cond_0
@@ -230,20 +230,20 @@
 
     invoke-interface {v0, v2, v1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 605
+    .line 693
     const-string v1, "reason"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->reason:Ljava/lang/String;
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 606
+    .line 694
     const-string v1, "raw"
 
     iget-object v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Observation;->values:[F
 
     invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 607
+    .line 695
     return-object v0
 .end method

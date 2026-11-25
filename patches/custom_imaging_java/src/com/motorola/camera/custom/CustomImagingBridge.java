@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ColorSpace;
 import android.graphics.Gainmap;
 import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
@@ -22,6 +23,7 @@ import android.hardware.camera2.params.RggbChannelVector;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Pair;
 import android.util.Range;
 import android.util.Rational;
 import android.util.SizeF;
@@ -82,7 +84,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class CustomImagingBridge {
     private static final String TAG = "CustomImagingBridge";
-    private static final String MOD_VERSION = "1.9.2";
+    private static final String MOD_VERSION = "2.0.0";
     public static final String PREF_KEY = "com.motorola.camera.post_processing_profile";
     public static final String LOOK_PRESET = "com.motorola.camera.look_preset";
     public static final String LOOK_INTENSITY = "com.motorola.camera.look_intensity";
@@ -531,6 +533,7 @@ public final class CustomImagingBridge {
     private static final String KEY_HDR_MODE_PREF = "org.codeaurora.qcamera3.sessionParameters.HDRModePreference";
     private static final String KEY_ENABLE_QLL = "org.codeaurora.qcamera3.sessionParameters.enableQLL";
     private static final String KEY_SAT_FALLBACK_T2W = "com.lenovo.moto.SATFallback.T2W";
+    private static final String KEY_IS_MFNR_NIGHT = "com.lenovo.moto.extension.is_mfnr_night";
 
     private static final Set<String> KNOWN_SESSION_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             KEY_ENABLE_ISZ,
@@ -599,7 +602,9 @@ public final class CustomImagingBridge {
      */
     public static void applySessionParameterOverrides(String cameraId, CaptureRequest.Builder builder) {
         try {
-            TelemetryCollector.onCameraActive(application, cameraId, SettingsHelper.isCurrentFrontCamera());
+            boolean front = SettingsHelper.isCurrentFrontCamera();
+            TelemetryCollector.onCameraActive(application, cameraId, front,
+                    front ? null : TelemetryCollector.ctwoRearTcs3408Layout());
             CompassHudController.onModeChanged();
         } catch (Throwable t) {
             Log.w(TAG, "TelemetryCollector.onCameraActive skipped", t);
@@ -609,39 +614,27 @@ public final class CustomImagingBridge {
             MultiFrameBurstController.beginSession(cameraId);
             VideoConfigHelper.resetAwbSwitchTracker();
 
+            int profile = getSelectedProfile();
+            if (profile != ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING
+                    && profile != ScenePostProcSelector.PROFILE_PURE_ISP) {
+                // Leave EnableInsensorZoom=1 as set by RequestBuilderHelper.setInsensorZoomForSession.
+                // Never set EnableSnapshotOnlyInsensorZoom=1 alongside EnableInsensorZoom=1 or force
+                // XCFA/AIDE/MFHDR/VSR on ctwo MultiCameraSAT sessions: ChiFeature2GraphSelector
+                // (com.qti.feature2.gs.sm8650.so) dereferences a null GraphDescriptorTable entry (0x50).
+                return;
+            }
+
             CameraCharacteristics chars = SettingsManager.getCharacteristics(cameraId);
             if (chars == null) return;
             Set<String> sesKeys = getKeyNames(chars, true);
             if (sesKeys.isEmpty()) return;
 
-            int profile = getSelectedProfile();
-            if (profile == ScenePostProcSelector.PROFILE_DISABLE_POST_PROCESSING
-                    || profile == ScenePostProcSelector.PROFILE_PURE_ISP) {
-                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_AUTO_HDR, Integer.class, Integer.valueOf(0));
-                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFHDR, Integer.class, Integer.valueOf(0));
-                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_VSR, Integer.class, Integer.valueOf(0));
-                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFNR_AIDE, Byte.class, Byte.valueOf((byte) 0));
-                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MCTF_WITH_REF, Byte.class, Byte.valueOf((byte) 0));
-                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_QLL, Integer.class, Integer.valueOf(0));
-                return;
-            }
-
-            if (SettingsHelper.isVideoMode()) {
-                if (!SettingsHelper.isDualCaptureVideoMode()) {
-                    setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MCTF_WITH_REF, Byte.class, Byte.valueOf((byte) 1));
-                }
-                return;
-            }
-
-            // Preserve EnableInsensorZoom as configured by RequestBuilderHelper.setInsensorZoomForSession;
-            // only gate Snapshot-Only ISZ in supported HAL sessions for adaptive / graded photo profiles.
-            boolean allowSnapIsz = profile == ScenePostProcSelector.PROFILE_AUTO_SCENE_ADAPTIVE
-                    || profile == ScenePostProcSelector.PROFILE_DETAIL_HDR
-                    || (profile >= ScenePostProcSelector.PROFILE_IPHONE_NATURAL
-                        && profile <= ScenePostProcSelector.PROFILE_IPHONE_AMBER);
-            if (allowSnapIsz && shouldAllowInSensorCrop()) {
-                setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_SNAPSHOT_ISZ, Integer.class, Integer.valueOf(1));
-            }
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_AUTO_HDR, Integer.class, Integer.valueOf(0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFHDR, Integer.class, Integer.valueOf(0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_VSR, Integer.class, Integer.valueOf(0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MFNR_AIDE, Byte.class, Byte.valueOf((byte) 0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_MCTF_WITH_REF, Byte.class, Byte.valueOf((byte) 0));
+            setVendorKeyIfSupported(builder, sesKeys, KEY_ENABLE_QLL, Integer.class, Integer.valueOf(0));
         } catch (Throwable t) {
             Log.w(TAG, "applySessionParameterOverrides failed", t);
         }
@@ -969,6 +962,7 @@ public final class CustomImagingBridge {
 
             try {
                 if (!bmp.isMutable()) return;
+                boolean preservedP3 = UltraHdrSynthesizer.preserveDisplayP3IfWide(bmp, bmp.getColorSpace());
                 Gainmap gainmap = bmp.hasGainmap() ? bmp.getGainmap() : null;
                 if (gainmap == null && origMeta != null && origMeta.isUltraHdr()) {
                     stampExifDescription(container, origBytes, origMeta, summary, shotCompass);
@@ -1003,6 +997,12 @@ public final class CustomImagingBridge {
                     stampExifDescription(container, origBytes, origMeta, summary, shotCompass);
                     return;
                 }
+
+                // Capture 1/4-res pre-grade peak stats (~1.5 MB at 12.5 MP) when HAL omitted Ultra HDR
+                // (e.g. HAL_FRAME_STACK on 0.5x/1x/2x/3x/6x) so we can synthesize an ISO 21496-1 Gainmap.
+                boolean wantSynthUhdr = gainmap == null && !portrait
+                        && ((isAutoPost && (wantHighlight || wantLtm || wantBacklit)) || lutStyle > 0);
+                byte[] preUhdrStats = wantSynthUhdr ? UltraHdrSynthesizer.sampleQuarterPeakStats(bmp) : null;
 
                 PixelSurface surface = bitmapSurface(bmp, w);
 
@@ -1056,10 +1056,24 @@ public final class CustomImagingBridge {
                     return;
                 }
 
+                boolean synthesizedUhdr = false;
+                if (preUhdrStats != null && gainmap == null) {
+                    byte[] postUhdrStats = UltraHdrSynthesizer.sampleQuarterPeakStats(bmp);
+                    UltraHdrSynthesizer.PlaneResult synthPlane = UltraHdrSynthesizer.computeFromQuarterPeakStats(
+                            preUhdrStats, postUhdrStats, w, h,
+                            UltraHdrSynthesizer.DEFAULT_SDR_SHOULDER_HEADROOM);
+                    Gainmap synthGm = UltraHdrSynthesizer.toAndroidGainmap(synthPlane);
+                    if (synthGm != null) {
+                        gainmap = synthGm;
+                        bmp.setGainmap(gainmap);
+                        synthesizedUhdr = true;
+                    }
+                }
+
                 ByteArrayOutputStream jpegOut = new ByteArrayOutputStream(origBytes.length);
-                if (look != null) {
+                if (look != null && gainmap != null) {
                     adaptGainmap(gainmap, decision.look, decision.intensity);
-                    if (gainmap != null) bmp.setGainmap(gainmap);
+                    bmp.setGainmap(gainmap);
                 }
                 if (!bmp.compress(Bitmap.CompressFormat.JPEG, JPEG_SAVE_QUALITY, jpegOut)) {
                     return;
@@ -1069,7 +1083,9 @@ public final class CustomImagingBridge {
                         + (isAutoPost && wantLtm ? " ltm=1" : "")
                         + (isAutoPost && wantBacklit && !wantLtm ? " backlit=1" : "")
                         + (isAutoPost && wantHighlight && !wantLtm ? " hl=1" : "")
-                        + (isAutoPost && wantZoomSharp ? " zsharp=1" : "");
+                        + (isAutoPost && wantZoomSharp ? " zsharp=1" : "")
+                        + (synthesizedUhdr ? " uhdr=synth" : "")
+                        + (preservedP3 ? " p3=1" : "");
                 if (origMeta != null) {
                     if (finalSummary != null && !finalSummary.isEmpty()) {
                         origMeta.setAttribute("ImageDescription", finalSummary);
@@ -1079,7 +1095,7 @@ public final class CustomImagingBridge {
                     ByteArrayOutputStream exifOut = new ByteArrayOutputStream(gradedBytes.length + 65536);
                     origMeta.saveJpegAttributes(new ByteArrayInputStream(gradedBytes), exifOut, false);
                     byte[] rewritten = exifOut.toByteArray();
-                    gradedBytes = gainmap == null ? rewritten : GainmapJpeg.withExif(gradedBytes, rewritten);
+                    gradedBytes = gainmap == null ? rewritten : preserveGainmapExifSafe(gradedBytes, rewritten);
                 }
                 if (depthOriginal != null && look != null) {
                     byte[] aux = gradeDepthOriginal(depthOriginal, look, decision.look, decision.intensity);
@@ -1415,8 +1431,17 @@ public final class CustomImagingBridge {
         } catch (Throwable ignored) {}
     }
 
+    private static byte[] preserveGainmapExifSafe(byte[] nativeJpeg, byte[] metadataJpeg) {
+        try {
+            return GainmapJpeg.withExif(nativeJpeg, metadataJpeg);
+        } catch (Throwable ignored) {
+            return metadataJpeg;
+        }
+    }
+
     private static MultiFrameRawEngine.Result tryMultiFrameRawMerge(
             byte[] anchorRawBytes, int width, int height, int cfa, float[] black4, float white,
+            float[] noiseScale4, float[] noiseOffset4,
             TotalCaptureResult result, ShotDecision decision, String cameraId) {
         try {
             int minRaw10 = (int) ((long) width * height * 5L / 4L);
@@ -1484,6 +1509,7 @@ public final class CustomImagingBridge {
             int maxFrames = engineMode == MultiFrameRawEngine.MODE_SUPER_RES ? 8 : 6;
             MultiFrameRawEngine engine = new MultiFrameRawEngine(engineMode, maxFrames);
 
+            long gyroOriginTs = minTs < Long.MAX_VALUE ? minTs : anchorTs;
             long lastTs = -1L;
             int added = 0;
             for (MultiFrameBurstController.BurstFrameSnapshot f : ringFrames) {
@@ -1494,8 +1520,10 @@ public final class CustomImagingBridge {
                 int iso = f.iso > 0 ? f.iso : anchorIso;
                 float flPx = f.focalLengthPx > 0f ? f.focalLengthPx : anchorFlPx;
                 float gyro = f.gyroExcursionRad >= 0f ? f.gyroExcursionRad : 0f;
+                float[] gShift = TelemetryCollector.interFrameGyroShiftPx(gyroOriginTs, f.timestampNs, flPx);
                 engine.addFrame(new MultiFrameRawEngine.FrameInput(
-                        frameUnpacked, width, height, cfa, black4, white, f.timestampNs, exp, iso, gyro, flPx));
+                        frameUnpacked, width, height, cfa, black4, white, f.timestampNs, exp, iso, gyro, flPx,
+                        gShift[0], gShift[1], noiseScale4, noiseOffset4));
                 lastTs = f.timestampNs;
                 added++;
             }
@@ -1509,10 +1537,16 @@ public final class CustomImagingBridge {
                 return null;
             }
             long finalAnchorTs = anchorTs > lastTs ? anchorTs : (lastTs + 1L);
+            float[] anchorShift = TelemetryCollector.interFrameGyroShiftPx(gyroOriginTs, finalAnchorTs, anchorFlPx);
             engine.addFrame(new MultiFrameRawEngine.FrameInput(
                     anchorUnpacked, width, height, cfa, black4, white, finalAnchorTs, anchorExp, anchorIso,
-                    anchorGyro, anchorFlPx));
-            MultiFrameRawEngine.Result res = engine.size() >= 2 ? engine.merge() : null;
+                    anchorGyro, anchorFlPx, anchorShift[0], anchorShift[1], noiseScale4, noiseOffset4));
+            MultiFrameRawEngine.Result res = null;
+            if (engine.size() >= 2) {
+                try (GpuComputeContext.Scope glScope = GpuComputeContext.acquire()) {
+                    res = glScope != null ? engine.mergeOnCurrentGlContext() : engine.merge();
+                }
+            }
             MultiFrameBurstController.recordMergeDiagnostics(res == null || res.acceptedFrames < 2, focusSpreadD, gapMs);
             return res;
         } catch (Throwable t) {
@@ -1602,6 +1636,12 @@ public final class CustomImagingBridge {
             float[] black4 = {64f, 64f, 64f, 64f};
             float white = 1023f;
             float[] ccm = null;
+            ColorSpace displayP3 = null;
+            try {
+                displayP3 = ColorSpace.get(ColorSpace.Named.DISPLAY_P3);
+            } catch (Throwable ignored) {}
+            boolean useDisplayP3 = displayP3 != null;
+            Float ambientCct = isFrontCameraId(cameraId) ? null : TelemetryCollector.latestRearAmbientCctK();
 
             if (chars != null) {
                 Integer cfaObj = chars.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
@@ -1617,14 +1657,59 @@ public final class CustomImagingBridge {
                 if (wObj != null && wObj.intValue() > 0) {
                     white = wObj.floatValue();
                 }
-                ccm = sensorTransformToSrgbCcm(extractCcm(chars.get(CameraCharacteristics.SENSOR_COLOR_TRANSFORM1)));
+                float[] ccm1 = extractCcm(chars.get(CameraCharacteristics.SENSOR_COLOR_TRANSFORM1));
+                float[] ccm2 = extractCcm(chars.get(CameraCharacteristics.SENSOR_COLOR_TRANSFORM2));
+                Integer ill1Obj = chars.get(CameraCharacteristics.SENSOR_REFERENCE_ILLUMINANT1);
+                Byte ill2Obj = chars.get(CameraCharacteristics.SENSOR_REFERENCE_ILLUMINANT2);
+                int ill1 = ill1Obj != null ? ill1Obj.intValue() : 21;
+                int ill2 = ill2Obj != null ? (ill2Obj.byteValue() & 0xFF) : 17;
+                if (ccm1 != null) {
+                    ccm = CleanBayerRawProcessor.dualIlluminantSensorToOutputCcm(
+                            ccm1, ill1, ccm2, ill2,
+                            ambientCct != null ? ambientCct.floatValue() : Float.NaN,
+                            useDisplayP3);
+                }
             }
 
-            ColorSpaceTransform resCcm = result.get(CaptureResult.COLOR_CORRECTION_TRANSFORM);
-            if (resCcm != null) {
-                float[] parsed = extractCcm(resCcm);
-                if (parsed != null) ccm = parsed;
+            try {
+                float[] dynBlack = result.get(CaptureResult.SENSOR_DYNAMIC_BLACK_LEVEL);
+                if (dynBlack != null && dynBlack.length == 4) {
+                    boolean validDyn = true;
+                    for (int i = 0; i < 4; i++) {
+                        if (!Float.isFinite(dynBlack[i]) || dynBlack[i] < 0f || dynBlack[i] >= white - 1f) {
+                            validDyn = false;
+                            break;
+                        }
+                    }
+                    if (validDyn) {
+                        System.arraycopy(dynBlack, 0, black4, 0, 4);
+                    }
+                }
+            } catch (Throwable ignored) {}
+
+            // Only override with HAL's sRGB COLOR_CORRECTION_TRANSFORM when dual-illuminant P3 CCM is unavailable.
+            if (ccm == null || (!useDisplayP3 && ambientCct == null)) {
+                ColorSpaceTransform resCcm = result.get(CaptureResult.COLOR_CORRECTION_TRANSFORM);
+                if (resCcm != null) {
+                    float[] parsed = extractCcm(resCcm);
+                    if (parsed != null) ccm = parsed;
+                }
             }
+
+            float[] noiseScale4 = null;
+            float[] noiseOffset4 = null;
+            try {
+                Pair<Double, Double>[] np = result.get(CaptureResult.SENSOR_NOISE_PROFILE);
+                if (np != null && np.length >= 4) {
+                    noiseScale4 = new float[4];
+                    noiseOffset4 = new float[4];
+                    for (int i = 0; i < 4; i++) {
+                        Pair<Double, Double> ch = np[i];
+                        noiseScale4[i] = (ch != null && ch.first != null) ? ch.first.floatValue() : 0f;
+                        noiseOffset4[i] = (ch != null && ch.second != null) ? ch.second.floatValue() : 0f;
+                    }
+                }
+            } catch (Throwable ignored) {}
 
             float[] wb = {1.8f, 1.0f, 1.6f};
             RggbChannelVector gains = result.get(CaptureResult.COLOR_CORRECTION_GAINS);
@@ -1656,12 +1741,15 @@ public final class CustomImagingBridge {
             } catch (Throwable ignored) {}
 
             int[] argb;
+            float[] linearPeak;
+            float maxHeadroomCap = 2.6f;
             String captureMethod = "singleRaw";
             String burstSummary = "";
             Integer mergeCount = null;
             String rawDepth = null;
             MultiFrameRawEngine.Result merged = tryMultiFrameRawMerge(
-                    rawBytes, width, height, cfa, black4, white, result, decision, cameraId);
+                    rawBytes, width, height, cfa, black4, white, noiseScale4, noiseOffset4,
+                    result, decision, cameraId);
             if (merged != null) {
                 width = merged.width;
                 height = merged.height;
@@ -1670,15 +1758,20 @@ public final class CustomImagingBridge {
                 white = merged.whiteLevel;
                 captureMethod = "rawBurst";
                 mergeCount = Integer.valueOf(merged.acceptedFrames);
-                burstSummary = " rawBurst=" + merged.acceptedFrames + (merged.superResolved ? " sr=1" : "");
+                maxHeadroomCap = (float) Math.max(2.6, Math.min(8.0, merged.headroom * 2.4));
+                burstSummary = " rawBurst=" + merged.acceptedFrames
+                        + (merged.superResolved ? " sr=1" : "")
+                        + (merged.usedGlGuide ? " glGuide=1" : "");
+                linearPeak = new float[width * height];
                 argb = CleanBayerRawProcessor.processRawToArgb(
                         merged.raw, width, height, cfa, black4, white, wb, ccm, 0.25f,
-                        lscGrid, lscCols, lscRows, isoSensitivity);
+                        lscGrid, lscCols, lscRows, isoSensitivity, linearPeak);
             } else {
                 mergeCount = Integer.valueOf(1);
+                linearPeak = new float[width * height];
                 argb = CleanBayerRawProcessor.processRawToArgb(
                         unpacked, width, height, cfa, black4, white, wb, ccm, 0.25f,
-                        lscGrid, lscCols, lscRows, isoSensitivity);
+                        lscGrid, lscCols, lscRows, isoSensitivity, linearPeak);
             }
             int lutStyle = decision.resolved[5];
             if (lutStyle > 0) {
@@ -1692,18 +1785,32 @@ public final class CustomImagingBridge {
             if (look != null && !applyLook(arraySurface(argb, width), width, height,
                     look, decision.look, decision.intensity, 1.0f, 1.0f)) return;
 
+            UltraHdrSynthesizer.PlaneResult rawGmPlane = UltraHdrSynthesizer.computeFromLinearAndSdr(
+                    linearPeak, argb, width, height, maxHeadroomCap);
+            linearPeak = null; // Free float plane before Bitmap allocation.
+            Gainmap rawGainmap = UltraHdrSynthesizer.toAndroidGainmap(rawGmPlane);
+            if (look != null && rawGainmap != null) {
+                adaptGainmap(rawGainmap, decision.look, decision.intensity);
+            }
+
             Bitmap bmp = Bitmap.createBitmap(argb, width, height, Bitmap.Config.ARGB_8888);
             if (bmp == null) return;
-            byte[] jpegBytes;
+            byte[] nativeEncodedJpeg;
             try {
+                if (useDisplayP3 && displayP3 != null) {
+                    try { bmp.setColorSpace(displayP3); } catch (Throwable ignored) {}
+                }
+                if (rawGainmap != null) {
+                    bmp.setGainmap(rawGainmap);
+                }
                 ByteArrayOutputStream baos = new ByteArrayOutputStream(width * height / 4);
                 if (!bmp.compress(Bitmap.CompressFormat.JPEG, JPEG_SAVE_QUALITY, baos)) return;
-                jpegBytes = baos.toByteArray();
+                nativeEncodedJpeg = baos.toByteArray();
             } finally {
                 bmp.recycle();
             }
 
-            jpegBytes = ExifUtility.appendExifToJpeg(jpegBytes, result, null, cameraId, null);
+            byte[] jpegBytes = ExifUtility.appendExifToJpeg(nativeEncodedJpeg, result, null, cameraId, null);
             try {
                 String telemetryNote = recordShotTelemetry(
                         null, result, cameraId, decision, captureMethod, cleanName, mergeCount, rawDepth);
@@ -1717,7 +1824,10 @@ public final class CustomImagingBridge {
                         changed = true;
                     }
                     if (summary != null && !summary.isEmpty()) {
-                        String cleanSummary = summary + " cleanBayer=1" + burstSummary;
+                        String cleanSummary = summary + " cleanBayer=1" + burstSummary
+                                + (rawGainmap != null ? " uhdr=raw" : "")
+                                + (useDisplayP3 ? " p3=1" : "")
+                                + (ambientCct != null ? (" cct=" + Math.round(ambientCct.floatValue())) : "");
                         meta.setAttribute("ImageDescription", cleanSummary);
                         meta.setAttribute("UserComment", cleanSummary);
                         changed = true;
@@ -1745,6 +1855,9 @@ public final class CustomImagingBridge {
                     }
                 }
             } catch (Throwable ignored) {}
+            if (rawGainmap != null && jpegBytes != null) {
+                jpegBytes = preserveGainmapExifSafe(nativeEncodedJpeg, jpegBytes);
+            }
 
             MediaFile outFile = StorageUtils.createMediaFileWithFallback(MediaFile.fromMediaFilePath(cleanPath));
             if (outFile == null) return;

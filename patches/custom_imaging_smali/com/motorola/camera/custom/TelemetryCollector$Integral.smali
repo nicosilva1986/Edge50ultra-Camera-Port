@@ -36,15 +36,15 @@
 .method constructor <init>(Z)V
     .locals 2
 
-    .line 401
+    .line 419
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 399
+    .line 417
     const-wide/high16 v0, 0x3ff0000000000000L    # 1.0
 
     iput-wide v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->w:D
 
-    .line 401
+    .line 419
     iput-boolean p1, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->rotation:Z
 
     return-void
@@ -55,7 +55,7 @@
 .method rotate(DDDD)V
     .locals 14
 
-    .line 404
+    .line 422
     mul-double v0, p3, p3
 
     mul-double v2, p5, p5
@@ -70,7 +70,7 @@
 
     move-result-wide v0
 
-    .line 405
+    .line 423
     const-wide/16 v2, 0x0
 
     cmpl-double v2, v0, v2
@@ -79,7 +79,7 @@
 
     return-void
 
-    .line 406
+    .line 424
     :cond_0
     mul-double v2, v0, p1
 
@@ -87,7 +87,7 @@
 
     div-double/2addr v2, v4
 
-    .line 407
+    .line 425
     invoke-static {v2, v3}, Ljava/lang/Math;->cos(D)D
 
     move-result-wide v6
@@ -98,14 +98,14 @@
 
     div-double/2addr v2, v0
 
-    .line 408
+    .line 426
     mul-double v0, p3, v2
 
     mul-double v8, p5, v2
 
     mul-double v2, v2, p7
 
-    .line 409
+    .line 427
     iget-wide v10, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->w:D
 
     mul-double/2addr v10, v6
@@ -128,7 +128,7 @@
 
     sub-double/2addr v10, v12
 
-    .line 410
+    .line 428
     iget-wide v12, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->w:D
 
     mul-double/2addr v12, v0
@@ -153,7 +153,7 @@
 
     sub-double/2addr v12, v4
 
-    .line 411
+    .line 429
     iget-wide v4, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->w:D
 
     mul-double/2addr v4, v8
@@ -178,7 +178,7 @@
 
     add-double/2addr v4, v0
 
-    .line 412
+    .line 430
     iget-wide v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->w:D
 
     mul-double/2addr v0, v2
@@ -201,7 +201,7 @@
 
     add-double/2addr v0, v2
 
-    .line 413
+    .line 431
     mul-double v2, v10, v10
 
     mul-double v6, v12, v12
@@ -220,7 +220,7 @@
 
     move-result-wide v2
 
-    .line 414
+    .line 432
     div-double/2addr v10, v2
 
     iput-wide v10, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->w:D
@@ -237,7 +237,7 @@
 
     iput-wide v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->z:D
 
-    .line 415
+    .line 433
     iget-wide v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->x:D
 
     iget-wide v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->x:D
@@ -276,7 +276,7 @@
 
     mul-double/2addr v0, p1
 
-    .line 416
+    .line 434
     iget-wide v2, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->excursion:D
 
     invoke-static {v2, v3, v0, v1}, Ljava/lang/Math;->max(DD)D
@@ -285,14 +285,14 @@
 
     iput-wide v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->excursion:D
 
-    .line 417
+    .line 435
     return-void
 .end method
 
 .method step(DDDDDDD)V
     .locals 13
 
-    .line 420
+    .line 438
     mul-double v0, p3, p3
 
     mul-double v2, p5, p5
@@ -313,7 +313,7 @@
 
     add-double/2addr v2, v4
 
-    .line 421
+    .line 439
     iget-wide v4, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->peak:D
 
     invoke-static {v0, v1, v2, v3}, Ljava/lang/Math;->max(DD)D
@@ -330,7 +330,7 @@
 
     iput-wide v4, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->peak:D
 
-    .line 422
+    .line 440
     iget-wide v4, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->squareSeconds:D
 
     mul-double v6, p3, p9
@@ -357,12 +357,12 @@
 
     iput-wide v4, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->squareSeconds:D
 
-    .line 423
+    .line 441
     iget-boolean v0, p0, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->rotation:Z
 
     if-eqz v0, :cond_0
 
-    .line 424
+    .line 442
     const-wide/high16 v0, 0x4000000000000000L    # 2.0
 
     div-double v5, p1, v0
@@ -391,7 +391,7 @@
 
     invoke-virtual/range {v4 .. v12}, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->rotate(DDDD)V
 
-    .line 425
+    .line 443
     mul-double p1, p9, v2
 
     add-double p1, p3, p1
@@ -422,7 +422,7 @@
 
     invoke-virtual/range {p1 .. p9}, Lcom/motorola/camera/custom/TelemetryCollector$Integral;->rotate(DDDD)V
 
-    .line 427
+    .line 445
     :cond_0
     return-void
 .end method

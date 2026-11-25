@@ -38,36 +38,36 @@
 .method constructor <init>([ILjava/lang/String;IFFIIIZ)V
     .locals 0
 
-    .line 192
+    .line 194
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 193
+    .line 195
     iput-object p1, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->resolved:[I
 
-    .line 194
+    .line 196
     iput-object p2, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->summary:Ljava/lang/String;
 
-    .line 195
+    .line 197
     iput p3, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->profile:I
 
-    .line 196
+    .line 198
     iput p4, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->zoom:F
 
-    .line 197
+    .line 199
     iput p5, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->lux:F
 
-    .line 198
+    .line 200
     iput p6, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->look:I
 
-    .line 199
+    .line 201
     iput p7, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->intensity:I
 
-    .line 200
+    .line 202
     iput p8, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->bokeh:I
 
-    .line 201
+    .line 203
     iput-boolean p9, p0, Lcom/motorola/camera/custom/CustomImagingBridge$ShotDecision;->lookPaused:Z
 
-    .line 202
+    .line 204
     return-void
 .end method

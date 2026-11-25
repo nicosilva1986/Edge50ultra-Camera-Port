@@ -48,8 +48,11 @@ vec3 readLook(vec3 color) {
 }
 
 float highlight(vec3 rgb) {
-    float value = u_EffectsHalation < 0.0 ? rgb.r : dot(rgb, vec3(0.2126, 0.7152, 0.0722));
-    return smoothstep(0.72, 1.0, value);
+    vec3 lin = pow(max(rgb, vec3(0.0)), vec3(2.2));
+    float value = u_EffectsHalation < 0.0 ? max(lin.r, 0.70 * dot(lin, vec3(0.2126, 0.7152, 0.0722)))
+        : dot(lin, vec3(0.2126, 0.7152, 0.0722));
+    float ex = smoothstep(0.56, 1.0, value);
+    return ex * (1.0 + 0.65 * ex);
 }
 
 vec3 applyPreviewLook(vec3 color, vec2 uv) {
@@ -59,12 +62,18 @@ vec3 applyPreviewLook(vec3 color, vec2 uv) {
     float corners = smoothstep(0.38, 1.35, length(v_LookQuad * vec2(0.9, 1.0)));
     graded *= 1.0 - u_EffectsVignette * corners * (1.0 - smoothstep(0.45, 1.0, y));
     if (u_EffectsHalation != 0.0) {
-        vec2 d = vec2(0.004, 0.0);
-        float glow = 0.2 * (highlight(color)
-            + highlight(sampleLookSource(uv + d.xy)) + highlight(sampleLookSource(uv - d.xy))
-            + highlight(sampleLookSource(uv + d.yx)) + highlight(sampleLookSource(uv - d.yx)));
-        vec3 tint = u_EffectsHalation < 0.0 ? vec3(1.0, 0.18, 0.04) : vec3(1.0);
-        graded += abs(u_EffectsHalation) * tint * glow * (1.0 - graded);
+        vec2 d1 = vec2(0.0036, 0.0);
+        vec2 d2 = vec2(0.0082, 0.0082);
+        float core = 0.20 * (highlight(color)
+            + highlight(sampleLookSource(uv + d1.xy)) + highlight(sampleLookSource(uv - d1.xy))
+            + highlight(sampleLookSource(uv + d1.yx)) + highlight(sampleLookSource(uv - d1.yx)));
+        float veil = 0.25 * (highlight(sampleLookSource(uv + d2))
+            + highlight(sampleLookSource(uv - d2))
+            + highlight(sampleLookSource(uv + vec2(d2.x, -d2.y)))
+            + highlight(sampleLookSource(uv + vec2(-d2.x, d2.y))));
+        float glow = 0.62 * core + 0.38 * veil;
+        vec3 tint = u_EffectsHalation < 0.0 ? vec3(1.0, 0.18, 0.04) : vec3(1.0, 0.98, 0.95);
+        graded += abs(u_EffectsHalation) * tint * glow * (1.0 - 0.55 * graded);
     }
     if (u_EffectsGrain > 0.0) {
         highp float noise = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);

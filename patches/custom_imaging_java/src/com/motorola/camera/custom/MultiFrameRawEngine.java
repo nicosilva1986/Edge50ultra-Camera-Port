@@ -23,13 +23,22 @@ public final class MultiFrameRawEngine {
     public static final class FrameInput {
         public final int[] raw;
         public final int width, height, cfaPattern, iso;
-        public final float[] blackLevel4;
-        public final float whiteLevel, gyroExcursionRad, focalLengthPx;
+        public final float[] blackLevel4, noiseScale4, noiseOffset4;
+        public final float whiteLevel, gyroExcursionRad, focalLengthPx, gyroShiftX, gyroShiftY;
         public final long timestampNs, exposureNs;
 
         public FrameInput(int[] raw, int width, int height, int cfaPattern, float[] blackLevel4,
                           float whiteLevel, long timestampNs, long exposureNs, int iso,
                           float gyroExcursionRad, float focalLengthPx) {
+            this(raw, width, height, cfaPattern, blackLevel4, whiteLevel, timestampNs, exposureNs,
+                    iso, gyroExcursionRad, focalLengthPx, 0f, 0f, null, null);
+        }
+
+        public FrameInput(int[] raw, int width, int height, int cfaPattern, float[] blackLevel4,
+                          float whiteLevel, long timestampNs, long exposureNs, int iso,
+                          float gyroExcursionRad, float focalLengthPx,
+                          float gyroShiftX, float gyroShiftY,
+                          float[] noiseScale4, float[] noiseOffset4) {
             this.raw = raw;
             this.width = width;
             this.height = height;
@@ -41,6 +50,10 @@ public final class MultiFrameRawEngine {
             this.iso = iso;
             this.gyroExcursionRad = gyroExcursionRad;
             this.focalLengthPx = focalLengthPx;
+            this.gyroShiftX = Float.isFinite(gyroShiftX) ? gyroShiftX : 0f;
+            this.gyroShiftY = Float.isFinite(gyroShiftY) ? gyroShiftY : 0f;
+            this.noiseScale4 = noiseScale4 != null && noiseScale4.length == 4 ? noiseScale4.clone() : null;
+            this.noiseOffset4 = noiseOffset4 != null && noiseOffset4.length == 4 ? noiseOffset4.clone() : null;
         }
     }
 
@@ -75,8 +88,8 @@ public final class MultiFrameRawEngine {
         final int w, h, cfa;
         final long time;
         final double exposureGain, blur;
-        final float white;
-        final float[] black, inv = new float[4];
+        final float white, gyroX, gyroY;
+        final float[] black, inv = new float[4], noiseScale, noiseOffset;
         final short[] data;
 
         Frame(FrameInput f) {
@@ -85,11 +98,25 @@ public final class MultiFrameRawEngine {
             time = f.timestampNs;
             cfa = f.cfaPattern;
             white = f.whiteLevel;
+            gyroX = f.gyroShiftX;
+            gyroY = f.gyroShiftY;
             exposureGain = (double) f.exposureNs * f.iso;
             blur = f.focalLengthPx > 0 && Float.isFinite(f.gyroExcursionRad)
                     ? f.focalLengthPx * f.gyroExcursionRad : Double.NaN;
             black = f.blackLevel4.clone();
             for (int p = 0; p < 4; p++) inv[p] = 1f / (white - black[p]);
+            boolean validNoise = f.noiseScale4 != null && f.noiseOffset4 != null;
+            if (validNoise) {
+                for (int p = 0; p < 4; p++) {
+                    if (!Float.isFinite(f.noiseScale4[p]) || f.noiseScale4[p] < 0f
+                            || !Float.isFinite(f.noiseOffset4[p]) || f.noiseOffset4[p] < 0f) {
+                        validNoise = false;
+                        break;
+                    }
+                }
+            }
+            noiseScale = validNoise ? f.noiseScale4.clone() : null;
+            noiseOffset = validNoise ? f.noiseOffset4.clone() : null;
             data = new short[w*h];
             for (int i = 0; i < data.length; i++) {
                 int dn = f.raw[i];
@@ -100,6 +127,12 @@ public final class MultiFrameRawEngine {
 
         double linear(int x, int y, int phase) {
             return ((data[y*w+x] & 65535) - black[phase]) * inv[phase];
+        }
+
+        double shotReadVariance(int phase, double normalizedSignal) {
+            if (noiseScale == null || noiseOffset == null) return 0.0;
+            double s = Math.max(0.0, Math.min(1.0, normalizedSignal));
+            return noiseScale[phase] * s + noiseOffset[phase];
         }
     }
 
@@ -206,11 +239,14 @@ public final class MultiFrameRawEngine {
         final float[] dx, dy, sharpness;
         final boolean[] tileRejected;
         final double scale;
+        final float gyroSuperX, gyroSuperY;
         double noiseVariance;
         boolean frameRejected;
         Aligned(Frame f, Frame anchor, int tiles, boolean focus) {
             this.f = f;
             scale = anchor.exposureGain / f.exposureGain;
+            gyroSuperX = 0.5f * (f.gyroX - anchor.gyroX);
+            gyroSuperY = 0.5f * (f.gyroY - anchor.gyroY);
             dx = new float[tiles];
             dy = new float[tiles];
             tileRejected = new boolean[tiles];
@@ -310,20 +346,85 @@ public final class MultiFrameRawEngine {
         return n == 0 ? Double.POSITIVE_INFINITY : sum/n;
     }
 
+    private static float[] downsample4x(float[] src, int w, int h) {
+        int cw = w / 4, ch = h / 4;
+        float[] dst = new float[cw * ch];
+        for (int cy = 0; cy < ch; cy++) {
+            int y0 = cy * 4;
+            for (int cx = 0; cx < cw; cx++) {
+                int x0 = cx * 4;
+                float sum = 0f;
+                for (int dy = 0; dy < 4; dy++) {
+                    int row = (y0 + dy) * w + x0;
+                    sum += src[row] + src[row + 1] + src[row + 2] + src[row + 3];
+                }
+                dst[cy * cw + cx] = sum * (1f / 16f);
+            }
+        }
+        return dst;
+    }
+
     private static void register(float[] ref, float[] src, Aligned frame, int cols, int mode) {
         int w = frame.f.w/2, h = frame.f.h/2;
+        int maxSuper = Math.max(SEARCH, Math.min(24, Math.min((w - 2) / 3, (h - 2) / 3)));
+        int priorCx = (int) Math.max(-maxSuper, Math.min(maxSuper, Math.round(frame.gyroSuperX)));
+        int priorCy = (int) Math.max(-maxSuper, Math.min(maxSuper, Math.round(frame.gyroSuperY)));
+        int coarseX = priorCx, coarseY = priorCy;
+        int cw = w / 4, ch = h / 4;
+        int maxCoarse = (cw >= 16 && ch >= 12) ? Math.min(6, Math.min(cw / 4, ch / 4)) : 0;
+        if (maxCoarse > 0) {
+            float[] refCoarse = downsample4x(ref, w, h);
+            float[] srcCoarse = downsample4x(src, w, h);
+            int cStep = Math.max(1, (int) Math.sqrt((double) cw * ch / 1024));
+            int cbx = Math.min(cw / 3, maxCoarse), cby = Math.min(ch / 3, maxCoarse);
+            double cBest = Double.POSITIVE_INFINITY;
+            int bestCx = priorCx / 4, bestCy = priorCy / 4;
+            for (int cy = -maxCoarse; cy <= maxCoarse; cy++) {
+                for (int cx = -maxCoarse; cx <= maxCoarse; cx++) {
+                    double dxp = 4.0 * cx - frame.gyroSuperX, dyp = 4.0 * cy - frame.gyroSuperY;
+                    double c = cost(refCoarse, srcCoarse, cw, ch, cbx, cby, cw - cbx, ch - cby,
+                            cx, cy, cStep, frame.scale) + 2e-5 * (dxp * dxp + dyp * dyp);
+                    if (c < cBest) { cBest = c; bestCx = cx; bestCy = cy; }
+                }
+            }
+            coarseX = Math.max(-maxSuper, Math.min(maxSuper, bestCx * 4));
+            coarseY = Math.max(-maxSuper, Math.min(maxSuper, bestCy * 4));
+        }
         int step = Math.max(1,(int)Math.sqrt((double)w*h/2304));
-        int border = Math.min(SEARCH,Math.min((w-1)/3,(h-1)/3));
-        int gx = 0, gy = 0;
+        int border0 = Math.min(SEARCH, Math.min((w - 1) / 3, (h - 1) / 3));
+        int bx0 = Math.min(Math.max(0, (w - 1) / 3), Math.max(border0, Math.abs(priorCx) + SEARCH));
+        int by0 = Math.min(Math.max(0, (h - 1) / 3), Math.max(border0, Math.abs(priorCy) + SEARCH));
+        int gx = priorCx, gy = priorCy;
         double best = Double.POSITIVE_INFINITY;
-        // Sparse frame-wide translation, then dense overlapping tile refinement around that prior.
-        for (int y = -SEARCH; y <= SEARCH; y++) for (int x = -SEARCH; x <= SEARCH; x++) {
-            double c = cost(ref,src,w,h,border,border,w-border,h-border,x,y,step,frame.scale)
-                    + 1e-6*(x*x+y*y);
-            if (c < best) { best = c; gx = x; gy = y; }
+        // Evaluate fine 2x2 guide around IMU/origin prior first, then around coarse pyramid hypothesis if distinct.
+        for (int y = priorCy - SEARCH; y <= priorCy + SEARCH; y++) {
+            for (int x = priorCx - SEARCH; x <= priorCx + SEARCH; x++) {
+                double dxp = x - frame.gyroSuperX, dyp = y - frame.gyroSuperY;
+                double c = cost(ref,src,w,h,bx0,by0,w-bx0,h-by0,x,y,step,frame.scale)
+                        + 1e-5*(dxp*dxp+dyp*dyp);
+                if (c < best) { best = c; gx = x; gy = y; }
+            }
+        }
+        int activeBx = bx0, activeBy = by0;
+        if (Math.abs(coarseX - priorCx) > 2 || Math.abs(coarseY - priorCy) > 2) {
+            int bx1 = Math.min(Math.max(0, (w - 1) / 3), Math.abs(coarseX) + SEARCH);
+            int by1 = Math.min(Math.max(0, (h - 1) / 3), Math.abs(coarseY) + SEARCH);
+            double margin = 0.002 * Math.min(1.0, frame.scale);
+            for (int y = coarseY - SEARCH; y <= coarseY + SEARCH; y++) {
+                for (int x = coarseX - SEARCH; x <= coarseX + SEARCH; x++) {
+                    double dxp = x - frame.gyroSuperX, dyp = y - frame.gyroSuperY;
+                    double c = cost(ref,src,w,h,bx1,by1,w-bx1,h-by1,x,y,step,frame.scale)
+                            + 1e-5*(dxp*dxp+dyp*dyp);
+                    if (c + margin < best) {
+                        best = c; gx = x; gy = y;
+                        activeBx = bx1; activeBy = by1;
+                    }
+                }
+            }
         }
         double[] global = {gx,gy};
-        refine(ref,src,w,h,border,border,w-border,h-border,step,frame.scale,global);
+        refine(ref,src,w,h,activeBx,activeBy,w-activeBx,h-activeBy,step,frame.scale,global);
+        int maxTileShift = Math.max(SEARCH, Math.min(24, Math.max(Math.abs(gx), Math.abs(gy)) + 1));
         double[] delta = new double[2];
         int rejectedTiles = 0;
         double tileLimit = 0.045 * Math.min(1.0, frame.scale);
@@ -338,8 +439,8 @@ public final class MultiFrameRawEngine {
                 double priorCost = cost(ref,src,w,h,x0,y0,x1,y1,gx,gy,1,frame.scale);
                 best = priorCost;
                 int lx = gx, ly = gy;
-                for (int y = Math.max(-SEARCH,gy-1); y <= Math.min(SEARCH,gy+1); y++)
-                    for (int x = Math.max(-SEARCH,gx-1); x <= Math.min(SEARCH,gx+1); x++) {
+                for (int y = Math.max(-maxTileShift,gy-1); y <= Math.min(maxTileShift,gy+1); y++)
+                    for (int x = Math.max(-maxTileShift,gx-1); x <= Math.min(maxTileShift,gx+1); x++) {
                         double c = cost(ref,src,w,h,x0,y0,x1,y1,x,y,1,frame.scale)
                                 + 0.004*Math.min(1,frame.scale)*(Math.abs(x-gx)+Math.abs(y-gy));
                         if (c < best) { best = c; lx = x; ly = y; }
@@ -370,7 +471,7 @@ public final class MultiFrameRawEngine {
     }
 
     private static float displacement(double cells) {
-        double pixels = Math.max(-6, Math.min(6,2*cells));
+        double pixels = Math.max(-48, Math.min(48,2*cells));
         return (float)(Math.abs(pixels-Math.rint(pixels)) < 0.07 ? Math.rint(pixels) : pixels);
     }
 
@@ -475,6 +576,13 @@ public final class MultiFrameRawEngine {
         return top*(1-fy)+bottom*fy;
     }
 
+    private static double effectiveVariance(Frame anchor, Aligned f, int phase, double reference) {
+        double anchorVar = anchor.shotReadVariance(phase, reference);
+        double frameVar = f.f.shotReadVariance(phase, reference / Math.max(1e-6, f.scale)) * f.scale * f.scale;
+        double physVar = 3.0 * (anchorVar + frameVar);
+        return physVar > 0.0 ? 0.5 * f.noiseVariance + 0.5 * physVar : f.noiseVariance;
+    }
+
     private double fuse(Aligned[] frames, int used, int tile, int x, int y, int phase, int winner) {
         Frame anchor = frames[0].f;
         double reference = anchor.linear(x,y,phase);
@@ -497,13 +605,14 @@ public final class MultiFrameRawEngine {
                 weight = safe*safe/(f.scale*f.scale);
                 if (i != 0 && reference < 0.85) {
                     double diff = radiance - reference;
-                    double var = Math.max(f.noiseVariance, 0.004 * 0.004);
+                    double var = Math.max(effectiveVariance(anchor, f, phase, reference), 0.004 * 0.004);
                     double ratio = diff * diff / var;
                     if (ratio > 25) weight = 0;
                     else weight /= (1 + 0.25 * ratio);
                 }
             } else if (mode == MODE_HDR_PLUS && i != 0) {
-                double diff = radiance-reference, ratio = diff*diff/f.noiseVariance;
+                double var = Math.max(1e-8, effectiveVariance(anchor, f, phase, reference));
+                double diff = radiance-reference, ratio = diff*diff/var;
                 weight = ratio > 25 ? 0 : 1/(1+ratio);
             }
             sum += weight*radiance;
@@ -520,8 +629,8 @@ public final class MultiFrameRawEngine {
         return false;
     }
 
-    // Separable Gaussian gather from original CFA sites. Equivalent to normalized forward splats,
-    // without allocating high-resolution float accumulation and weight planes.
+    // Separable Gaussian gather on flat regions, steered into an edge-oriented elliptical Gaussian
+    // (Wronski et al.) across local Bayer structure gradients without allocating float weight planes.
     private static final double[] GAUSSIAN = new double[513];
     static {
         for (int i = 0; i < GAUSSIAN.length; i++) {
@@ -531,19 +640,45 @@ public final class MultiFrameRawEngine {
     }
     private static double kernel(double d) { return GAUSSIAN[Math.min(512,(int)(Math.abs(d)*256+0.5))]; }
 
+    private static double quadLuma(Frame f, int qx, int qy) {
+        return 0.25 * (f.linear(qx, qy, 0) + f.linear(qx + 1, qy, 1)
+                + f.linear(qx, qy + 1, 2) + f.linear(qx + 1, qy + 1, 3));
+    }
+
     private static double reconstruct(Aligned[] frames, int used, int tile, double x, double y, int p) {
         int px = p&1, py = p>>1;
-        double anchorRef = sample(frames[0].f, x, y, p);
+        Frame anchor = frames[0].f;
+        double anchorRef = sample(anchor, x, y, p);
+        double nx = 1.0, ny = 0.0, invTwoSigN2 = 0.0, invTwoSigT2 = 0.0;
+        boolean anisotropic = false;
+        if (anchor.w >= 8 && anchor.h >= 8) {
+            int qx = Math.max(2, Math.min(anchor.w - 4, ((int) Math.round(x)) & ~1));
+            int qy = Math.max(2, Math.min(anchor.h - 4, ((int) Math.round(y)) & ~1));
+            double gx = 0.5 * (quadLuma(anchor, qx + 2, qy) - quadLuma(anchor, qx - 2, qy));
+            double gy = 0.5 * (quadLuma(anchor, qx, qy + 2) - quadLuma(anchor, qx, qy - 2));
+            double mag = Math.hypot(gx, gy);
+            if (mag > 0.008) {
+                anisotropic = true;
+                nx = gx / mag;
+                ny = gy / mag;
+                double a = Math.min(1.0, (mag - 0.008) / 0.055);
+                double sigN = 0.49 - 0.11 * a;
+                double sigT = 0.49 + 0.16 * a;
+                invTwoSigN2 = 0.5 / (sigN * sigN);
+                invTwoSigT2 = 0.5 / (sigT * sigT);
+            }
+        }
         double total = 0, weights = 0;
         for (int i = 0; i < used; i++) {
             Aligned f = frames[i];
             if (i > 0 && f.tileRejected[tile]) continue;
             double sx = x+f.dx[tile], sy = y+f.dy[tile];
             int x0 = 2*(int)Math.floor((sx-px)/2)+px, y0 = 2*(int)Math.floor((sy-py)/2)+py;
-            double var = Math.max(f.noiseVariance, 0.032 * 0.032);
+            double var = Math.max(effectiveVariance(anchor, f, p, anchorRef), 0.032 * 0.032);
             for (int yy = y0; yy <= y0+2; yy += 2) {
                 if (yy < 0 || yy >= f.f.h) continue;
-                double wy = kernel(yy-sy);
+                double dy = yy - sy;
+                double wy = anisotropic ? 1.0 : kernel(dy);
                 for (int xx = x0; xx <= x0+2; xx += 2) {
                     if (xx < 0 || xx >= f.f.w) continue;
                     double radiance = f.f.linear(xx,yy,p)*f.scale;
@@ -551,7 +686,15 @@ public final class MultiFrameRawEngine {
                         double diff = radiance - anchorRef;
                         if (diff * diff / var > 25) continue;
                     }
-                    double weight = wy*kernel(xx-sx);
+                    double dx = xx - sx;
+                    double weight;
+                    if (anisotropic) {
+                        double dn = dx * nx + dy * ny;
+                        double dt = -dx * ny + dy * nx;
+                        weight = Math.exp(-(dn * dn * invTwoSigN2 + dt * dt * invTwoSigT2));
+                    } else {
+                        weight = wy * kernel(dx);
+                    }
                     total += weight*radiance;
                     weights += weight;
                 }

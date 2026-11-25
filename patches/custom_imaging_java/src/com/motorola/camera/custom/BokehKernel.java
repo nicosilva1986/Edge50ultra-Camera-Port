@@ -1,9 +1,22 @@
 // SPDX-License-Identifier: MIT
 package com.motorola.camera.custom;
 
-/** Aperture samples shared by the CPU and GPU gather paths. */
+/** Aperture samples shared by the CPU and GPU gather paths (linear-light HDR specular bokeh). */
 final class BokehKernel {
     static final int TAPS = 32;
+    private static final float[] LINEAR = new float[256];
+    private static final int[] SRGB = new int[4097];
+
+    static {
+        for (int i = 0; i < LINEAR.length; i++) {
+            double s = i / 255.0;
+            LINEAR[i] = (float) (s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4));
+        }
+        for (int i = 0; i < SRGB.length; i++) {
+            double l = i / 4096.0;
+            SRGB[i] = (int) Math.round(255.0 * (l <= 0.0031308 ? 12.92 * l : 1.055 * Math.pow(l, 1.0 / 2.4) - 0.055));
+        }
+    }
 
     private BokehKernel() {}
 
@@ -74,6 +87,10 @@ final class BokehKernel {
                         float radial = (nx * dx + ny * dy) * edge * 0.80f;
                         dx -= radial * nx;
                         dy -= radial * ny;
+                    } else if (style != 4) {
+                        float radial = (nx * dx + ny * dy) * edge * edge * 0.22f;
+                        dx -= radial * nx;
+                        dy -= radial * ny;
                     }
                     int sx = clamp(Math.round(x + dx * radius * blur), width - 1);
                     int sy = clamp(Math.round(y + dy * radius * blur), height - 1);
@@ -82,15 +99,21 @@ final class BokehKernel {
                     float dw = depthWeight(d, sampleDepth, focus, blur);
                     if (dw <= 0f) continue;
                     int rgb = image[sample];
+                    float lr = LINEAR[rgb >>> 16 & 255];
+                    float lg = LINEAR[rgb >>> 8 & 255];
+                    float lb = LINEAR[rgb & 255];
+                    float luma = 0.2126f * lr + 0.7152f * lg + 0.0722f * lb;
+                    float spec = 1f + 1.35f * smoothstep(0.72f, 1.0f, luma) * blur;
                     float weight = taps[i + 2] * dw;
-                    red += (rgb >>> 16 & 255) * weight;
-                    green += (rgb >>> 8 & 255) * weight;
-                    blue += (rgb & 255) * weight;
+                    red += lr * spec * weight;
+                    green += lg * spec * weight;
+                    blue += lb * spec * weight;
                     sum += weight;
                 }
-                float outR = sum <= 0 ? (image[position] >>> 16 & 255) : red / sum;
-                float outG = sum <= 0 ? (image[position] >>> 8 & 255) : green / sum;
-                float outB = sum <= 0 ? (image[position] & 255) : blue / sum;
+                int orig = image[position];
+                float outR = sum <= 0 ? LINEAR[orig >>> 16 & 255] : red / sum;
+                float outG = sum <= 0 ? LINEAR[orig >>> 8 & 255] : green / sum;
+                float outB = sum <= 0 ? LINEAR[orig & 255] : blue / sum;
                 if (style == 4) {
                     int step = Math.max(1, Math.round(radius * blur));
                     float sR = 0, sG = 0, sB = 0;
@@ -102,25 +125,34 @@ final class BokehKernel {
                         float dw = depthWeight(d, sd, focus, blur);
                         if (dw > 0f) {
                             int sRgb = image[sample];
-                            sR += (sRgb >>> 16 & 255) * dw;
-                            sG += (sRgb >>> 8 & 255) * dw;
-                            sB += (sRgb & 255) * dw;
+                            sR += LINEAR[sRgb >>> 16 & 255] * dw;
+                            sG += LINEAR[sRgb >>> 8 & 255] * dw;
+                            sB += LINEAR[sRgb & 255] * dw;
                             sW += dw;
                         }
                     }
                     if (sW > 0) {
-                        float maxCh = Math.max(sR / sW, Math.max(sG / sW, sB / sW)) / 255f;
-                        float flare = 0.10f * blur * Math.max(0f, maxCh - 0.85f) * 255f;
-                        outR += flare * 0.6f;
-                        outG += flare * 0.9f;
+                        float maxCh = Math.max(sR / sW, Math.max(sG / sW, sB / sW));
+                        float flare = 0.18f * blur * Math.max(0f, maxCh - 0.68f);
+                        outR += flare * 0.45f;
+                        outG += flare * 0.85f;
                         outB += flare * 1.0f;
                     }
                 }
-                output[position] = 0xff000000 | clamp(Math.round(outR), 255) << 16
-                        | clamp(Math.round(outG), 255) << 8 | clamp(Math.round(outB), 255);
+                output[position] = 0xff000000 | encodeLinear(outR) << 16
+                        | encodeLinear(outG) << 8 | encodeLinear(outB);
             }
         }
         return output;
+    }
+
+    private static float smoothstep(float edge0, float edge1, float x) {
+        float t = Math.max(0f, Math.min(1f, (x - edge0) / (edge1 - edge0)));
+        return t * t * (3f - 2f * t);
+    }
+
+    private static int encodeLinear(float linear) {
+        return SRGB[clamp(Math.round(linear * 4096f), 4096)];
     }
 
     private static int clamp(int value, int maximum) {

@@ -491,10 +491,18 @@ public final class SettingsManager {
     public static CameraCharacteristics getCharacteristics(String cameraId) { return mockChars; }
 }
 `);
+    const testIqMgr = join(overrideSrc, 'com', 'motorola', 'camera', 'IqConfigManager.java');
+    writeFileSync(testIqMgr, `package com.motorola.camera;
+public final class IqConfigManager {
+    private static final IqConfigManager INST = new IqConfigManager();
+    public float mLastLuxIdx = 0.0f;
+    public static IqConfigManager getInstance() { return INST; }
+}
+`);
     const filteredStubs = stubFiles.filter(
-      (f) => !f.endsWith('PersistBehavior.java') && !f.endsWith('SettingsManager.java'),
+      (f) => !f.endsWith('PersistBehavior.java') && !f.endsWith('SettingsManager.java') && !f.endsWith('IqConfigManager.java'),
     );
-    run(javac, ['--release', '11', '-d', bridgeClasses, ...filteredStubs, testPersist, testSettingsMgr]);
+    run(javac, ['--release', '11', '-d', bridgeClasses, ...filteredStubs, testPersist, testSettingsMgr, testIqMgr]);
 
     const customFiles = [
       selectorSource,
@@ -513,6 +521,8 @@ public final class SettingsManager {
       join(sourceDir, 'OffscreenBokeh.java'),
       join(sourceDir, 'PortraitBokeh.java'),
       join(sourceDir, 'GainmapJpeg.java'),
+      join(sourceDir, 'GpuComputeContext.java'),
+      join(sourceDir, 'UltraHdrSynthesizer.java'),
       join(sourceDir, 'TelemetryCollector.java'),
       join(sourceDir, 'VideoConfigHelper.java'),
       join(sourceDir, 'CustomImagingBridge.java'),
@@ -1072,6 +1082,60 @@ public final class BridgeChecks {
         if (skyG >= skyB) {
             throw new AssertionError("Expected bright cyan sky stabilization to keep G well below B");
         }
+
+        // 10. v2.0.0 UltraHdrSynthesizer ISO 21496-1 round-trip, ctwo is_mfnr_night request key & Dual-Illuminant Display P3 CCM.
+        int uw = 32, uh = 32;
+        float[] linHdr = new float[uw * uh];
+        int[] sdrPost = new int[uw * uh];
+        for (int i = 0; i < uw * uh; i++) {
+            boolean spec = (i / uw) < 8 && (i % uw) < 8;
+            linHdr[i] = spec ? 2.80f : 0.25f;
+            int s8 = spec ? 242 : 137;
+            sdrPost[i] = 0xFF000000 | (s8 << 16) | (s8 << 8) | s8;
+        }
+        com.motorola.camera.custom.UltraHdrSynthesizer.PlaneResult plane =
+                com.motorola.camera.custom.UltraHdrSynthesizer.computeFromLinearAndSdr(linHdr, sdrPost, uw, uh, 4.0f);
+        if (plane == null || plane.width != 8 || plane.height != 8 || plane.ratioMax < 2.5f) {
+            throw new AssertionError("Expected valid 8x8 UltraHDR gainmap plane");
+        }
+        float sdrSpecLin = (float) Math.pow((242 / 255.0 + 0.055) / 1.055, 2.4);
+        float recHdr = com.motorola.camera.custom.UltraHdrSynthesizer.reconstructLinearPeak(sdrSpecLin, plane, 0);
+        if (Math.abs(recHdr - 2.80f) / 2.80f > 0.025f) {
+            throw new AssertionError("ISO 21496-1 Gainmap round-trip error > 2.5%: " + recHdr);
+        }
+        int[] darkIndoor = new int[uw * uh];
+        Arrays.fill(darkIndoor, 0xFF303030);
+        if (com.motorola.camera.custom.UltraHdrSynthesizer.computeFromPreAndPostSdr(darkIndoor, darkIndoor, uw, uh, 2.8f) != null) {
+            throw new AssertionError("Dark indoor frame without highlights must NOT synthesize a Gainmap");
+        }
+
+        // Dual-illuminant mired CCM interpolation + Display P3 vs sRGB gamut matrix.
+        float[] idXyz = {1, 0, 0, 0, 1, 0, 0, 0, 1};
+        float[] scaledXyz = {1.2f, 0, 0, 0, 1.0f, 0, 0, 0, 0.8f};
+        float[] midCcmSrgb = com.motorola.camera.custom.CleanBayerRawProcessor.dualIlluminantSensorToOutputCcm(
+                idXyz, 17, scaledXyz, 21, 4100f, false);
+        float[] midCcmP3 = com.motorola.camera.custom.CleanBayerRawProcessor.dualIlluminantSensorToOutputCcm(
+                idXyz, 17, scaledXyz, 21, 4100f, true);
+        if (midCcmSrgb == null || midCcmP3 == null || Math.abs(midCcmSrgb[0] - midCcmP3[0]) < 0.05f) {
+            throw new AssertionError("Expected distinct sRGB vs Display P3 dual-illuminant CCMs");
+        }
+
+        // ctwo real HAL partition: 70 session keys must stay untouched on adaptive Photo sessions so
+        // EnableSnapshotOnlyInsensorZoom/XCFA/AIDE never collide with RequestBuilderHelper.setInsensorZoomForSession
+        // in ChiFeature2GraphSelector::SelectFeatureGraphforRequestFromTable (0x50 SIGSEGV on MultiCameraSAT).
+        SettingsManager.mockChars = new CameraCharacteristics() {
+            @Override public List<CaptureRequest.Key<?>> getAvailableCaptureRequestKeys() { return ctwoVendorKeys; }
+            @Override public List<CaptureRequest.Key<?>> getAvailableSessionKeys() { return ctwoVendorKeys; }
+        };
+        PersistBehavior.mockProfile = "0";
+        CaptureRequest.Builder sesP0 = new CaptureRequest.Builder();
+        CustomImagingBridge.applySessionParameterOverrides("0", sesP0);
+        if (sesP0.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableSnapshotOnlyInsensorZoom", Integer.class)) != null
+                || sesP0.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.EnableXCFAOptimization", Byte.class)) != null
+                || sesP0.get(new CaptureRequest.Key<>("org.codeaurora.qcamera3.sessionParameters.enableMFNRAIDEMode", Byte.class)) != null) {
+            throw new AssertionError("EnableSnapshotOnlyInsensorZoom, EnableXCFAOptimization, and enableMFNRAIDEMode must stay unset on ctwo SAT sessions to avoid ChiFeature2GraphSelector SIGSEGV");
+        }
+        SettingsManager.mockChars = null;
     }
 }
 `);

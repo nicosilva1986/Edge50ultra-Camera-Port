@@ -13,8 +13,8 @@
 .method static constructor <clinit>()V
     .locals 5
 
-    .line 17
-    const/16 v0, 0x2e
+    .line 19
+    const/16 v0, 0x35
 
     new-array v0, v0, [Ljava/lang/CharSequence;
 
@@ -32,259 +32,301 @@
 
     const/4 v1, 0x2
 
-    const-string v2, "in vec2 uv;"
+    const-string v2, "precision highp int;"
 
     aput-object v2, v0, v1
 
     const/4 v1, 0x3
 
-    const-string v2, "out vec4 outputColor;"
+    const-string v2, "in vec2 uv;"
 
     aput-object v2, v0, v1
 
     const/4 v1, 0x4
 
-    const-string v2, "uniform sampler2D image, depth;"
+    const-string v2, "out vec4 outputColor;"
 
     aput-object v2, v0, v1
 
     const/4 v1, 0x5
 
-    const-string v2, "uniform vec2 radius;"
+    const-string v2, "uniform sampler2D image, depth;"
 
     aput-object v2, v0, v1
 
     const/4 v1, 0x6
 
-    const-string v2, "uniform float focus;"
+    const-string v2, "uniform vec2 radius;"
 
     aput-object v2, v0, v1
 
     const/4 v1, 0x7
 
-    const-string v2, "uniform int style;"
+    const-string v2, "uniform float focus;"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x8
 
-    const-string v2, "uniform vec3 taps[32];"
+    const-string v2, "uniform int style;"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x9
 
-    const-string v2, "float coc(float d){return smoothstep(3.0/255.0,71.0/255.0,abs(d-focus));}"
+    const-string v2, "uniform vec3 taps[32];"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0xa
 
-    const-string v2, "float dweight(float d,float ds,float c){return (1.0-smoothstep(18.0/255.0,46.0/255.0,abs(d-ds)))*step(c*0.38,coc(ds));}"
+    const-string v2, "vec3 toLin(vec3 s){ bvec3 lo=lessThanEqual(s,vec3(0.04045)); return mix(pow((s+0.055)/1.055,vec3(2.4)),s/12.92,lo); }"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0xb
 
-    const-string v2, "void main(){"
+    const-string v2, "vec3 toSrgb(vec3 l){ l=clamp(l,0.0,1.0); bvec3 lo=lessThanEqual(l,vec3(0.0031308)); return mix(1.055*pow(l,vec3(1.0/2.4))-0.055,12.92*l,lo); }"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0xc
 
-    const-string v2, " float d=texture(depth,uv).r; float c=coc(d);"
+    const-string v2, "float coc(float d){return smoothstep(3.0/255.0,71.0/255.0,abs(d-focus));}"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0xd
 
-    const-string v2, " vec3 original=texture(image,uv).rgb;"
+    const-string v2, "float dweight(float d,float ds,float c){return (1.0-smoothstep(18.0/255.0,46.0/255.0,abs(d-ds)))*step(c*0.38,coc(ds));}"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0xe
 
-    const-string v2, " if(c<0.02){outputColor=vec4(original,1.0);return;}"
+    const-string v2, "void main(){"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0xf
 
-    const-string v2, " vec2 radial=uv-0.5; float edge=length(radial); vec2 n=radial/max(edge,0.0001);"
+    const-string v2, " float d=texture(depth,uv).r; float c=coc(d);"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x10
 
-    const-string v2, " float a=1.7*edge*c; mat2 rot=mat2(cos(a),sin(a),-sin(a),cos(a));"
+    const-string v2, " vec3 origSrgb=texture(image,uv).rgb;"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x11
 
-    const-string v2, " vec3 rgb=vec3(0.0); float sum=0.0;"
+    const-string v2, " if(c<0.02){outputColor=vec4(origSrgb,1.0);return;}"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x12
 
-    const-string v2, " for(int i=0;i<32;++i){"
+    const-string v2, " vec2 radial=uv-0.5; float edge=length(radial); vec2 n=radial/max(edge,0.0001);"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x13
 
-    const-string v2, "   vec2 p=taps[i].xy;"
+    const-string v2, " float a=1.7*edge*c; mat2 rot=mat2(cos(a),sin(a),-sin(a),cos(a));"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x14
 
-    const-string v2, "   if(style==1){p=rot*p; p-=n*dot(n,p)*edge*0.8;}"
+    const-string v2, " vec3 rgb=vec3(0.0); float sum=0.0;"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x15
 
-    const-string v2, "   vec2 at=uv+p*radius*c; float ds=texture(depth,at).r;"
+    const-string v2, " for(int i=0;i<32;++i){"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x16
 
-    const-string v2, "   float dw=dweight(d,ds,c);"
+    const-string v2, "   vec2 p=taps[i].xy;"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x17
 
-    const-string v2, "   if(dw<=0.0) continue;"
+    const-string v2, "   if(style==1){p=rot*p; p-=n*dot(n,p)*edge*0.8;}"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x18
 
-    const-string v2, "   float w=taps[i].z*dw;"
+    const-string v2, "   else if(style!=4){p-=n*dot(n,p)*edge*edge*0.22;}"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x19
 
-    const-string v2, "   rgb+=texture(image,at).rgb*w; sum+=w;"
+    const-string v2, "   vec2 at=clamp(uv+p*radius*c,vec2(0.0),vec2(1.0)); float ds=texture(depth,at).r;"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x1a
 
-    const-string v2, " }"
+    const-string v2, "   float dw=dweight(d,ds,c);"
 
     aput-object v2, v0, v1
 
     const/16 v1, 0x1b
 
-    const-string v3, " rgb=sum>0.0?rgb/sum:original;"
+    const-string v2, "   if(dw<=0.0) continue;"
 
-    aput-object v3, v0, v1
+    aput-object v2, v0, v1
 
     const/16 v1, 0x1c
 
-    const-string v3, " if(style==4){"
+    const-string v2, "   vec3 lin=toLin(texture(image,at).rgb);"
 
-    aput-object v3, v0, v1
+    aput-object v2, v0, v1
 
     const/16 v1, 0x1d
 
-    const-string v3, "   vec2 streak=vec2(radius.x*c,0.0);"
+    const-string v2, "   float luma=dot(lin,vec3(0.2126,0.7152,0.0722));"
 
-    aput-object v3, v0, v1
+    aput-object v2, v0, v1
 
     const/16 v1, 0x1e
 
-    const-string v3, "   vec3 sSum=vec3(0.0); float sW=0.0;"
+    const-string v2, "   float spec=1.0+1.35*smoothstep(0.72,1.0,luma)*c;"
 
-    aput-object v3, v0, v1
+    aput-object v2, v0, v1
 
     const/16 v1, 0x1f
 
-    const-string v3, "   for(int k=-1;k<=1;k+=2){"
+    const-string v2, "   float w=taps[i].z*dw;"
 
-    aput-object v3, v0, v1
+    aput-object v2, v0, v1
 
     const/16 v1, 0x20
 
-    const-string v3, "     vec2 sat=uv+float(k)*streak;"
+    const-string v2, "   rgb+=lin*spec*w; sum+=w;"
 
-    aput-object v3, v0, v1
+    aput-object v2, v0, v1
 
     const/16 v1, 0x21
 
-    const-string v3, "     float sds=texture(depth,sat).r;"
+    const-string v2, " }"
 
-    aput-object v3, v0, v1
+    aput-object v2, v0, v1
 
     const/16 v1, 0x22
 
-    const-string v3, "     float dw=dweight(d,sds,c);"
+    const-string v3, " rgb=sum>0.0?rgb/sum:toLin(origSrgb);"
 
     aput-object v3, v0, v1
 
     const/16 v1, 0x23
 
-    const-string v3, "     if(dw>0.0){"
+    const-string v3, " if(style==4){"
 
     aput-object v3, v0, v1
 
     const/16 v1, 0x24
 
-    const-string v3, "       sSum+=texture(image,sat).rgb*dw; sW+=dw;"
+    const-string v3, "   vec2 streak=vec2(radius.x*c,0.0);"
 
     aput-object v3, v0, v1
 
     const/16 v1, 0x25
 
-    const-string v3, "     }"
+    const-string v3, "   vec3 sSum=vec3(0.0); float sW=0.0;"
 
     aput-object v3, v0, v1
 
     const/16 v1, 0x26
 
-    const-string v3, "   }"
+    const-string v3, "   for(int k=-1;k<=1;k+=2){"
 
     aput-object v3, v0, v1
 
     const/16 v1, 0x27
 
-    const-string v4, "   if(sW>0.0){"
+    const-string v3, "     vec2 sat=clamp(uv+float(k)*streak,vec2(0.0),vec2(1.0));"
 
-    aput-object v4, v0, v1
+    aput-object v3, v0, v1
 
     const/16 v1, 0x28
 
-    const-string v4, "     vec3 b=sSum/sW;"
+    const-string v3, "     float sds=texture(depth,sat).r;"
 
-    aput-object v4, v0, v1
+    aput-object v3, v0, v1
 
     const/16 v1, 0x29
 
-    const-string v4, "     rgb+=0.10*c*vec3(0.6,0.9,1.0)*max(0.0,max(b.r,max(b.g,b.b))-0.85);"
+    const-string v3, "     float dw=dweight(d,sds,c);"
 
-    aput-object v4, v0, v1
+    aput-object v3, v0, v1
 
     const/16 v1, 0x2a
+
+    const-string v3, "     if(dw>0.0){"
 
     aput-object v3, v0, v1
 
     const/16 v1, 0x2b
 
-    aput-object v2, v0, v1
+    const-string v3, "       sSum+=toLin(texture(image,sat).rgb)*dw; sW+=dw;"
+
+    aput-object v3, v0, v1
 
     const/16 v1, 0x2c
 
-    const-string v2, " outputColor=vec4(clamp(rgb,0.0,1.0),1.0);"
+    const-string v3, "     }"
+
+    aput-object v3, v0, v1
+
+    const/16 v1, 0x2d
+
+    const-string v3, "   }"
+
+    aput-object v3, v0, v1
+
+    const/16 v1, 0x2e
+
+    const-string v4, "   if(sW>0.0){"
+
+    aput-object v4, v0, v1
+
+    const/16 v1, 0x2f
+
+    const-string v4, "     vec3 b=sSum/sW;"
+
+    aput-object v4, v0, v1
+
+    const/16 v1, 0x30
+
+    const-string v4, "     rgb+=0.18*c*vec3(0.45,0.85,1.0)*max(0.0,max(b.r,max(b.g,b.b))-0.68);"
+
+    aput-object v4, v0, v1
+
+    const/16 v1, 0x31
+
+    aput-object v3, v0, v1
+
+    const/16 v1, 0x32
 
     aput-object v2, v0, v1
 
-    const/16 v1, 0x2d
+    const/16 v1, 0x33
+
+    const-string v2, " outputColor=vec4(toSrgb(rgb),1.0);"
+
+    aput-object v2, v0, v1
+
+    const/16 v1, 0x34
 
     const-string v2, "}"
 
@@ -304,7 +346,7 @@
 .method private constructor <init>()V
     .locals 0
 
-    .line 59
+    .line 74
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     return-void
@@ -313,232 +355,642 @@
 .method private static compile(ILjava/lang/String;)I
     .locals 2
 
-    .line 142
+    .line 179
     invoke-static {p0}, Landroid/opengl/GLES20;->glCreateShader(I)I
 
     move-result p0
 
-    .line 143
+    .line 180
+    const/4 v0, 0x0
+
+    if-nez p0, :cond_0
+
+    return v0
+
+    .line 181
+    :cond_0
     invoke-static {p0, p1}, Landroid/opengl/GLES20;->glShaderSource(ILjava/lang/String;)V
 
-    .line 144
+    .line 182
     invoke-static {p0}, Landroid/opengl/GLES20;->glCompileShader(I)V
 
-    .line 145
+    .line 183
     const/4 p1, 0x1
 
     new-array p1, p1, [I
 
-    .line 146
-    const v0, 0x8b81
+    .line 184
+    const v1, 0x8b81
 
-    const/4 v1, 0x0
+    invoke-static {p0, v1, p1, v0}, Landroid/opengl/GLES20;->glGetShaderiv(II[II)V
 
-    invoke-static {p0, v0, p1, v1}, Landroid/opengl/GLES20;->glGetShaderiv(II[II)V
+    .line 185
+    aget p1, p1, v0
 
-    .line 147
-    aget p1, p1, v1
+    if-nez p1, :cond_1
 
-    if-eqz p1, :cond_0
+    .line 186
+    invoke-static {p0}, Landroid/opengl/GLES20;->glDeleteShader(I)V
 
-    goto :goto_0
+    .line 187
+    return v0
 
-    :cond_0
-    move p0, v1
-
-    :goto_0
+    .line 189
+    :cond_1
     return p0
 .end method
 
-.method private static draw([I[BIIIIF)[I
-    .locals 11
+.method private static drawFbo([I[BIIIIF)[I
+    .locals 21
+
+    .line 97
+    move-object/from16 v0, p0
+
+    .line 98
+    const/4 v10, 0x3
+
+    new-array v11, v10, [I
 
     .line 99
-    const v0, 0x8b31
+    const/4 v12, 0x1
 
-    const-string v1, "#version 300 es\nout vec2 uv;\nvoid main(){ uv=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(uv*2.0-1.0,0.0,1.0); }"
-
-    invoke-static {v0, v1}, Lcom/motorola/camera/custom/OffscreenBokeh;->compile(ILjava/lang/String;)I
-
-    move-result v0
-
-    .line 100
-    const v1, 0x8b30
-
-    sget-object v2, Lcom/motorola/camera/custom/OffscreenBokeh;->FRAGMENT:Ljava/lang/String;
-
-    invoke-static {v1, v2}, Lcom/motorola/camera/custom/OffscreenBokeh;->compile(ILjava/lang/String;)I
-
-    move-result v1
+    new-array v13, v12, [I
 
     .line 101
-    const/4 v7, 0x0
+    const/4 v14, 0x2
 
-    if-eqz v0, :cond_6
+    const v15, 0x8d40
 
-    if-nez v1, :cond_0
+    const/4 v1, 0x0
 
-    goto/16 :goto_3
+    :try_start_0
+    const-string v2, "#version 300 es\nout vec2 uv;\nvoid main(){ uv=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(uv*2.0-1.0,0.0,1.0); }"
 
-    .line 102
-    :cond_0
-    invoke-static {}, Landroid/opengl/GLES20;->glCreateProgram()I
+    const v3, 0x8b31
+
+    invoke-static {v3, v2}, Lcom/motorola/camera/custom/OffscreenBokeh;->compile(ILjava/lang/String;)I
 
     move-result v2
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_7
+
+    .line 102
+    :try_start_1
+    sget-object v3, Lcom/motorola/camera/custom/OffscreenBokeh;->FRAGMENT:Ljava/lang/String;
+
+    const v4, 0x8b30
+
+    invoke-static {v4, v3}, Lcom/motorola/camera/custom/OffscreenBokeh;->compile(ILjava/lang/String;)I
+
+    move-result v3
+    :try_end_1
+    .catchall {:try_start_1 .. :try_end_1} :catchall_6
 
     .line 103
-    invoke-static {v2, v0}, Landroid/opengl/GLES20;->glAttachShader(II)V
+    const/16 v16, 0x0
+
+    if-eqz v2, :cond_2e
+
+    if-nez v3, :cond_0
+
+    move/from16 v19, v2
+
+    move/from16 v17, v3
+
+    move/from16 v20, v14
+
+    move v14, v1
+
+    goto/16 :goto_b
 
     .line 104
-    invoke-static {v2, v1}, Landroid/opengl/GLES20;->glAttachShader(II)V
+    :cond_0
+    :try_start_2
+    invoke-static {}, Landroid/opengl/GLES20;->glCreateProgram()I
+
+    move-result v4
+    :try_end_2
+    .catchall {:try_start_2 .. :try_end_2} :catchall_5
 
     .line 105
-    invoke-static {v2}, Landroid/opengl/GLES20;->glLinkProgram(I)V
+    if-nez v4, :cond_7
 
-    .line 106
-    const/4 v0, 0x1
+    .line 167
+    :try_start_3
+    invoke-static {v15, v1}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
 
-    new-array v0, v0, [I
+    .line 168
+    invoke-static {v1}, Landroid/opengl/GLES20;->glUseProgram(I)V
 
-    .line 107
-    const v1, 0x8b82
+    .line 169
+    aget v0, v13, v1
 
-    const/4 v8, 0x0
+    if-eqz v0, :cond_1
 
-    invoke-static {v2, v1, v0, v8}, Landroid/opengl/GLES20;->glGetProgramiv(II[II)V
+    invoke-static {v12, v13, v1}, Landroid/opengl/GLES20;->glDeleteFramebuffers(I[II)V
 
-    .line 108
-    aget v0, v0, v8
-
-    if-nez v0, :cond_1
-
-    return-object v7
-
-    .line 109
+    .line 170
     :cond_1
-    invoke-static {v2}, Landroid/opengl/GLES20;->glUseProgram(I)V
+    aget v0, v11, v1
 
-    .line 110
-    array-length v0, p0
+    if-nez v0, :cond_2
 
-    const/4 v9, 0x4
+    aget v0, v11, v12
 
-    mul-int/2addr v0, v9
+    if-nez v0, :cond_2
 
-    invoke-static {v0}, Ljava/nio/ByteBuffer;->allocateDirect(I)Ljava/nio/ByteBuffer;
+    aget v0, v11, v14
 
-    move-result-object v6
+    if-eqz v0, :cond_3
 
-    .line 111
-    array-length v0, p0
+    :cond_2
+    invoke-static {v10, v11, v1}, Landroid/opengl/GLES20;->glDeleteTextures(I[II)V
 
-    mul-int/2addr v0, v9
+    .line 171
+    :cond_3
+    if-eqz v4, :cond_4
 
-    invoke-static {v0}, Ljava/nio/ByteBuffer;->allocateDirect(I)Ljava/nio/ByteBuffer;
+    invoke-static {v4}, Landroid/opengl/GLES20;->glDeleteProgram(I)V
 
-    move-result-object v10
+    .line 172
+    :cond_4
+    if-eqz v2, :cond_5
 
-    .line 112
-    move v0, v8
+    invoke-static {v2}, Landroid/opengl/GLES20;->glDeleteShader(I)V
 
-    :goto_0
-    array-length v1, p0
+    .line 173
+    :cond_5
+    if-eqz v3, :cond_6
 
-    if-ge v0, v1, :cond_2
-
-    .line 113
-    aget v1, p0, v0
-
-    .line 114
-    ushr-int/lit8 v3, v1, 0x10
-
-    int-to-byte v3, v3
-
-    invoke-virtual {v6, v3}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
-
-    move-result-object v3
-
-    ushr-int/lit8 v4, v1, 0x8
-
-    int-to-byte v4, v4
-
-    invoke-virtual {v3, v4}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
-
-    move-result-object v3
-
-    int-to-byte v1, v1
-
-    invoke-virtual {v3, v1}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
-
-    move-result-object v1
-
-    const/4 v3, -0x1
-
-    invoke-virtual {v1, v3}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
-
-    .line 115
-    aget-byte v1, p1, v0
-
-    invoke-virtual {v10, v1}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
-
-    move-result-object v1
-
-    invoke-virtual {v1, v8}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
-
-    move-result-object v1
-
-    invoke-virtual {v1, v8}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
-
-    move-result-object v1
-
-    invoke-virtual {v1, v3}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
-
-    .line 112
-    add-int/lit8 v0, v0, 0x1
+    invoke-static {v3}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+    :try_end_3
+    .catch Ljava/lang/RuntimeException; {:try_start_3 .. :try_end_3} :catch_0
+    .catch Ljava/lang/LinkageError; {:try_start_3 .. :try_end_3} :catch_0
 
     goto :goto_0
 
-    .line 117
-    :cond_2
-    invoke-virtual {v6}, Ljava/nio/ByteBuffer;->flip()Ljava/nio/ByteBuffer;
+    .line 174
+    :catch_0
+    move-exception v0
+
+    :cond_6
+    :goto_0
+    nop
+
+    .line 105
+    return-object v16
+
+    .line 106
+    :cond_7
+    :try_start_4
+    invoke-static {v4, v2}, Landroid/opengl/GLES20;->glAttachShader(II)V
+
+    .line 107
+    invoke-static {v4, v3}, Landroid/opengl/GLES20;->glAttachShader(II)V
+
+    .line 108
+    invoke-static {v4}, Landroid/opengl/GLES20;->glLinkProgram(I)V
+
+    .line 109
+    new-array v5, v12, [I
+
+    .line 110
+    const v6, 0x8b82
+
+    invoke-static {v4, v6, v5, v1}, Landroid/opengl/GLES20;->glGetProgramiv(II[II)V
+
+    .line 111
+    aget v5, v5, v1
+    :try_end_4
+    .catchall {:try_start_4 .. :try_end_4} :catchall_4
+
+    if-nez v5, :cond_e
+
+    .line 167
+    :try_start_5
+    invoke-static {v15, v1}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
+
+    .line 168
+    invoke-static {v1}, Landroid/opengl/GLES20;->glUseProgram(I)V
+
+    .line 169
+    aget v0, v13, v1
+
+    if-eqz v0, :cond_8
+
+    invoke-static {v12, v13, v1}, Landroid/opengl/GLES20;->glDeleteFramebuffers(I[II)V
+
+    .line 170
+    :cond_8
+    aget v0, v11, v1
+
+    if-nez v0, :cond_9
+
+    aget v0, v11, v12
+
+    if-nez v0, :cond_9
+
+    aget v0, v11, v14
+
+    if-eqz v0, :cond_a
+
+    :cond_9
+    invoke-static {v10, v11, v1}, Landroid/opengl/GLES20;->glDeleteTextures(I[II)V
+
+    .line 171
+    :cond_a
+    if-eqz v4, :cond_b
+
+    invoke-static {v4}, Landroid/opengl/GLES20;->glDeleteProgram(I)V
+
+    .line 172
+    :cond_b
+    if-eqz v2, :cond_c
+
+    invoke-static {v2}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+
+    .line 173
+    :cond_c
+    if-eqz v3, :cond_d
+
+    invoke-static {v3}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+    :try_end_5
+    .catch Ljava/lang/RuntimeException; {:try_start_5 .. :try_end_5} :catch_1
+    .catch Ljava/lang/LinkageError; {:try_start_5 .. :try_end_5} :catch_1
+
+    goto :goto_1
+
+    .line 174
+    :catch_1
+    move-exception v0
+
+    :cond_d
+    :goto_1
+    nop
+
+    .line 111
+    return-object v16
+
+    .line 113
+    :cond_e
+    :try_start_6
+    invoke-static {v10, v11, v1}, Landroid/opengl/GLES20;->glGenTextures(I[II)V
+
+    .line 114
+    invoke-static {v12, v13, v1}, Landroid/opengl/GLES20;->glGenFramebuffers(I[II)V
+
+    .line 115
+    aget v5, v11, v1
+
+    if-eqz v5, :cond_27
+
+    aget v5, v11, v12
+
+    if-eqz v5, :cond_27
+
+    aget v5, v11, v14
+
+    if-eqz v5, :cond_27
+
+    aget v5, v13, v1
+
+    if-nez v5, :cond_f
+
+    move/from16 v19, v2
+
+    move/from16 v17, v3
+
+    move v8, v4
+
+    move/from16 v20, v14
+
+    move v14, v1
+
+    goto/16 :goto_8
 
     .line 118
-    invoke-virtual {v10}, Ljava/nio/ByteBuffer;->flip()Ljava/nio/ByteBuffer;
+    :cond_f
+    aget v5, v11, v14
+
+    const/16 v6, 0xde1
+
+    invoke-static {v6, v5}, Landroid/opengl/GLES20;->glBindTexture(II)V
 
     .line 119
-    const/4 v5, 0x0
+    const/16 v5, 0x2801
 
-    move v0, v2
+    const/16 v7, 0x2600
 
-    move-object v2, v6
-
-    const/16 v6, 0x2601
-
-    const-string v1, "image"
-
-    move v3, p2
-
-    move v4, p3
-
-    invoke-static/range {v0 .. v6}, Lcom/motorola/camera/custom/OffscreenBokeh;->texture(ILjava/lang/String;Ljava/nio/ByteBuffer;IIII)V
+    invoke-static {v6, v5, v7}, Landroid/opengl/GLES20;->glTexParameteri(III)V
 
     .line 120
-    move-object p1, v2
+    const/16 v5, 0x2800
 
-    const/4 v5, 0x1
-
-    const/16 v6, 0x2600
-
-    const-string v1, "depth"
-
-    move-object v2, v10
-
-    invoke-static/range {v0 .. v6}, Lcom/motorola/camera/custom/OffscreenBokeh;->texture(ILjava/lang/String;Ljava/nio/ByteBuffer;IIII)V
+    invoke-static {v6, v5, v7}, Landroid/opengl/GLES20;->glTexParameteri(III)V
 
     .line 121
+    const/16 v5, 0x2802
+
+    const v7, 0x812f
+
+    invoke-static {v6, v5, v7}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+
+    .line 122
+    const/16 v5, 0x2803
+
+    invoke-static {v6, v5, v7}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+    :try_end_6
+    .catchall {:try_start_6 .. :try_end_6} :catchall_4
+
+    .line 123
+    const/16 v8, 0x1401
+
+    const/4 v9, 0x0
+
+    move v5, v1
+
+    const/16 v1, 0xde1
+
+    move v7, v2
+
+    const/4 v2, 0x0
+
+    move/from16 v17, v3
+
+    const/16 v3, 0x1908
+
+    move/from16 v18, v6
+
+    const/4 v6, 0x0
+
+    move/from16 v19, v7
+
+    const/16 v7, 0x1908
+
+    move/from16 v20, v14
+
+    move/from16 v10, v18
+
+    move/from16 v18, v4
+
+    move v14, v5
+
+    move/from16 v4, p2
+
+    move/from16 v5, p3
+
+    :try_start_7
+    invoke-static/range {v1 .. v9}, Landroid/opengl/GLES20;->glTexImage2D(IIIIIIIILjava/nio/Buffer;)V
+
+    .line 125
+    aget v1, v13, v14
+
+    invoke-static {v15, v1}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
+
+    .line 126
+    aget v1, v11, v20
+
+    const v2, 0x8ce0
+
+    invoke-static {v15, v2, v10, v1, v14}, Landroid/opengl/GLES20;->glFramebufferTexture2D(IIIII)V
+
+    .line 128
+    invoke-static {v15}, Landroid/opengl/GLES20;->glCheckFramebufferStatus(I)I
+
+    move-result v1
+    :try_end_7
+    .catchall {:try_start_7 .. :try_end_7} :catchall_3
+
+    const v2, 0x8cd5
+
+    if-eq v1, v2, :cond_16
+
+    .line 129
+    nop
+
+    .line 167
+    :try_start_8
+    invoke-static {v15, v14}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
+
+    .line 168
+    invoke-static {v14}, Landroid/opengl/GLES20;->glUseProgram(I)V
+
+    .line 169
+    aget v0, v13, v14
+
+    if-eqz v0, :cond_10
+
+    invoke-static {v12, v13, v14}, Landroid/opengl/GLES20;->glDeleteFramebuffers(I[II)V
+
+    .line 170
+    :cond_10
+    aget v0, v11, v14
+
+    if-nez v0, :cond_11
+
+    aget v0, v11, v12
+
+    if-nez v0, :cond_11
+
+    aget v0, v11, v20
+
+    if-eqz v0, :cond_12
+
+    :cond_11
+    const/4 v1, 0x3
+
+    invoke-static {v1, v11, v14}, Landroid/opengl/GLES20;->glDeleteTextures(I[II)V
+
+    .line 171
+    :cond_12
+    if-eqz v18, :cond_13
+
+    invoke-static/range {v18 .. v18}, Landroid/opengl/GLES20;->glDeleteProgram(I)V
+
+    .line 172
+    :cond_13
+    if-eqz v19, :cond_14
+
+    invoke-static/range {v19 .. v19}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+
+    .line 173
+    :cond_14
+    if-eqz v17, :cond_15
+
+    invoke-static/range {v17 .. v17}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+    :try_end_8
+    .catch Ljava/lang/RuntimeException; {:try_start_8 .. :try_end_8} :catch_2
+    .catch Ljava/lang/LinkageError; {:try_start_8 .. :try_end_8} :catch_2
+
+    goto :goto_2
+
+    .line 174
+    :catch_2
+    move-exception v0
+
+    :cond_15
+    :goto_2
+    nop
+
+    .line 129
+    return-object v16
+
+    .line 132
+    :cond_16
+    :try_start_9
+    array-length v1, v0
+
+    const/4 v9, 0x4
+
+    mul-int/2addr v1, v9
+
+    invoke-static {v1}, Ljava/nio/ByteBuffer;->allocateDirect(I)Ljava/nio/ByteBuffer;
+
+    move-result-object v4
+
+    .line 133
+    array-length v1, v0
+
+    mul-int/2addr v1, v9
+
+    invoke-static {v1}, Ljava/nio/ByteBuffer;->allocateDirect(I)Ljava/nio/ByteBuffer;
+
+    move-result-object v10
+
+    .line 134
+    move v1, v14
+
+    :goto_3
+    array-length v2, v0
+    :try_end_9
+    .catchall {:try_start_9 .. :try_end_9} :catchall_3
+
+    if-ge v1, v2, :cond_17
+
+    .line 135
+    :try_start_a
+    aget v2, v0, v1
+
+    .line 136
+    ushr-int/lit8 v3, v2, 0x10
+
+    int-to-byte v3, v3
+
+    invoke-virtual {v4, v3}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
+
+    move-result-object v3
+
+    ushr-int/lit8 v5, v2, 0x8
+
+    int-to-byte v5, v5
+
+    invoke-virtual {v3, v5}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
+
+    move-result-object v3
+
+    int-to-byte v2, v2
+
+    invoke-virtual {v3, v2}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
+
+    move-result-object v2
+
+    const/4 v3, -0x1
+
+    invoke-virtual {v2, v3}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
+
+    .line 137
+    aget-byte v2, p1, v1
+
+    invoke-virtual {v10, v2}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
+
+    move-result-object v2
+
+    invoke-virtual {v2, v14}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
+
+    move-result-object v2
+
+    invoke-virtual {v2, v14}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
+
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, Ljava/nio/ByteBuffer;->put(B)Ljava/nio/ByteBuffer;
+    :try_end_a
+    .catchall {:try_start_a .. :try_end_a} :catchall_0
+
+    .line 134
+    add-int/lit8 v1, v1, 0x1
+
+    goto :goto_3
+
+    .line 166
+    :catchall_0
+    move-exception v0
+
+    move-object v1, v0
+
+    move/from16 v8, v18
+
+    goto/16 :goto_d
+
+    .line 139
+    :cond_17
+    :try_start_b
+    invoke-virtual {v4}, Ljava/nio/ByteBuffer;->flip()Ljava/nio/ByteBuffer;
+
+    .line 140
+    invoke-virtual {v10}, Ljava/nio/ByteBuffer;->flip()Ljava/nio/ByteBuffer;
+
+    .line 142
+    invoke-static/range {v18 .. v18}, Landroid/opengl/GLES20;->glUseProgram(I)V
+
+    .line 143
+    const-string v2, "image"
+
+    aget v3, v11, v14
+    :try_end_b
+    .catchall {:try_start_b .. :try_end_b} :catchall_3
+
+    const/4 v7, 0x0
+
+    const/16 v8, 0x2601
+
+    move/from16 v5, p2
+
+    move/from16 v6, p3
+
+    move/from16 v1, v18
+
+    :try_start_c
+    invoke-static/range {v1 .. v8}, Lcom/motorola/camera/custom/OffscreenBokeh;->uploadTexture(ILjava/lang/String;ILjava/nio/ByteBuffer;IIII)V
+
+    move-object/from16 v18, v4
+
+    .line 144
+    const-string v2, "depth"
+
+    aget v3, v11, v12
+
+    const/4 v7, 0x1
+
+    const/16 v8, 0x2600
+
+    move/from16 v5, p2
+
+    move/from16 v6, p3
+
+    move-object v4, v10
+
+    invoke-static/range {v1 .. v8}, Lcom/motorola/camera/custom/OffscreenBokeh;->uploadTexture(ILjava/lang/String;ILjava/nio/ByteBuffer;IIII)V
+    :try_end_c
+    .catchall {:try_start_c .. :try_end_c} :catchall_2
+
+    move v8, v1
+
+    .line 145
+    :try_start_d
     const-string v1, "style"
 
-    invoke-static {v0, v1}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v8, v1}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
     move-result v1
 
@@ -546,207 +998,655 @@
 
     invoke-static {v1, v2}, Landroid/opengl/GLES20;->glUniform1i(II)V
 
-    .line 122
+    .line 146
     const-string v1, "focus"
 
-    invoke-static {v0, v1}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v8, v1}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
     move-result v1
 
-    int-to-float v5, p4
+    move/from16 v3, p4
 
-    const/high16 v6, 0x437f0000    # 255.0f
+    int-to-float v3, v3
 
-    div-float/2addr v5, v6
+    const/high16 v4, 0x437f0000    # 255.0f
 
-    invoke-static {v1, v5}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+    div-float/2addr v3, v4
 
-    .line 123
+    invoke-static {v1, v3}, Landroid/opengl/GLES20;->glUniform1f(IF)V
+
+    .line 147
     invoke-static/range {p6 .. p6}, Ljava/lang/Float;->isFinite(F)Z
 
     move-result v1
 
-    if-eqz v1, :cond_3
+    if-eqz v1, :cond_18
 
     move/from16 v1, p6
 
-    goto :goto_1
+    goto :goto_4
 
-    :cond_3
+    :cond_18
     const/high16 v1, 0x3f800000    # 1.0f
 
-    :goto_1
-    const v5, 0x3fb9999a    # 1.45f
+    :goto_4
+    const v3, 0x3fb9999a    # 1.45f
 
-    invoke-static {v5, v1}, Ljava/lang/Math;->min(FF)F
-
-    move-result v1
-
-    const v5, 0x3f333333    # 0.7f
-
-    invoke-static {v5, v1}, Ljava/lang/Math;->max(FF)F
+    invoke-static {v3, v1}, Ljava/lang/Math;->min(FF)F
 
     move-result v1
 
-    .line 124
+    const v3, 0x3f333333    # 0.7f
+
+    invoke-static {v3, v1}, Ljava/lang/Math;->max(FF)F
+
+    move-result v1
+
+    .line 148
     invoke-static/range {p2 .. p3}, Ljava/lang/Math;->min(II)I
 
-    move-result v5
+    move-result v3
 
-    int-to-float v5, v5
+    int-to-float v3, v3
 
-    const v6, 0x3cdd2f1b    # 0.027f
+    const v4, 0x3cdd2f1b    # 0.027f
 
-    mul-float/2addr v5, v6
+    mul-float/2addr v3, v4
 
-    mul-float/2addr v5, v1
+    mul-float/2addr v3, v1
 
     const/high16 v1, 0x40000000    # 2.0f
 
-    invoke-static {v1, v5}, Ljava/lang/Math;->max(FF)F
+    invoke-static {v1, v3}, Ljava/lang/Math;->max(FF)F
 
     move-result v1
 
-    .line 125
-    const-string v5, "radius"
+    .line 149
+    const-string v3, "radius"
 
-    invoke-static {v0, v5}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v8, v3}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
-    move-result v5
+    move-result v3
 
-    int-to-float v6, p2
+    int-to-float v4, v5
 
-    div-float v6, v1, v6
+    div-float v4, v1, v4
 
-    int-to-float v10, p3
+    int-to-float v7, v6
 
-    div-float/2addr v1, v10
+    div-float/2addr v1, v7
 
-    invoke-static {v5, v6, v1}, Landroid/opengl/GLES20;->glUniform2f(IFF)V
+    invoke-static {v3, v4, v1}, Landroid/opengl/GLES20;->glUniform2f(IFF)V
 
-    .line 126
+    .line 150
     const-string v1, "taps[0]"
 
-    invoke-static {v0, v1}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
+    invoke-static {v8, v1}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
-    move-result v0
+    move-result v1
 
-    .line 127
+    .line 151
     invoke-static {v2}, Lcom/motorola/camera/custom/BokehKernel;->aperture(I)[F
 
-    move-result-object v1
+    move-result-object v2
 
-    .line 126
-    const/16 v2, 0x20
+    .line 150
+    const/16 v3, 0x20
 
-    invoke-static {v0, v2, v1, v8}, Landroid/opengl/GLES20;->glUniform3fv(II[FI)V
+    invoke-static {v1, v3, v2, v14}, Landroid/opengl/GLES20;->glUniform3fv(II[FI)V
 
-    .line 128
-    invoke-static {v8, v8, p2, p3}, Landroid/opengl/GLES20;->glViewport(IIII)V
+    .line 152
+    invoke-static {v14, v14, v5, v6}, Landroid/opengl/GLES20;->glViewport(IIII)V
 
-    .line 129
-    const/4 v0, 0x3
+    .line 153
+    const/4 v1, 0x3
 
-    invoke-static {v9, v8, v0}, Landroid/opengl/GLES20;->glDrawArrays(III)V
+    invoke-static {v9, v14, v1}, Landroid/opengl/GLES20;->glDrawArrays(III)V
 
-    .line 130
-    const/16 v4, 0x1908
+    .line 154
+    invoke-virtual/range {v18 .. v18}, Ljava/nio/ByteBuffer;->clear()Ljava/nio/ByteBuffer;
 
-    const/16 v5, 0x1401
+    .line 155
+    const/16 v5, 0x1908
 
-    const/4 v0, 0x0
+    const/16 v6, 0x1401
 
     const/4 v1, 0x0
 
-    move-object v6, p1
+    const/4 v2, 0x0
 
-    move v2, p2
+    move/from16 v3, p2
 
-    move v3, p3
+    move/from16 v4, p3
 
-    invoke-static/range {v0 .. v6}, Landroid/opengl/GLES20;->glReadPixels(IIIIIILjava/nio/Buffer;)V
+    move-object/from16 v7, v18
 
-    .line 131
-    move-object v2, v6
+    invoke-static/range {v1 .. v7}, Landroid/opengl/GLES20;->glReadPixels(IIIIIILjava/nio/Buffer;)V
 
+    .line 156
     invoke-static {}, Landroid/opengl/GLES20;->glGetError()I
 
-    move-result p1
+    move-result v1
+    :try_end_d
+    .catchall {:try_start_d .. :try_end_d} :catchall_1
 
-    if-eqz p1, :cond_4
+    if-eqz v1, :cond_1f
 
-    return-object v7
+    .line 167
+    :try_start_e
+    invoke-static {v15, v14}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
 
-    .line 132
-    :cond_4
-    invoke-virtual {v2}, Ljava/nio/ByteBuffer;->rewind()Ljava/nio/ByteBuffer;
+    .line 168
+    invoke-static {v14}, Landroid/opengl/GLES20;->glUseProgram(I)V
 
-    .line 133
-    array-length p0, p0
+    .line 169
+    aget v0, v13, v14
 
-    new-array p1, p0, [I
+    if-eqz v0, :cond_19
 
-    .line 134
+    invoke-static {v12, v13, v14}, Landroid/opengl/GLES20;->glDeleteFramebuffers(I[II)V
+
+    .line 170
+    :cond_19
+    aget v0, v11, v14
+
+    if-nez v0, :cond_1a
+
+    aget v0, v11, v12
+
+    if-nez v0, :cond_1a
+
+    aget v0, v11, v20
+
+    if-eqz v0, :cond_1b
+
+    :cond_1a
+    const/4 v1, 0x3
+
+    invoke-static {v1, v11, v14}, Landroid/opengl/GLES20;->glDeleteTextures(I[II)V
+
+    .line 171
+    :cond_1b
+    if-eqz v8, :cond_1c
+
+    invoke-static {v8}, Landroid/opengl/GLES20;->glDeleteProgram(I)V
+
+    .line 172
+    :cond_1c
+    if-eqz v19, :cond_1d
+
+    invoke-static/range {v19 .. v19}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+
+    .line 173
+    :cond_1d
+    if-eqz v17, :cond_1e
+
+    invoke-static/range {v17 .. v17}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+    :try_end_e
+    .catch Ljava/lang/RuntimeException; {:try_start_e .. :try_end_e} :catch_3
+    .catch Ljava/lang/LinkageError; {:try_start_e .. :try_end_e} :catch_3
+
+    goto :goto_5
+
+    .line 174
+    :catch_3
+    move-exception v0
+
+    :cond_1e
+    :goto_5
     nop
 
-    :goto_2
-    if-ge v8, p0, :cond_5
+    .line 156
+    return-object v16
 
-    .line 135
-    invoke-virtual {v2}, Ljava/nio/ByteBuffer;->get()B
+    .line 157
+    :cond_1f
+    :try_start_f
+    invoke-virtual/range {v18 .. v18}, Ljava/nio/ByteBuffer;->rewind()Ljava/nio/ByteBuffer;
 
-    move-result p2
+    .line 158
+    array-length v0, v0
 
-    and-int/lit16 p2, p2, 0xff
+    new-array v1, v0, [I
 
-    shl-int/lit8 p2, p2, 0x10
+    .line 159
+    move v2, v14
 
-    const/high16 v0, -0x1000000
+    :goto_6
+    if-ge v2, v0, :cond_20
 
-    or-int/2addr p2, v0
+    .line 160
+    invoke-virtual/range {v18 .. v18}, Ljava/nio/ByteBuffer;->get()B
 
-    invoke-virtual {v2}, Ljava/nio/ByteBuffer;->get()B
+    move-result v3
 
-    move-result v0
+    and-int/lit16 v3, v3, 0xff
 
-    and-int/lit16 v0, v0, 0xff
+    shl-int/lit8 v3, v3, 0x10
 
-    shl-int/lit8 v0, v0, 0x8
+    const/high16 v4, -0x1000000
 
-    or-int/2addr p2, v0
+    or-int/2addr v3, v4
 
-    invoke-virtual {v2}, Ljava/nio/ByteBuffer;->get()B
+    .line 161
+    invoke-virtual/range {v18 .. v18}, Ljava/nio/ByteBuffer;->get()B
 
-    move-result v0
+    move-result v4
 
-    and-int/lit16 v0, v0, 0xff
+    and-int/lit16 v4, v4, 0xff
 
-    or-int/2addr p2, v0
+    shl-int/lit8 v4, v4, 0x8
 
-    aput p2, p1, v8
+    or-int/2addr v3, v4
 
-    .line 136
-    invoke-virtual {v2}, Ljava/nio/ByteBuffer;->get()B
+    invoke-virtual/range {v18 .. v18}, Ljava/nio/ByteBuffer;->get()B
 
-    .line 134
-    add-int/lit8 v8, v8, 0x1
+    move-result v4
 
-    goto :goto_2
+    and-int/lit16 v4, v4, 0xff
 
-    .line 138
-    :cond_5
-    return-object p1
+    or-int/2addr v3, v4
 
-    .line 101
-    :cond_6
-    :goto_3
-    return-object v7
+    aput v3, v1, v2
+
+    .line 162
+    invoke-virtual/range {v18 .. v18}, Ljava/nio/ByteBuffer;->get()B
+    :try_end_f
+    .catchall {:try_start_f .. :try_end_f} :catchall_1
+
+    .line 159
+    add-int/lit8 v2, v2, 0x1
+
+    goto :goto_6
+
+    .line 164
+    :cond_20
+    nop
+
+    .line 167
+    :try_start_10
+    invoke-static {v15, v14}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
+
+    .line 168
+    invoke-static {v14}, Landroid/opengl/GLES20;->glUseProgram(I)V
+
+    .line 169
+    aget v0, v13, v14
+
+    if-eqz v0, :cond_21
+
+    invoke-static {v12, v13, v14}, Landroid/opengl/GLES20;->glDeleteFramebuffers(I[II)V
+
+    .line 170
+    :cond_21
+    aget v0, v11, v14
+
+    if-nez v0, :cond_22
+
+    aget v0, v11, v12
+
+    if-nez v0, :cond_22
+
+    aget v0, v11, v20
+
+    if-eqz v0, :cond_23
+
+    :cond_22
+    const/4 v2, 0x3
+
+    invoke-static {v2, v11, v14}, Landroid/opengl/GLES20;->glDeleteTextures(I[II)V
+
+    .line 171
+    :cond_23
+    if-eqz v8, :cond_24
+
+    invoke-static {v8}, Landroid/opengl/GLES20;->glDeleteProgram(I)V
+
+    .line 172
+    :cond_24
+    if-eqz v19, :cond_25
+
+    invoke-static/range {v19 .. v19}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+
+    .line 173
+    :cond_25
+    if-eqz v17, :cond_26
+
+    invoke-static/range {v17 .. v17}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+    :try_end_10
+    .catch Ljava/lang/RuntimeException; {:try_start_10 .. :try_end_10} :catch_4
+    .catch Ljava/lang/LinkageError; {:try_start_10 .. :try_end_10} :catch_4
+
+    goto :goto_7
+
+    .line 174
+    :catch_4
+    move-exception v0
+
+    :cond_26
+    :goto_7
+    nop
+
+    .line 164
+    return-object v1
+
+    .line 166
+    :catchall_1
+    move-exception v0
+
+    goto :goto_a
+
+    :catchall_2
+    move-exception v0
+
+    move v8, v1
+
+    goto :goto_a
+
+    :catchall_3
+    move-exception v0
+
+    move/from16 v8, v18
+
+    goto :goto_a
+
+    .line 115
+    :cond_27
+    move/from16 v19, v2
+
+    move/from16 v17, v3
+
+    move v8, v4
+
+    move/from16 v20, v14
+
+    move v14, v1
+
+    .line 167
+    :goto_8
+    :try_start_11
+    invoke-static {v15, v14}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
+
+    .line 168
+    invoke-static {v14}, Landroid/opengl/GLES20;->glUseProgram(I)V
+
+    .line 169
+    aget v0, v13, v14
+
+    if-eqz v0, :cond_28
+
+    invoke-static {v12, v13, v14}, Landroid/opengl/GLES20;->glDeleteFramebuffers(I[II)V
+
+    .line 170
+    :cond_28
+    aget v0, v11, v14
+
+    if-nez v0, :cond_29
+
+    aget v0, v11, v12
+
+    if-nez v0, :cond_29
+
+    aget v0, v11, v20
+
+    if-eqz v0, :cond_2a
+
+    :cond_29
+    const/4 v1, 0x3
+
+    invoke-static {v1, v11, v14}, Landroid/opengl/GLES20;->glDeleteTextures(I[II)V
+
+    .line 171
+    :cond_2a
+    if-eqz v8, :cond_2b
+
+    invoke-static {v8}, Landroid/opengl/GLES20;->glDeleteProgram(I)V
+
+    .line 172
+    :cond_2b
+    if-eqz v19, :cond_2c
+
+    invoke-static/range {v19 .. v19}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+
+    .line 173
+    :cond_2c
+    if-eqz v17, :cond_2d
+
+    invoke-static/range {v17 .. v17}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+    :try_end_11
+    .catch Ljava/lang/RuntimeException; {:try_start_11 .. :try_end_11} :catch_5
+    .catch Ljava/lang/LinkageError; {:try_start_11 .. :try_end_11} :catch_5
+
+    goto :goto_9
+
+    .line 174
+    :catch_5
+    move-exception v0
+
+    :cond_2d
+    :goto_9
+    nop
+
+    .line 115
+    return-object v16
+
+    .line 166
+    :catchall_4
+    move-exception v0
+
+    move/from16 v19, v2
+
+    move/from16 v17, v3
+
+    move v8, v4
+
+    move/from16 v20, v14
+
+    move v14, v1
+
+    :goto_a
+    move-object v1, v0
+
+    goto/16 :goto_d
+
+    :catchall_5
+    move-exception v0
+
+    move/from16 v19, v2
+
+    move/from16 v17, v3
+
+    move/from16 v20, v14
+
+    move v14, v1
+
+    move-object v1, v0
+
+    move v8, v14
+
+    goto :goto_d
+
+    .line 103
+    :cond_2e
+    move/from16 v19, v2
+
+    move/from16 v17, v3
+
+    move/from16 v20, v14
+
+    move v14, v1
+
+    .line 167
+    :goto_b
+    :try_start_12
+    invoke-static {v15, v14}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
+
+    .line 168
+    invoke-static {v14}, Landroid/opengl/GLES20;->glUseProgram(I)V
+
+    .line 169
+    aget v0, v13, v14
+
+    if-eqz v0, :cond_2f
+
+    invoke-static {v12, v13, v14}, Landroid/opengl/GLES20;->glDeleteFramebuffers(I[II)V
+
+    .line 170
+    :cond_2f
+    aget v0, v11, v14
+
+    if-nez v0, :cond_30
+
+    aget v0, v11, v12
+
+    if-nez v0, :cond_30
+
+    aget v0, v11, v20
+
+    if-eqz v0, :cond_31
+
+    :cond_30
+    const/4 v1, 0x3
+
+    invoke-static {v1, v11, v14}, Landroid/opengl/GLES20;->glDeleteTextures(I[II)V
+
+    .line 171
+    :cond_31
+    nop
+
+    .line 172
+    if-eqz v19, :cond_32
+
+    invoke-static/range {v19 .. v19}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+
+    .line 173
+    :cond_32
+    if-eqz v17, :cond_33
+
+    invoke-static/range {v17 .. v17}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+    :try_end_12
+    .catch Ljava/lang/RuntimeException; {:try_start_12 .. :try_end_12} :catch_6
+    .catch Ljava/lang/LinkageError; {:try_start_12 .. :try_end_12} :catch_6
+
+    goto :goto_c
+
+    .line 174
+    :catch_6
+    move-exception v0
+
+    :cond_33
+    :goto_c
+    nop
+
+    .line 103
+    return-object v16
+
+    .line 166
+    :catchall_6
+    move-exception v0
+
+    move/from16 v19, v2
+
+    move/from16 v20, v14
+
+    move v14, v1
+
+    move-object v1, v0
+
+    move v8, v14
+
+    move/from16 v17, v8
+
+    goto :goto_d
+
+    :catchall_7
+    move-exception v0
+
+    move/from16 v20, v14
+
+    move v14, v1
+
+    move-object v1, v0
+
+    move v8, v14
+
+    move/from16 v17, v8
+
+    move/from16 v19, v17
+
+    .line 167
+    :goto_d
+    :try_start_13
+    invoke-static {v15, v14}, Landroid/opengl/GLES20;->glBindFramebuffer(II)V
+
+    .line 168
+    invoke-static {v14}, Landroid/opengl/GLES20;->glUseProgram(I)V
+
+    .line 169
+    aget v0, v13, v14
+
+    if-eqz v0, :cond_34
+
+    invoke-static {v12, v13, v14}, Landroid/opengl/GLES20;->glDeleteFramebuffers(I[II)V
+
+    .line 170
+    :cond_34
+    aget v0, v11, v14
+
+    if-nez v0, :cond_35
+
+    aget v0, v11, v12
+
+    if-nez v0, :cond_35
+
+    aget v0, v11, v20
+
+    if-eqz v0, :cond_36
+
+    :cond_35
+    const/4 v2, 0x3
+
+    invoke-static {v2, v11, v14}, Landroid/opengl/GLES20;->glDeleteTextures(I[II)V
+
+    .line 171
+    :cond_36
+    if-eqz v8, :cond_37
+
+    invoke-static {v8}, Landroid/opengl/GLES20;->glDeleteProgram(I)V
+
+    .line 172
+    :cond_37
+    if-eqz v19, :cond_38
+
+    invoke-static/range {v19 .. v19}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+
+    .line 173
+    :cond_38
+    if-eqz v17, :cond_39
+
+    invoke-static/range {v17 .. v17}, Landroid/opengl/GLES20;->glDeleteShader(I)V
+    :try_end_13
+    .catch Ljava/lang/RuntimeException; {:try_start_13 .. :try_end_13} :catch_7
+    .catch Ljava/lang/LinkageError; {:try_start_13 .. :try_end_13} :catch_7
+
+    goto :goto_e
+
+    .line 174
+    :catch_7
+    move-exception v0
+
+    :cond_39
+    :goto_e
+    nop
+
+    .line 175
+    throw v1
 .end method
 
 .method static render([I[BIIII)[I
     .locals 7
 
-    .line 62
+    .line 77
     const/high16 v6, 0x3f800000    # 1.0f
 
     move-object v0, p0
@@ -769,525 +1669,203 @@
 .end method
 
 .method static render([I[BIIIIF)[I
-    .locals 12
+    .locals 3
 
-    .line 67
+    .line 81
+    const/4 v1, 0x0
+
+    if-eqz p0, :cond_6
+
+    if-eqz p1, :cond_6
+
+    if-lez p2, :cond_6
+
+    if-lez p3, :cond_6
+
+    array-length v0, p0
+
+    mul-int v2, p2, p3
+
+    if-lt v0, v2, :cond_6
+
+    array-length v0, p1
+
+    if-ge v0, v2, :cond_0
+
+    goto :goto_1
+
+    .line 86
+    :cond_0
     sget-object v0, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
 
     invoke-static {}, Landroid/opengl/EGL14;->eglGetCurrentContext()Landroid/opengl/EGLContext;
 
-    move-result-object v1
+    move-result-object v2
 
-    invoke-virtual {v0, v1}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
+    invoke-virtual {v0, v2}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
 
     move-result v0
 
-    const/4 v1, 0x0
-
-    if-nez v0, :cond_0
+    if-nez v0, :cond_1
 
     return-object v1
 
-    .line 68
-    :cond_0
-    const/4 v0, 0x0
-
-    invoke-static {v0}, Landroid/opengl/EGL14;->eglGetDisplay(I)Landroid/opengl/EGLDisplay;
+    .line 87
+    :cond_1
+    :try_start_0
+    invoke-static {}, Lcom/motorola/camera/custom/GpuComputeContext;->acquire()Lcom/motorola/camera/custom/GpuComputeContext$Scope;
 
     move-result-object v2
 
-    .line 69
-    sget-object v3, Landroid/opengl/EGL14;->EGL_NO_DISPLAY:Landroid/opengl/EGLDisplay;
+    .line 88
+    if-nez v2, :cond_3
 
-    invoke-virtual {v3, v2}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
+    .line 90
+    if-eqz v2, :cond_2
 
-    move-result v3
-
-    if-eqz v3, :cond_1
-
-    return-object v1
-
-    .line 70
-    :cond_1
-    invoke-static {v2, v1, v0, v1, v0}, Landroid/opengl/EGL14;->eglInitialize(Landroid/opengl/EGLDisplay;[II[II)Z
-
-    move-result v3
-
-    if-nez v3, :cond_2
-
-    return-object v1
-
-    .line 71
-    :cond_2
-    sget-object v10, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    .line 72
-    sget-object v11, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    .line 74
-    const/4 v3, 0x1
-
-    :try_start_0
-    new-array v5, v3, [Landroid/opengl/EGLConfig;
-
-    .line 75
-    new-array v8, v3, [I
-
-    .line 76
-    nop
-
-    .line 77
-    const/16 v3, 0xd
-
-    new-array v3, v3, [I
-
-    fill-array-data v3, :array_0
-
-    .line 80
-    const/4 v7, 0x1
-
-    const/4 v9, 0x0
-
-    const/4 v4, 0x0
-
-    const/4 v6, 0x0
-
-    invoke-static/range {v2 .. v9}, Landroid/opengl/EGL14;->eglChooseConfig(Landroid/opengl/EGLDisplay;[II[Landroid/opengl/EGLConfig;II[II)Z
-
-    move-result v3
-
-    if-eqz v3, :cond_d
-
-    aget v3, v8, v0
-
-    if-nez v3, :cond_3
-
-    goto/16 :goto_1
-
-    .line 81
-    :cond_3
-    aget-object v3, v5, v0
-
-    sget-object v4, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    const/16 v6, 0x3038
-
-    const/16 v7, 0x3098
-
-    const/4 v8, 0x3
-
-    filled-new-array {v7, v8, v6}, [I
-
-    move-result-object v7
-
-    invoke-static {v2, v3, v4, v7, v0}, Landroid/opengl/EGL14;->eglCreateContext(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLConfig;Landroid/opengl/EGLContext;[II)Landroid/opengl/EGLContext;
-
-    move-result-object v10
-
-    .line 83
-    sget-object v3, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-virtual {v3, v10}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result v3
+    invoke-virtual {v2}, Lcom/motorola/camera/custom/GpuComputeContext$Scope;->close()V
     :try_end_0
     .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_0
-    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+    .catch Ljava/lang/LinkageError; {:try_start_0 .. :try_end_0} :catch_0
 
-    if-eqz v3, :cond_6
-
-    .line 91
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    sget-object p2, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-static {v2, p0, p1, p2}, Landroid/opengl/EGL14;->eglMakeCurrent(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;Landroid/opengl/EGLSurface;Landroid/opengl/EGLContext;)Z
-
-    .line 92
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    invoke-virtual {p0, v11}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p0
-
-    if-nez p0, :cond_4
-
-    invoke-static {v2, v11}, Landroid/opengl/EGL14;->eglDestroySurface(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;)Z
-
-    .line 93
-    :cond_4
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-virtual {p0, v10}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p0
-
-    if-nez p0, :cond_5
-
-    invoke-static {v2, v10}, Landroid/opengl/EGL14;->eglDestroyContext(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLContext;)Z
-
-    .line 94
-    :cond_5
-    invoke-static {v2}, Landroid/opengl/EGL14;->eglTerminate(Landroid/opengl/EGLDisplay;)Z
-
-    .line 83
+    .line 88
+    :cond_2
     return-object v1
 
-    .line 84
-    :cond_6
+    .line 89
+    :cond_3
     :try_start_1
-    aget-object v3, v5, v0
-
-    const/16 v4, 0x3057
-
-    const/16 v5, 0x3056
-
-    filled-new-array {v4, p2, v5, p3, v6}, [I
-
-    move-result-object v4
-
-    invoke-static {v2, v3, v4, v0}, Landroid/opengl/EGL14;->eglCreatePbufferSurface(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLConfig;[II)Landroid/opengl/EGLSurface;
-
-    move-result-object v11
-
-    .line 86
-    sget-object v0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    invoke-virtual {v0, v11}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result v0
-
-    if-nez v0, :cond_a
-
-    invoke-static {v2, v11, v11, v10}, Landroid/opengl/EGL14;->eglMakeCurrent(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;Landroid/opengl/EGLSurface;Landroid/opengl/EGLContext;)Z
-
-    move-result v0
-
-    if-nez v0, :cond_7
-
-    goto :goto_0
-
-    .line 87
-    :cond_7
-    invoke-static/range {p0 .. p6}, Lcom/motorola/camera/custom/OffscreenBokeh;->draw([I[BIIIIF)[I
+    invoke-static/range {p0 .. p6}, Lcom/motorola/camera/custom/OffscreenBokeh;->drawFbo([I[BIIIIF)[I
 
     move-result-object p0
     :try_end_1
-    .catch Ljava/lang/RuntimeException; {:try_start_1 .. :try_end_1} :catch_0
     .catchall {:try_start_1 .. :try_end_1} :catchall_0
 
-    .line 91
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
+    .line 90
+    if-eqz v2, :cond_4
 
-    sget-object p2, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
+    :try_start_2
+    invoke-virtual {v2}, Lcom/motorola/camera/custom/GpuComputeContext$Scope;->close()V
+    :try_end_2
+    .catch Ljava/lang/RuntimeException; {:try_start_2 .. :try_end_2} :catch_0
+    .catch Ljava/lang/LinkageError; {:try_start_2 .. :try_end_2} :catch_0
 
-    sget-object p3, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-static {v2, p1, p2, p3}, Landroid/opengl/EGL14;->eglMakeCurrent(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;Landroid/opengl/EGLSurface;Landroid/opengl/EGLContext;)Z
-
-    .line 92
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    invoke-virtual {p1, v11}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p1
-
-    if-nez p1, :cond_8
-
-    invoke-static {v2, v11}, Landroid/opengl/EGL14;->eglDestroySurface(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;)Z
-
-    .line 93
-    :cond_8
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-virtual {p1, v10}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p1
-
-    if-nez p1, :cond_9
-
-    invoke-static {v2, v10}, Landroid/opengl/EGL14;->eglDestroyContext(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLContext;)Z
-
-    .line 94
-    :cond_9
-    invoke-static {v2}, Landroid/opengl/EGL14;->eglTerminate(Landroid/opengl/EGLDisplay;)Z
-
-    .line 87
+    .line 89
+    :cond_4
     return-object p0
 
-    .line 91
-    :cond_a
-    :goto_0
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    sget-object p2, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-static {v2, p0, p1, p2}, Landroid/opengl/EGL14;->eglMakeCurrent(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;Landroid/opengl/EGLSurface;Landroid/opengl/EGLContext;)Z
-
-    .line 92
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    invoke-virtual {p0, v11}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p0
-
-    if-nez p0, :cond_b
-
-    invoke-static {v2, v11}, Landroid/opengl/EGL14;->eglDestroySurface(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;)Z
-
-    .line 93
-    :cond_b
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-virtual {p0, v10}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p0
-
-    if-nez p0, :cond_c
-
-    invoke-static {v2, v10}, Landroid/opengl/EGL14;->eglDestroyContext(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLContext;)Z
-
-    .line 94
-    :cond_c
-    invoke-static {v2}, Landroid/opengl/EGL14;->eglTerminate(Landroid/opengl/EGLDisplay;)Z
-
-    .line 86
-    return-object v1
-
-    .line 91
-    :cond_d
-    :goto_1
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    sget-object p2, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-static {v2, p0, p1, p2}, Landroid/opengl/EGL14;->eglMakeCurrent(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;Landroid/opengl/EGLSurface;Landroid/opengl/EGLContext;)Z
-
-    .line 92
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    invoke-virtual {p0, v11}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p0
-
-    if-nez p0, :cond_e
-
-    invoke-static {v2, v11}, Landroid/opengl/EGL14;->eglDestroySurface(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;)Z
-
-    .line 93
-    :cond_e
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-virtual {p0, v10}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p0
-
-    if-nez p0, :cond_f
-
-    invoke-static {v2, v10}, Landroid/opengl/EGL14;->eglDestroyContext(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLContext;)Z
-
-    .line 94
-    :cond_f
-    invoke-static {v2}, Landroid/opengl/EGL14;->eglTerminate(Landroid/opengl/EGLDisplay;)Z
-
-    .line 80
-    return-object v1
-
-    .line 91
+    .line 87
     :catchall_0
     move-exception v0
 
     move-object p0, v0
 
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
+    if-eqz v2, :cond_5
 
-    sget-object p2, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
+    :try_start_3
+    invoke-virtual {v2}, Lcom/motorola/camera/custom/GpuComputeContext$Scope;->close()V
+    :try_end_3
+    .catchall {:try_start_3 .. :try_end_3} :catchall_1
 
-    sget-object p3, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
+    goto :goto_0
 
-    invoke-static {v2, p1, p2, p3}, Landroid/opengl/EGL14;->eglMakeCurrent(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;Landroid/opengl/EGLSurface;Landroid/opengl/EGLContext;)Z
+    :catchall_1
+    move-exception v0
 
-    .line 92
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
+    move-object p1, v0
 
-    invoke-virtual {p1, v11}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
+    :try_start_4
+    invoke-virtual {p0, p1}, Ljava/lang/Throwable;->addSuppressed(Ljava/lang/Throwable;)V
 
-    move-result p1
-
-    if-nez p1, :cond_10
-
-    invoke-static {v2, v11}, Landroid/opengl/EGL14;->eglDestroySurface(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;)Z
-
-    .line 93
-    :cond_10
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-virtual {p1, v10}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p1
-
-    if-nez p1, :cond_11
-
-    invoke-static {v2, v10}, Landroid/opengl/EGL14;->eglDestroyContext(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLContext;)Z
-
-    .line 94
-    :cond_11
-    invoke-static {v2}, Landroid/opengl/EGL14;->eglTerminate(Landroid/opengl/EGLDisplay;)Z
-
-    .line 95
+    :cond_5
+    :goto_0
     throw p0
+    :try_end_4
+    .catch Ljava/lang/RuntimeException; {:try_start_4 .. :try_end_4} :catch_0
+    .catch Ljava/lang/LinkageError; {:try_start_4 .. :try_end_4} :catch_0
 
-    .line 88
+    .line 90
     :catch_0
     move-exception v0
 
-    .line 89
-    nop
-
     .line 91
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    sget-object p1, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    sget-object p2, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-static {v2, p0, p1, p2}, Landroid/opengl/EGL14;->eglMakeCurrent(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;Landroid/opengl/EGLSurface;Landroid/opengl/EGLContext;)Z
-
-    .line 92
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_SURFACE:Landroid/opengl/EGLSurface;
-
-    invoke-virtual {p0, v11}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p0
-
-    if-nez p0, :cond_12
-
-    invoke-static {v2, v11}, Landroid/opengl/EGL14;->eglDestroySurface(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLSurface;)Z
-
-    .line 93
-    :cond_12
-    sget-object p0, Landroid/opengl/EGL14;->EGL_NO_CONTEXT:Landroid/opengl/EGLContext;
-
-    invoke-virtual {p0, v10}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
-
-    move-result p0
-
-    if-nez p0, :cond_13
-
-    invoke-static {v2, v10}, Landroid/opengl/EGL14;->eglDestroyContext(Landroid/opengl/EGLDisplay;Landroid/opengl/EGLContext;)Z
-
-    .line 94
-    :cond_13
-    invoke-static {v2}, Landroid/opengl/EGL14;->eglTerminate(Landroid/opengl/EGLDisplay;)Z
-
-    .line 89
     return-object v1
 
-    :array_0
-    .array-data 4
-        0x3033
-        0x1
-        0x3040
-        0x40
-        0x3024
-        0x8
-        0x3023
-        0x8
-        0x3022
-        0x8
-        0x3021
-        0x8
-        0x3038
-    .end array-data
+    .line 83
+    :cond_6
+    :goto_1
+    return-object v1
 .end method
 
-.method private static texture(ILjava/lang/String;Ljava/nio/ByteBuffer;IIII)V
-    .locals 13
+.method private static uploadTexture(ILjava/lang/String;ILjava/nio/ByteBuffer;IIII)V
+    .locals 12
 
-    .line 151
-    move/from16 v0, p5
+    .line 194
+    move/from16 v0, p6
 
-    move/from16 v1, p6
+    move/from16 v1, p7
 
-    const/4 v2, 0x1
-
-    new-array v3, v2, [I
-
-    .line 152
-    const/4 v4, 0x0
-
-    invoke-static {v2, v3, v4}, Landroid/opengl/GLES20;->glGenTextures(I[II)V
-
-    .line 153
     const v2, 0x84c0
 
     add-int/2addr v2, v0
 
     invoke-static {v2}, Landroid/opengl/GLES20;->glActiveTexture(I)V
 
-    .line 154
-    aget v2, v3, v4
+    .line 195
+    const/16 v2, 0xde1
+
+    invoke-static {v2, p2}, Landroid/opengl/GLES20;->glBindTexture(II)V
+
+    .line 196
+    const/16 p2, 0x2801
+
+    invoke-static {v2, p2, v1}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+
+    .line 197
+    const/16 p2, 0x2800
+
+    invoke-static {v2, p2, v1}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+
+    .line 198
+    const/16 p2, 0x2802
+
+    const v1, 0x812f
+
+    invoke-static {v2, p2, v1}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+
+    .line 199
+    const/16 p2, 0x2803
+
+    invoke-static {v2, p2, v1}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+
+    .line 200
+    const/16 v9, 0x1908
+
+    const/16 v10, 0x1401
 
     const/16 v3, 0xde1
 
-    invoke-static {v3, v2}, Landroid/opengl/GLES20;->glBindTexture(II)V
+    const/4 v4, 0x0
 
-    .line 155
-    const/16 v2, 0x2801
+    const/16 v5, 0x1908
 
-    invoke-static {v3, v2, v1}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+    const/4 v8, 0x0
 
-    .line 156
-    const/16 v2, 0x2800
+    move-object v11, p3
 
-    invoke-static {v3, v2, v1}, Landroid/opengl/GLES20;->glTexParameteri(III)V
+    move/from16 v6, p4
 
-    .line 157
-    const/16 v1, 0x2802
+    move/from16 v7, p5
 
-    const v2, 0x812f
+    invoke-static/range {v3 .. v11}, Landroid/opengl/GLES20;->glTexImage2D(IIIIIIIILjava/nio/Buffer;)V
 
-    invoke-static {v3, v1, v2}, Landroid/opengl/GLES20;->glTexParameteri(III)V
-
-    .line 158
-    const/16 v1, 0x2803
-
-    invoke-static {v3, v1, v2}, Landroid/opengl/GLES20;->glTexParameteri(III)V
-
-    .line 159
-    const/16 v10, 0x1908
-
-    const/16 v11, 0x1401
-
-    const/16 v4, 0xde1
-
-    const/4 v5, 0x0
-
-    const/16 v6, 0x1908
-
-    const/4 v9, 0x0
-
-    move-object v12, p2
-
-    move/from16 v7, p3
-
-    move/from16 v8, p4
-
-    invoke-static/range {v4 .. v12}, Landroid/opengl/GLES20;->glTexImage2D(IIIIIIIILjava/nio/Buffer;)V
-
-    .line 161
+    .line 202
     invoke-static/range {p0 .. p1}, Landroid/opengl/GLES20;->glGetUniformLocation(ILjava/lang/String;)I
 
     move-result p0
 
     invoke-static {p0, v0}, Landroid/opengl/GLES20;->glUniform1i(II)V
 
-    .line 162
+    .line 203
     return-void
 .end method

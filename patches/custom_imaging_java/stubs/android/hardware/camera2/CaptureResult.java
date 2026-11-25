@@ -5,6 +5,7 @@ import android.hardware.camera2.params.ColorSpaceTransform;
 import android.hardware.camera2.params.Face;
 import android.hardware.camera2.params.LensShadingMap;
 import android.hardware.camera2.params.RggbChannelVector;
+import android.util.Pair;
 
 public class CaptureResult {
     public static final class Key<T> {}
@@ -23,5 +24,9 @@ public class CaptureResult {
     public static final Key<String> LOGICAL_MULTI_CAMERA_ACTIVE_PHYSICAL_ID = new Key<>();
     public static final Key<Long> SENSOR_TIMESTAMP = new Key<>();
     public static final Key<Long> SENSOR_EXPOSURE_TIME = new Key<>();
+    public static final Key<Long> SENSOR_ROLLING_SHUTTER_SKEW = new Key<>();
+    public static final Key<float[]> SENSOR_DYNAMIC_BLACK_LEVEL = new Key<>();
+    public static final Key<Pair<Double, Double>[]> SENSOR_NOISE_PROFILE = new Key<>();
+    public static final Key<Integer> STATISTICS_SCENE_FLICKER = new Key<>();
     public <T> T get(Key<T> key) { return null; }
 }

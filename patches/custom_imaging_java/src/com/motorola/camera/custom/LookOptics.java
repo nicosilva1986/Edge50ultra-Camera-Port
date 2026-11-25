@@ -49,7 +49,7 @@ final class LookOptics {
     static LookOptics prepare(CustomImagingBridge.PixelSurface source, int width, int height,
                               int look, int intensity, float clarityScale, float ltmScale) {
         boolean localTone = (look == 5 || look == 6) && width >= 16 && height >= 16;
-        boolean glow = look == 7 || look == 8;
+        boolean glow = look == 7 || look == 8 || look == 12;
         int step = glow ? 4 : AppleStyleToneEngine.autoLtmGridStep();
         int gw = (width + step - 1) / step;
         int gh = (height + step - 1) / step;
@@ -58,6 +58,7 @@ final class LookOptics {
             grid = new float[gw * gh];
             float[] variance = localTone ? new float[grid.length] : null;
             int[] band = new int[width * step];
+            float glowThreshold = look == 12 ? 0.72f : 0.56f;
             for (int y = 0; y < height; y += step) {
                 int rows = Math.min(step, height - y);
                 source.readRows(y, rows, band, 0);
@@ -73,7 +74,9 @@ final class LookOptics {
                             int pixel = band[yy * width + gx * step + xx];
                             float red = LINEAR[pixel >>> 16 & 255];
                             float yLin = luma(red, LINEAR[pixel >>> 8 & 255], LINEAR[pixel & 255]);
-                            sum += Math.max(0, (look == 8 ? red : yLin) - 0.58f);
+                            float emitter = look == 8 ? Math.max(red, 0.70f * yLin) : yLin;
+                            float excess = Math.max(0f, emitter - glowThreshold);
+                            sum += excess * (1f + 0.85f * excess);
                         }
                     }
                     grid[y / step * gw + gx] = sum / (rows * samples);
@@ -83,7 +86,7 @@ final class LookOptics {
                 grid = AppleStyleToneEngine.finalizeAutoLtmBaseGrid(grid, gw, gh);
                 if (grid != null) for (int i = 0; i < grid.length; i++) grid[i] = (float) Math.exp(grid[i]) - 0.002f;
             } else {
-                grid = gaussian(grid, gw, gh);
+                grid = multiScaleHdf(grid, gw, gh);
             }
         }
         return new LookOptics(width, height, look, intensity, clarityScale, ltmScale, step, gw, gh, grid);
@@ -114,19 +117,24 @@ final class LookOptics {
                 } else if (look == 5) {
                     add = strength * 0.16f * clarityScale * Math.max(-0.20f, Math.min(0.20f, light - base));
                 } else {
-                    add = strength * base * (look == 7 ? 0.25f : 0.34f);
+                    float gain = look == 7 ? 0.28f : look == 8 ? 0.36f : 0.13f;
+                    add = strength * base * gain;
                 }
             }
             int hash = x * 0x5bd1e995 ^ y * 0x27d4eb2d;
             hash ^= hash >>> 15;
             hash *= 0x85ebca6b;
             float noise = strength * grain * (1f - light) * (((hash & 255) + (hash >>> 8 & 255)) / 255f - 1f);
-            float bloomG = look == 8 ? 0.18f : 1f;
-            float bloomB = look == 8 ? 0.04f : 1f;
+            float bloomG = look == 8 ? 0.18f : look == 12 ? 0.96f : 1f;
+            float bloomB = look == 8 ? 0.04f : look == 12 ? 0.90f : 1f;
             float chroma = look == 13 ? noise * 0.25f : 0f;
-            pixels[i] = (pixel & 0xff000000) | encode(r * factor + add + noise + chroma) << 16
-                    | encode(g * factor + add * bloomG + noise) << 8
-                    | encode(b * factor + add * bloomB + noise - chroma);
+            // Soft-shoulder screen blend in linear light prevents hard clipping of diffused highlights.
+            float addR = add * (1f - 0.45f * r);
+            float addG = add * bloomG * (1f - 0.45f * g);
+            float addB = add * bloomB * (1f - 0.45f * b);
+            pixels[i] = (pixel & 0xff000000) | encode(r * factor + addR + noise + chroma) << 16
+                    | encode(g * factor + addG + noise) << 8
+                    | encode(b * factor + addB + noise - chroma);
         }
     }
 
@@ -139,13 +147,24 @@ final class LookOptics {
         return mix(top, bottom, fy);
     }
 
-    private static float[] gaussian(float[] source, int width, int height) {
+    /** Two-scale optical Highlight Diffusion Filter (tight core + wide atmospheric veil). */
+    private static float[] multiScaleHdf(float[] source, int width, int height) {
+        float[] core = separableBlur(source, width, height, 2);
+        float[] veil = separableBlur(core, width, height, 6);
+        for (int i = 0; i < source.length; i++) {
+            source[i] = 0.60f * core[i] + 0.40f * veil[i];
+        }
+        return source;
+    }
+
+    private static float[] separableBlur(float[] source, int width, int height, int stride) {
         float[] horizontal = new float[source.length];
+        float[] out = new float[source.length];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 float sum = 0;
                 for (int k = -2; k <= 2; k++) {
-                    sum += GAUSSIAN[k + 2] * source[y * width + Math.max(0, Math.min(width - 1, x + k * 2))];
+                    sum += GAUSSIAN[k + 2] * source[y * width + Math.max(0, Math.min(width - 1, x + k * stride))];
                 }
                 horizontal[y * width + x] = sum / 16f;
             }
@@ -154,12 +173,12 @@ final class LookOptics {
             for (int x = 0; x < width; x++) {
                 float sum = 0;
                 for (int k = -2; k <= 2; k++) {
-                    sum += GAUSSIAN[k + 2] * horizontal[Math.max(0, Math.min(height - 1, y + k * 2)) * width + x];
+                    sum += GAUSSIAN[k + 2] * horizontal[Math.max(0, Math.min(height - 1, y + k * stride)) * width + x];
                 }
-                source[y * width + x] = sum / 16f;
+                out[y * width + x] = sum / 16f;
             }
         }
-        return source;
+        return out;
     }
 
     private static float mix(float a, float b, float t) { return a + (b - a) * t; }
